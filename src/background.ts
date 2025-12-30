@@ -4,8 +4,10 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('Recess extension installed');
 });
 
-// Note: onClick handler is not needed when default_popup is set in manifest.json
-// The popup will open automatically when the extension icon is clicked
+// Handle extension icon clicks - always open in a new tab
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+});
 
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {

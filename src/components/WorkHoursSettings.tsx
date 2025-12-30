@@ -16,53 +16,7 @@ interface WorkHoursEntry {
 }
 
 const WorkHoursSettings: React.FC = () => {
-  const [entries, setEntries] = useState<WorkHoursEntry[]>([
-    {
-      id: '1',
-      timeRange: '11:30 AM - 01:30 PM',
-      days: 'Mon, Tues, Wed, Thurs, Fri',
-      enabled: true,
-      startTime: '11:30 AM',
-      endTime: '1:30 PM',
-      selectedDays: [false, true, true, true, true, true, false],
-    },
-    {
-      id: '2',
-      timeRange: '11:30 AM - 01:30 PM',
-      days: 'Mon, Tues, Wed, Thurs, Fri',
-      enabled: true,
-      startTime: '11:30 AM',
-      endTime: '1:30 PM',
-      selectedDays: [false, true, true, true, true, true, false],
-    },
-    {
-      id: '3',
-      timeRange: '11:30 AM - 01:30 PM',
-      days: 'Mon, Tues, Wed, Thurs, Fri',
-      enabled: true,
-      startTime: '11:30 AM',
-      endTime: '1:30 PM',
-      selectedDays: [false, true, true, true, true, true, false],
-    },
-    {
-      id: '4',
-      timeRange: '11:30 AM - 01:30 PM',
-      days: 'Mon, Tues, Wed, Thurs, Fri',
-      enabled: false,
-      startTime: '11:30 AM',
-      endTime: '1:30 PM',
-      selectedDays: [false, true, true, true, true, true, false],
-    },
-    {
-      id: '5',
-      timeRange: '11:30 AM - 01:30 PM',
-      days: 'Mon, Tues, Wed, Thurs, Fri',
-      enabled: false,
-      startTime: '11:30 AM',
-      endTime: '1:30 PM',
-      selectedDays: [false, true, true, true, true, true, false],
-    },
-  ]);
+  const [entries, setEntries] = useState<WorkHoursEntry[]>([]);
 
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<WorkHoursEntry | null>(null);

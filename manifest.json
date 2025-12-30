@@ -15,8 +15,7 @@
     "<all_urls>"
   ],
   "action": {
-    "default_title": "Recess",
-    "default_popup": "index.html"
+    "default_title": "Recess"
   },
   "background": {
     "service_worker": "background.js"
