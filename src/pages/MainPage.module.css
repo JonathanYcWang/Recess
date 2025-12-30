@@ -1,0 +1,158 @@
+.mainPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-8);
+  box-sizing: border-box;
+  gap: var(--spacing-10);
+}
+
+.headerContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 500px;
+  box-sizing: border-box;
+  gap: var(--spacing-2);
+}
+
+.header {
+  flex-shrink: 0;
+  margin: 0;
+  font-family: 'BenchNine', sans-serif;
+  font-size: 48px;
+  font-style: normal;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--recess-black);
+}
+
+.caption {
+  margin: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 20px;
+  font-style: normal;
+  line-height: normal;
+  text-align: center;
+  color: var(--recess-black);
+}
+
+.contentContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+/* Break Page - illustration wrapper */
+.breakWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.textContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 384px;
+  box-sizing: border-box;
+  font-family: 'Patrick Hand', cursive;
+  font-style: normal;
+  text-align: center;
+  color: var(--recess-black);
+}
+
+.rewardLink {
+  flex-shrink: 0;
+}
+
+.illustration {
+  position: absolute;
+  top: auto;
+  right: calc((100% - 1440px) / 2 + 21px);
+  bottom: 8px;
+  display: block;
+  width: 314px;
+  max-width: calc(50% - 250px);
+  height: 415px;
+}
+
+@media (max-width: 1440px) {
+  .illustration {
+    right: 21px;
+  }
+}
+
+/* Hide cow image on screens below tablet (768px) */
+@media (max-width: 767px) {
+  .illustration {
+    display: none;
+  }
+}
+
+.illustrationContainer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cowImage {
+  position: absolute;
+  top: -20.06%;
+  left: -9.24%;
+  width: 121.34%;
+  height: 137.71%;
+  max-width: none;
+  object-fit: contain;
+}
+
+/* Back To It - tooltip wrapper */
+.backToItWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.tooltipContainer {
+  position: absolute;
+  top: calc(var(--spacing-13) + var(--spacing-14));
+  right: calc((100% - 1440px) / 2 + 213px);
+  z-index: 101;
+}
+
+@media (max-width: 1440px) {
+  .tooltipContainer {
+    right: 213px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .tooltipContainer {
+    right: var(--spacing-5);
+  }
+}
+
+@media (max-width: 768px) {
+  .tooltipContainer {
+    right: var(--spacing-4);
+  }
+}
+
+@media (max-width: 500px) {
+  .tooltipContainer {
+    right: var(--spacing-3);
+  }
+}
+
+.energyCheckToolTip {
+  position: relative;
+}

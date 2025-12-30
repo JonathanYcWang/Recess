@@ -1,0 +1,41 @@
+.navBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-5);
+  width: 100%;
+}
+
+.energyButtonWrapper {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+/* Hide expand button when in new tab mode (window width > 600px) */
+@media (min-width: 601px) {
+  .expandButton {
+    display: none;
+  }
+}
+
+.expandButton:hover {
+  opacity: 0.8;
+}
+
+.settingsButton {
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.settingsButton:hover {
+  opacity: 0.8;
+}

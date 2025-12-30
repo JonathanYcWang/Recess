@@ -1,0 +1,64 @@
+.rewardLink {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  min-width: 250px;
+  max-width: 500px;
+  padding: var(--spacing-2) var(--spacing-6);
+  border: 3px solid var(--recess-black);
+  border-radius: 25px;
+  cursor: pointer;
+  gap: var(--spacing-5);
+}
+
+.rewardLink:hover {
+  transform: translateY(-1px);
+}
+
+.externalLinkIcon {
+  margin-left: auto;
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.primaryText {
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 28px;
+  font-style: normal;
+  line-height: 1.2;
+  color: var(--recess-black);
+}
+
+.secondaryTextContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.greenDot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  background-color: var(--recess-green);
+  border-radius: 35px;
+  opacity: 0.75;
+}
+
+.secondaryText {
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 22px;
+  font-style: normal;
+  line-height: 28px;
+  color: var(--recess-black);
+}

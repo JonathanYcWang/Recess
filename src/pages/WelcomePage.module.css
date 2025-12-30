@@ -1,0 +1,42 @@
+.welcomePage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-8);
+  box-sizing: border-box;
+  gap: var(--spacing-13);
+}
+
+.headerContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 500px;
+  box-sizing: border-box;
+  gap: var(--spacing-2);
+}
+
+.header {
+  flex-shrink: 0;
+  margin: 0;
+  font-family: 'BenchNine', sans-serif;
+  font-size: 48px;
+  font-style: normal;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--recess-black);
+}
+
+.caption {
+  margin: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 20px;
+  font-style: normal;
+  line-height: normal;
+  text-align: center;
+  color: var(--recess-black);
+}

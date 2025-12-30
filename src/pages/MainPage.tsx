@@ -1,0 +1,158 @@
+import React from 'react';
+import NavBar from '../components/NavBar';
+import SecondaryTimerDescription from '../components/SecondaryTimerDescription';
+import CountdownTimer from '../components/CountdownTimer';
+import PrimaryButton from '../components/PrimaryButton';
+import SecondaryButton from '../components/SecondaryButton';
+import TertiaryButton from '../components/TertiaryButton';
+import CardCarousel, { CardCarouselItem } from '../components/CardCarousel';
+import RewardLink from '../components/RewardLink';
+import PauseIcon from '../assets/pause.svg?url';
+import PlayIcon from '../assets/play.svg?url';
+import { useTimerState, DEFAULT_FOCUS_TIME } from '../storage';
+import styles from './MainPage.module.css';
+
+const MainPage: React.FC = () => {
+  const {
+    timerState,
+    startSession,
+    pauseSession,
+    resumeSession,
+    selectReward,
+    handleReroll,
+    endBreakEarly,
+    holdOn,
+    endSessionEarly,
+    rewards,
+    formatTime,
+    isLoaded,
+  } = useTimerState();
+
+  const {
+    sessionState,
+    focusTimeRemaining,
+    breakTimeRemaining,
+    backToItTimeRemaining,
+    pausedTimeRemaining,
+    rerolls,
+    selectedReward,
+  } = timerState;
+
+  // Show loading state until timer state is loaded
+  if (!isLoaded) {
+    return (
+      <div className={styles.mainPage}>
+        <NavBar />
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    switch (sessionState) {
+      case 'BEFORE_SESSION':
+        return (
+          <>
+            <SecondaryTimerDescription text="4:30 Hrs To Go" />
+            <CountdownTimer time={formatTime(DEFAULT_FOCUS_TIME)} label="Next session length" />
+            <PrimaryButton text="Start Session" onClick={startSession} iconSrc={PlayIcon} />
+          </>
+        );
+
+      case 'DURING_SESSION':
+        return (
+          <>
+            <SecondaryTimerDescription text="Active Session" />
+            <CountdownTimer time={formatTime(focusTimeRemaining)} label="Remaining" />
+            <SecondaryButton text="Pause Session" onClick={pauseSession} iconSrc={PauseIcon} />
+          </>
+        );
+
+      case 'PAUSED':
+        return (
+          <>
+            <SecondaryTimerDescription text="Paused Session" />
+            <CountdownTimer time={formatTime(pausedTimeRemaining)} label="Remaining" />
+            <div className={styles.contentContainer}>
+              <PrimaryButton text="Resume Session" onClick={resumeSession} iconSrc={PlayIcon} />
+              <TertiaryButton text="Wrap up session early" onClick={endSessionEarly} />
+            </div>
+          </>
+        );
+
+      case 'REWARD_SELECTION':
+        const rewardCards: CardCarouselItem[] = rewards.map((reward, index) => ({
+          id: reward.id,
+          title: reward.duration,
+          description: reward.name,
+          onClick: () => selectReward(reward),
+          refreshOnClick: () => handleReroll(index),
+        }));
+
+        return (
+          <>
+            <div className={styles.headerContainer}>
+              <p className={styles.header}>Break Time!</p>
+              <p className={styles.caption}>Choose how you recharge.</p>
+            </div>
+            <div className={styles.contentContainer}>
+              <SecondaryTimerDescription text={`Re-rolls left: ${rerolls}`} />
+              <CardCarousel cards={rewardCards} />
+            </div>
+          </>
+        );
+
+      case 'BREAK':
+        return (
+          <>
+            <div className={styles.headerContainer}>
+              <p className={styles.header}>Time To Recharge</p>
+              <p className={styles.caption}>
+                Give your brain a pause, and you'll crush the next session.
+              </p>
+            </div>
+            <CountdownTimer time={formatTime(breakTimeRemaining)} label="Remaining" />
+            <div className={styles.contentContainer}>
+              {selectedReward && (
+                <RewardLink siteName={selectedReward.name} status="Site Unlocked" />
+              )}
+              <TertiaryButton text="Wrap up session early" onClick={endBreakEarly} />
+            </div>
+            <div className={styles.illustration}>
+              <div className={styles.illustrationContainer}>
+                <img src="/assets/cow.png" alt="Cow illustration" className={styles.cowImage} />
+              </div>
+            </div>
+          </>
+        );
+
+      case 'BACK_TO_IT':
+        return (
+          <>
+            <div className={styles.headerContainer}>
+              <p className={styles.header}>Alright, Back To It.</p>
+              <p className={styles.caption}>Next focus session is starting soon.</p>
+            </div>
+            <SecondaryTimerDescription text="3:30 Hrs To Go" />
+            <CountdownTimer time={formatTime(backToItTimeRemaining)} label="starting in" />
+            <div className={styles.contentContainer}>
+              <PrimaryButton text="Start Session" onClick={startSession} iconSrc={PlayIcon} />
+              <SecondaryButton text="Hold On" onClick={holdOn} iconSrc={PauseIcon} />
+            </div>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className={styles.mainPage}>
+      <NavBar />
+      {renderContent()}
+    </div>
+  );
+};
+
+export default MainPage;

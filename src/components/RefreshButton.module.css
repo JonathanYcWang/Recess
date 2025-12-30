@@ -1,0 +1,23 @@
+.refreshButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: fit-content;
+  height: 40px;
+  margin: 0 auto;
+  padding: 8px 18px;
+  background-color: var(--recess-black);
+  border-radius: 25px;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.refreshButton:hover {
+  opacity: 0.9;
+}
+
+.refreshButton > * {
+  filter: brightness(0) invert(1);
+}

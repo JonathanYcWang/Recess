@@ -1,0 +1,42 @@
+.settingsPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-8);
+  box-sizing: border-box;
+  gap: var(--spacing-10);
+}
+
+.tabsContainer {
+  display: flex;
+  gap: var(--spacing-3);
+  width: 100%;
+  max-width: 500px;
+}
+
+.tab {
+  flex: 1;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 24px;
+  text-align: center;
+  color: var(--recess-black);
+  background-color: var(--recess-white);
+  border: 3px solid var(--recess-black);
+  border-radius: 25px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.tab:hover {
+  opacity: 0.9;
+}
+
+.tabActive {
+  background-color: var(--recess-black);
+  color: var(--recess-white);
+}

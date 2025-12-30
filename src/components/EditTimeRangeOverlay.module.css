@@ -1,0 +1,125 @@
+.editTimeRangeOverlay {
+  width: 400px;
+  padding: var(--spacing-6);
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: var(--recess-white);
+  border: 3px solid var(--recess-black);
+  border-radius: 20px;
+}
+
+.contentContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+  gap: 38px;
+}
+
+.timeInput {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.timeText {
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 36px;
+  font-style: normal;
+  line-height: 24px;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--recess-gray-text);
+}
+
+.dash {
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 36px;
+  font-style: normal;
+  line-height: 24px;
+  color: var(--recess-gray-text);
+}
+
+.repeatContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.repeatLabel {
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  font-style: normal;
+  line-height: normal;
+  letter-spacing: 0.32px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--recess-black);
+}
+
+.daySelectionContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dayButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 13px;
+  margin: 0;
+  border: none;
+  border-radius: 25px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 24px;
+  letter-spacing: 0.18px;
+  text-align: center;
+  color: var(--recess-white);
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.dayButton:hover {
+  transform: scale(1.1);
+}
+
+.dayButtonSelected {
+  background-color: var(--recess-black);
+}
+
+.dayButtonUnselected {
+  background-color: #d8d8d8;
+}
+
+.actionsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.saveCancelContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+}

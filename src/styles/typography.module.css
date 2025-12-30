@@ -1,0 +1,113 @@
+/* Typography Design Tokens */
+
+/* Font Families */
+.fontPatrick {
+  font-family: 'Patrick Hand', cursive;
+}
+
+.fontBenchNine {
+  font-family: 'BenchNine', sans-serif;
+}
+
+/* Font Sizes */
+.text96 {
+  font-size: 96px;
+  line-height: 96px;
+}
+
+.text64 {
+  font-size: 64px;
+  line-height: 1.2;
+}
+
+.text41 {
+  font-size: 41px;
+  line-height: normal;
+}
+
+.text28 {
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.text26 {
+  font-size: 26px;
+  line-height: normal;
+}
+
+.text22 {
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.text18 {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.text16 {
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.text14 {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.text12 {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Font Weights */
+.fontRegular {
+  font-weight: 400;
+}
+
+/* Text Transforms */
+.uppercase {
+  text-transform: uppercase;
+}
+
+/* Letter Spacing */
+.trackingWide {
+  letter-spacing: 9.6px;
+}
+
+.trackingMedium {
+  letter-spacing: 3.6px;
+}
+
+.trackingSmall {
+  letter-spacing: 1.2px;
+}
+
+.trackingTiny {
+  letter-spacing: 0.32px;
+}
+
+.trackingMicro {
+  letter-spacing: 0.18px;
+}
+
+/* Text Alignment */
+.textCenter {
+  text-align: center;
+}
+
+.textRight {
+  text-align: right;
+}
+
+/* Text Decoration */
+.underline {
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+/* Whitespace */
+.whitespaceNowrap {
+  white-space: nowrap;
+}
+

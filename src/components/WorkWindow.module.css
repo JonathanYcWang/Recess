@@ -1,0 +1,57 @@
+.workWindow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  width: 100%;
+  min-width: 0;
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--recess-white);
+  border: 1px solid var(--recess-black);
+  border-radius: 6px;
+  transition: transform 0.2s;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.workWindow:hover {
+  transform: translateY(-1px);
+}
+
+.timeRange {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  font-style: normal;
+  line-height: 24px;
+  text-align: left;
+  color: var(--recess-gray-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.days {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  font-style: normal;
+  line-height: 24px;
+  text-align: left;
+  color: var(--recess-gray-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .workWindow {
+    gap: var(--spacing-3);
+  }
+}

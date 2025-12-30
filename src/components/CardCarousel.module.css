@@ -1,0 +1,26 @@
+.carousel {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.carousel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.carouselContainer {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-5);
+  padding: 0 var(--spacing-5);
+  box-sizing: border-box;
+  min-width: fit-content;
+}
+
+@media (max-width: 640px) {
+  .carouselContainer {
+    gap: var(--spacing-3);
+  }
+}

@@ -1,0 +1,65 @@
+.toggle {
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  opacity: 0.9;
+}
+
+/* Toggle On State */
+.toggleOn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  padding-top: 2px;
+  padding-right: 2px;
+  padding-bottom: 2px;
+  padding-left: 18px;
+  background-color: var(--recess-black);
+  border: 1px solid var(--recess-black);
+  border-radius: 9999px;
+}
+
+.backgroundShadow {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  background-color: var(--recess-white);
+  border-radius: 9999px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+/* Toggle Off State */
+.toggleOff {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 36px;
+  height: 20px;
+  padding-top: 2px;
+  padding-right: 18px;
+  padding-bottom: 2px;
+  padding-left: 2px;
+  background-color: var(--recess-gray-3);
+  border: 1px solid var(--recess-gray-3);
+  border-radius: 9999px;
+}
+
+.toggleOff:hover {
+  opacity: 0.8;
+}
+
+.toggleOff .backgroundShadow {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  background-color: var(--recess-white);
+  border-radius: 9999px;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+

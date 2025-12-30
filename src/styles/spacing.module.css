@@ -1,0 +1,64 @@
+/* Spacing Design Tokens */
+
+/* CSS Custom Properties for spacing values */
+:root {
+  --spacing-0: 0;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-13: 51px;
+  --spacing-14: 55px;
+  --spacing-15: 50px;
+}
+
+/* Padding */
+.p0 { padding: 0; }
+.p1 { padding: 4px; }
+.p2 { padding: 8px; }
+.p3 { padding: 12px; }
+.p4 { padding: 16px; }
+.p5 { padding: 20px; }
+.p6 { padding: 24px; }
+.p8 { padding: 32px; }
+
+/* Padding X (horizontal) */
+.px1 { padding-left: 4px; padding-right: 4px; }
+.px2 { padding-left: 8px; padding-right: 8px; }
+.px3 { padding-left: 12px; padding-right: 12px; }
+.px4 { padding-left: 16px; padding-right: 16px; }
+.px6 { padding-left: 24px; padding-right: 24px; }
+.px8 { padding-left: 32px; padding-right: 32px; }
+
+/* Padding Y (vertical) */
+.py1 { padding-top: 4px; padding-bottom: 4px; }
+.py2 { padding-top: 8px; padding-bottom: 8px; }
+.py3 { padding-top: 12px; padding-bottom: 12px; }
+.py4 { padding-top: 16px; padding-bottom: 16px; }
+.py6 { padding-top: 24px; padding-bottom: 24px; }
+
+/* Margin */
+.m0 { margin: 0; }
+.m1 { margin: 4px; }
+.m2 { margin: 8px; }
+.m3 { margin: 12px; }
+.m4 { margin: 16px; }
+.m6 { margin: 24px; }
+.m8 { margin: 32px; }
+
+/* Margin X */
+.mxAuto { margin-left: auto; margin-right: auto; }
+
+/* Gap */
+.gap1 { gap: 4px; }
+.gap2 { gap: 8px; }
+.gap3 { gap: 12px; }
+.gap4 { gap: 16px; }
+.gap6 { gap: 24px; }
+.gap8 { gap: 32px; }
+

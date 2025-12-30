@@ -1,0 +1,31 @@
+.secondaryTimerDescription {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 0 var(--spacing-4);
+  width: fit-content;
+  background-color: var(--recess-gray-light-bg);
+  border: 1px solid var(--recess-gray-border);
+  border-radius: 35px;
+}
+
+.dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  background-color: var(--recess-black);
+  border-radius: 35px;
+  opacity: 0.75;
+}
+
+.text {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--recess-black);
+}

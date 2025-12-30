@@ -1,0 +1,69 @@
+/* Breakpoint Design Tokens */
+
+/* 
+ * IMPORTANT: CSS custom properties cannot be used directly in @media queries.
+ * Use the pixel values below when writing media queries.
+ * 
+ * These custom properties are available for use in other CSS properties:
+ * var(--breakpoint-xs), var(--breakpoint-sm), etc.
+ */
+
+:root {
+  /* Mobile breakpoints */
+  --breakpoint-xs: 500px; /* Minimum supported width */
+  --breakpoint-sm: 640px; /* Small mobile */
+  --breakpoint-card-hide: 700px; /* Hide card descriptions */
+
+  /* Tablet breakpoints */
+  --breakpoint-tablet: 767px; /* Below tablet (for hiding elements) */
+  --breakpoint-md: 768px; /* Tablet and above */
+
+  /* Desktop breakpoints */
+  --breakpoint-lg: 1024px; /* Desktop */
+  --breakpoint-xl: 1280px; /* Large desktop */
+  --breakpoint-2xl: 1536px; /* Extra large desktop */
+
+  /* Layout-specific breakpoints */
+  --breakpoint-card-800: 800px; /* Card scaling */
+  --breakpoint-card-1000: 1000px; /* Card scaling */
+  --breakpoint-card-1200: 1200px; /* Card scaling */
+  --breakpoint-illustration: 1440px; /* Illustration positioning */
+}
+
+/* 
+ * REUSABLE MEDIA QUERY BREAKPOINTS
+ * 
+ * Copy and paste these into your component CSS files.
+ * Use max-width for mobile-first design, min-width for desktop-first.
+ * 
+ * Example usage:
+ * 
+ * @media (max-width: 500px) { ... }  // Extra small screens
+ * @media (max-width: 640px) { ... }  // Small mobile
+ * @media (max-width: 700px) { ... }  // Hide card descriptions
+ * @media (max-width: 767px) { ... }  // Below tablet
+ * @media (max-width: 768px) { ... }  // Tablet and below
+ * @media (max-width: 1024px) { ... } // Desktop and below
+ * 
+ * @media (min-width: 768px) { ... }  // Tablet and above
+ * @media (min-width: 1024px) { ... } // Desktop and above
+ */
+
+/* Standard Breakpoint Values (for reference) */
+/* 
+ * xs:     500px   - Minimum supported width
+ * sm:     640px   - Small mobile
+ * card:   700px   - Hide card descriptions
+ * tablet: 767px   - Below tablet threshold
+ * md:     768px   - Tablet
+ * lg:     1024px  - Desktop
+ * xl:     1280px  - Large desktop
+ * 2xl:    1536px  - Extra large desktop
+ */
+
+/* Container Widths */
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}

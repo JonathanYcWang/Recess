@@ -1,0 +1,41 @@
+.secondaryButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: fit-content;
+  padding-top: 8px;
+  padding-right: 18px;
+  padding-bottom: 8px;
+  padding-left: 18px;
+  box-sizing: border-box;
+  background-color: var(--recess-white);
+  border: 3px solid var(--recess-black);
+  border-radius: 25px;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.secondaryButton:hover {
+  opacity: 0.9;
+}
+
+.secondaryButton img {
+  filter: brightness(0);
+}
+
+.text {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 24px;
+  letter-spacing: 0.18px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--recess-black);
+}
+

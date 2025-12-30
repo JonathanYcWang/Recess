@@ -1,0 +1,29 @@
+.tertiaryButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-1);
+  overflow: hidden;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.tertiaryButton:hover {
+  opacity: 0.8;
+}
+
+.text {
+  position: relative;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.18px;
+  text-align: center;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-underline-position: from-font;
+  white-space: nowrap;
+  color: var(--recess-gray-light);
+  margin: 0;
+}
