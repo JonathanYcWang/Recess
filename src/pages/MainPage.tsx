@@ -9,7 +9,7 @@ import CardCarousel, { CardCarouselItem } from '../components/CardCarousel';
 import RewardLink from '../components/RewardLink';
 import PauseIcon from '../assets/pause.svg?url';
 import PlayIcon from '../assets/play.svg?url';
-import { useTimerState, DEFAULT_FOCUS_TIME } from '../storage';
+import { useTimerState, DEFAULT_FOCUS_TIME, formatWorkSessionTime } from '../storage';
 import styles from './MainPage.module.css';
 
 const MainPage: React.FC = () => {
@@ -23,6 +23,7 @@ const MainPage: React.FC = () => {
     endBreakEarly,
     holdOn,
     endSessionEarly,
+    resetTimerState,
     rewards,
     formatTime,
     isLoaded,
@@ -30,12 +31,12 @@ const MainPage: React.FC = () => {
 
   const {
     sessionState,
-    focusTimeRemaining,
-    breakTimeRemaining,
+    focusSessionDurationRemaining,
+    breakSessionDurationRemaining,
     backToItTimeRemaining,
-    pausedTimeRemaining,
     rerolls,
     selectedReward,
+    workSessionDurationRemaining,
   } = timerState;
 
   // Show loading state until timer state is loaded
@@ -53,7 +54,7 @@ const MainPage: React.FC = () => {
       case 'BEFORE_SESSION':
         return (
           <>
-            <SecondaryTimerDescription text="4:30 Hrs To Go" />
+            <SecondaryTimerDescription text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`} />
             <CountdownTimer time={formatTime(DEFAULT_FOCUS_TIME)} label="Next session length" />
             <PrimaryButton text="Start Session" onClick={startSession} iconSrc={PlayIcon} />
           </>
@@ -63,7 +64,7 @@ const MainPage: React.FC = () => {
         return (
           <>
             <SecondaryTimerDescription text="Active Session" />
-            <CountdownTimer time={formatTime(focusTimeRemaining)} label="Remaining" />
+            <CountdownTimer time={formatTime(focusSessionDurationRemaining)} label="Remaining" />
             <SecondaryButton text="Pause Session" onClick={pauseSession} iconSrc={PauseIcon} />
           </>
         );
@@ -72,7 +73,7 @@ const MainPage: React.FC = () => {
         return (
           <>
             <SecondaryTimerDescription text="Paused Session" />
-            <CountdownTimer time={formatTime(pausedTimeRemaining)} label="Remaining" />
+            <CountdownTimer time={formatTime(focusSessionDurationRemaining)} label="Remaining" />
             <div className={styles.contentContainer}>
               <PrimaryButton text="Resume Session" onClick={resumeSession} iconSrc={PlayIcon} />
               <TertiaryButton text="Wrap up session early" onClick={endSessionEarly} />
@@ -111,7 +112,7 @@ const MainPage: React.FC = () => {
                 Give your brain a pause, and you'll crush the next session.
               </p>
             </div>
-            <CountdownTimer time={formatTime(breakTimeRemaining)} label="Remaining" />
+            <CountdownTimer time={formatTime(breakSessionDurationRemaining)} label="Remaining" />
             <div className={styles.contentContainer}>
               {selectedReward && (
                 <RewardLink siteName={selectedReward.name} status="Site Unlocked" />
@@ -133,11 +134,28 @@ const MainPage: React.FC = () => {
               <p className={styles.header}>Alright, Back To It.</p>
               <p className={styles.caption}>Next focus session is starting soon.</p>
             </div>
-            <SecondaryTimerDescription text="3:30 Hrs To Go" />
+            <SecondaryTimerDescription text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`} />
             <CountdownTimer time={formatTime(backToItTimeRemaining)} label="starting in" />
             <div className={styles.contentContainer}>
               <PrimaryButton text="Start Session" onClick={startSession} iconSrc={PlayIcon} />
               <SecondaryButton text="Hold On" onClick={holdOn} iconSrc={PauseIcon} />
+            </div>
+          </>
+        );
+
+      case 'SESSION_COMPLETE':
+        return (
+          <>
+            <div className={styles.headerContainer}>
+              <p className={styles.header}>Congrats!</p>
+              <p className={styles.caption}>You've completed your work session for today.</p>
+            </div>
+            <div className={styles.contentContainer}>
+              <PrimaryButton 
+                text="Reset & Start Fresh" 
+                onClick={resetTimerState} 
+                iconSrc={PlayIcon} 
+              />
             </div>
           </>
         );

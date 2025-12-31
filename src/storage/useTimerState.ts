@@ -5,33 +5,42 @@ import {
   DEFAULT_BREAK_TIME,
   DEFAULT_BACK_TO_IT_TIME,
   DEFAULT_REROLLS,
+  DEFAULT_TOTAL_WORK_DURATION,
 } from './constants';
 import { SessionState, Reward } from './types';
 import { formatTime as formatTimeUtil } from './utils';
 
 export interface TimerState {
   sessionState: SessionState;
-  focusTimeRemaining: number;
-  breakTimeRemaining: number;
+  
+  // Requested Variables
+  workSessionDurationRemaining: number;
+  initialWorkSessionDuration: number;
+  initialFocusSessionDuration: number;
+  initialBreakSessionDuration: number;
+  focusSessionDurationRemaining: number;
+  breakSessionDurationRemaining: number;
+  focusSessionEntryTimeStamp?: number;
+  breakSessionEntryTimeStamp?: number;
+
+  // Other necessary state
   backToItTimeRemaining: number;
-  pausedTimeRemaining: number;
   rerolls: number;
   selectedReward: Reward | null;
-  sessionStartTime?: number; // Timestamp when session started (for accurate time calculation across popup/tab switches)
-  initialFocusTime?: number; // Initial focus time when session started (for accurate calculation)
-  breakStartTime?: number; // Timestamp when break started
-  initialBreakTime?: number; // Initial break time when break started
-  pauseStartTime?: number; // Timestamp when paused (for accurate pause duration)
 }
 
 const TIMER_STATE_KEY = 'timerState';
 
 const DEFAULT_TIMER_STATE: TimerState = {
   sessionState: 'BEFORE_SESSION',
-  focusTimeRemaining: DEFAULT_FOCUS_TIME,
-  breakTimeRemaining: DEFAULT_BREAK_TIME,
+  workSessionDurationRemaining: DEFAULT_TOTAL_WORK_DURATION,
+  initialWorkSessionDuration: DEFAULT_TOTAL_WORK_DURATION,
+  initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
+  initialBreakSessionDuration: DEFAULT_BREAK_TIME,
+  focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+  breakSessionDurationRemaining: DEFAULT_BREAK_TIME,
+  
   backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
-  pausedTimeRemaining: 0,
   rerolls: DEFAULT_REROLLS,
   selectedReward: null,
 };
@@ -49,42 +58,7 @@ export const useTimerState = () => {
     if (isReady && !isLoaded) {
       get<TimerState>(TIMER_STATE_KEY).then((savedState) => {
         if (savedState) {
-          // Calculate actual remaining time based on timestamps if session is active
-          let adjustedState = { ...savedState };
-
-          if (savedState.sessionStartTime && savedState.sessionState === 'DURING_SESSION') {
-            const initialTime = savedState.initialFocusTime || DEFAULT_FOCUS_TIME;
-            const elapsed = Math.floor((Date.now() - savedState.sessionStartTime) / 1000);
-            const newRemaining = Math.max(0, initialTime - elapsed);
-            adjustedState.focusTimeRemaining = newRemaining;
-            adjustedState.initialFocusTime = initialTime;
-
-            // If time ran out while away, transition to reward selection
-            if (newRemaining <= 0) {
-              adjustedState.sessionState = 'REWARD_SELECTION';
-              adjustedState.sessionStartTime = undefined;
-              adjustedState.initialFocusTime = undefined;
-              adjustedState.focusTimeRemaining = DEFAULT_FOCUS_TIME;
-            }
-          }
-
-          if (savedState.breakStartTime && savedState.sessionState === 'BREAK') {
-            const initialTime = savedState.initialBreakTime || DEFAULT_BREAK_TIME;
-            const elapsed = Math.floor((Date.now() - savedState.breakStartTime) / 1000);
-            const newRemaining = Math.max(0, initialTime - elapsed);
-            adjustedState.breakTimeRemaining = newRemaining;
-            adjustedState.initialBreakTime = initialTime;
-
-            if (newRemaining <= 0) {
-              adjustedState.sessionState = 'BACK_TO_IT';
-              adjustedState.breakStartTime = undefined;
-              adjustedState.initialBreakTime = undefined;
-              adjustedState.breakTimeRemaining = DEFAULT_BREAK_TIME;
-              adjustedState.backToItTimeRemaining = DEFAULT_BACK_TO_IT_TIME;
-            }
-          }
-
-          setTimerState(adjustedState);
+          setTimerState(savedState);
         }
         setIsLoaded(true);
       });
@@ -98,7 +72,7 @@ export const useTimerState = () => {
     }
   }, [timerState, isReady, isLoaded, set]);
 
-  // Focus session timer countdown (only runs during DURING_SESSION state)
+  // Focus session timer countdown
   useEffect(() => {
     if (focusIntervalRef.current) {
       clearInterval(focusIntervalRef.current);
@@ -107,30 +81,50 @@ export const useTimerState = () => {
 
     if (
       timerState.sessionState === 'DURING_SESSION' &&
-      timerState.sessionStartTime &&
-      timerState.initialFocusTime
+      timerState.focusSessionEntryTimeStamp
     ) {
       focusIntervalRef.current = setInterval(() => {
         setTimerState((prev) => {
-          if (!prev.sessionStartTime || !prev.initialFocusTime) return prev;
+          if (!prev.focusSessionEntryTimeStamp) return prev;
 
-          const elapsed = Math.floor((Date.now() - prev.sessionStartTime!) / 1000);
-          const newRemaining = Math.max(0, prev.initialFocusTime - elapsed);
+          const currentTimeStamp = Date.now();
+          const elapsedSinceEntry = Math.floor((currentTimeStamp - prev.focusSessionEntryTimeStamp) / 1000);
+          // focusSessionDurationRemaining = initialFocusSessionDuration - (currentTimeStamp - focusSessionEntryTimeStamp)
+          const newRemaining = Math.max(0, prev.initialFocusSessionDuration - elapsedSinceEntry);
 
           if (newRemaining <= 0) {
-            // Timer ran out, transition to reward selection and reset timer
+            // Timer ran out
+            // Reduced workSessionDurationRemaining by completedFocusSessionDuration
+            // completedFocusSessionDuration = initialFocusSessionDuration - focusSessionDurationRemaining
+            // Here: initialFocusSessionDuration (at entry) - 0 = initialFocusSessionDuration
+            
+            const completedFocusSessionDuration = prev.initialFocusSessionDuration;
+            const newWorkSessionRemaining = Math.max(0, prev.workSessionDurationRemaining - completedFocusSessionDuration);
+
+            if (newWorkSessionRemaining <= 0) {
+              return {
+                ...prev,
+                sessionState: 'SESSION_COMPLETE',
+                focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+                workSessionDurationRemaining: 0,
+                focusSessionEntryTimeStamp: undefined,
+                initialFocusSessionDuration: DEFAULT_FOCUS_TIME, // Reset logic for cleanliness
+              };
+            }
+
             return {
               ...prev,
               sessionState: 'REWARD_SELECTION',
-              focusTimeRemaining: DEFAULT_FOCUS_TIME,
-              sessionStartTime: undefined,
-              initialFocusTime: undefined,
+              focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+              workSessionDurationRemaining: newWorkSessionRemaining,
+              focusSessionEntryTimeStamp: undefined,
+              initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
             };
           }
 
           return {
             ...prev,
-            focusTimeRemaining: newRemaining,
+            focusSessionDurationRemaining: newRemaining,
           };
         });
       }, 1000);
@@ -142,7 +136,7 @@ export const useTimerState = () => {
         focusIntervalRef.current = null;
       }
     };
-  }, [timerState.sessionState, timerState.sessionStartTime, timerState.initialFocusTime]);
+  }, [timerState.sessionState, timerState.initialFocusSessionDuration, timerState.focusSessionEntryTimeStamp]);
 
   // Break timer countdown
   useEffect(() => {
@@ -153,30 +147,30 @@ export const useTimerState = () => {
 
     if (
       timerState.sessionState === 'BREAK' &&
-      timerState.breakStartTime &&
-      timerState.initialBreakTime
+      timerState.breakSessionEntryTimeStamp
     ) {
       breakIntervalRef.current = setInterval(() => {
         setTimerState((prev) => {
-          if (!prev.breakStartTime || !prev.initialBreakTime) return prev;
+          if (!prev.breakSessionEntryTimeStamp) return prev;
 
-          const elapsed = Math.floor((Date.now() - prev.breakStartTime!) / 1000);
-          const newRemaining = Math.max(0, prev.initialBreakTime - elapsed);
+          const currentTimeStamp = Date.now();
+          const elapsedSinceEntry = Math.floor((currentTimeStamp - prev.breakSessionEntryTimeStamp) / 1000);
+          const newRemaining = Math.max(0, prev.initialBreakSessionDuration - elapsedSinceEntry);
 
           if (newRemaining <= 0) {
             return {
               ...prev,
               sessionState: 'BACK_TO_IT',
-              breakTimeRemaining: DEFAULT_BREAK_TIME,
+              breakSessionDurationRemaining: DEFAULT_BREAK_TIME,
               backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
-              breakStartTime: undefined,
-              initialBreakTime: undefined,
+              breakSessionEntryTimeStamp: undefined,
+              initialBreakSessionDuration: DEFAULT_BREAK_TIME,
             };
           }
 
           return {
             ...prev,
-            breakTimeRemaining: newRemaining,
+            breakSessionDurationRemaining: newRemaining,
           };
         });
       }, 1000);
@@ -188,7 +182,7 @@ export const useTimerState = () => {
         breakIntervalRef.current = null;
       }
     };
-  }, [timerState.sessionState, timerState.breakStartTime, timerState.initialBreakTime]);
+  }, [timerState.sessionState, timerState.initialBreakSessionDuration, timerState.breakSessionEntryTimeStamp]);
 
   // Back to it timer countdown
   useEffect(() => {
@@ -204,10 +198,11 @@ export const useTimerState = () => {
             return {
               ...prev,
               sessionState: 'DURING_SESSION',
-              focusTimeRemaining: DEFAULT_FOCUS_TIME,
+              focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
               backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
-              sessionStartTime: Date.now(),
-              initialFocusTime: DEFAULT_FOCUS_TIME,
+              
+              focusSessionEntryTimeStamp: Date.now(),
+              initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
             };
           }
 
@@ -242,20 +237,23 @@ export const useTimerState = () => {
     setTimerState((prev) => ({
       ...prev,
       sessionState: 'DURING_SESSION',
-      focusTimeRemaining: DEFAULT_FOCUS_TIME,
-      sessionStartTime: Date.now(),
-      initialFocusTime: DEFAULT_FOCUS_TIME,
+      focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+      focusSessionEntryTimeStamp: Date.now(),
+      initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
     }));
   }, []);
 
-  // Pause session (stops the timer)
+  // Pause session
   const pauseSession = useCallback(() => {
     setTimerState((prev) => ({
       ...prev,
       sessionState: 'PAUSED',
-      pausedTimeRemaining: prev.focusTimeRemaining,
-      sessionStartTime: undefined, // Stop the timer
-      initialFocusTime: undefined,
+      // Stop tracking, keep existing values stable.
+      focusSessionEntryTimeStamp: undefined,
+      // We don't change initialFocusSessionDuration here, or we can clear it.
+      // But we need it for the 'resume' logic if we want to infer.
+      // Actually, we just need 'focusSessionDurationRemaining' to stay as is.
+      // So we do nothing to it.
     }));
   }, []);
 
@@ -264,10 +262,8 @@ export const useTimerState = () => {
     setTimerState((prev) => ({
       ...prev,
       sessionState: 'DURING_SESSION',
-      focusTimeRemaining: prev.pausedTimeRemaining,
-      sessionStartTime: Date.now(),
-      initialFocusTime: prev.pausedTimeRemaining,
-      pausedTimeRemaining: 0,
+      focusSessionEntryTimeStamp: Date.now(),
+      initialFocusSessionDuration: prev.focusSessionDurationRemaining, // Continue from where we left off
     }));
   }, []);
 
@@ -276,10 +272,10 @@ export const useTimerState = () => {
     setTimerState((prev) => ({
       ...prev,
       selectedReward: reward,
-      breakTimeRemaining: DEFAULT_BREAK_TIME,
+      breakSessionDurationRemaining: DEFAULT_BREAK_TIME,
       sessionState: 'BREAK',
-      breakStartTime: Date.now(),
-      initialBreakTime: DEFAULT_BREAK_TIME,
+      breakSessionEntryTimeStamp: Date.now(),
+      initialBreakSessionDuration: DEFAULT_BREAK_TIME,
     }));
   }, []);
 
@@ -296,8 +292,7 @@ export const useTimerState = () => {
     setTimerState((prev) => ({
       ...prev,
       sessionState: 'BACK_TO_IT',
-      breakStartTime: undefined,
-      initialBreakTime: undefined,
+      breakSessionEntryTimeStamp: undefined,
       backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
     }));
   }, []);
@@ -310,24 +305,43 @@ export const useTimerState = () => {
     }));
   }, []);
 
-  // End session early (go to reward selection)
+  // End session early
   const endSessionEarly = useCallback(() => {
-    setTimerState((prev) => ({
-      ...prev,
-      sessionState: 'REWARD_SELECTION',
-      sessionStartTime: undefined,
-      focusTimeRemaining: DEFAULT_FOCUS_TIME,
-    }));
+    setTimerState((prev) => {
+      // Logic: completed = initial - remaining
+      const completedInSegment = Math.max(0, prev.initialFocusSessionDuration - prev.focusSessionDurationRemaining);
+      const newWorkSessionRemaining = Math.max(0, prev.workSessionDurationRemaining - completedInSegment);
+
+      if (newWorkSessionRemaining <= 0) {
+        return {
+          ...prev,
+          sessionState: 'SESSION_COMPLETE',
+          focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+          workSessionDurationRemaining: 0,
+          focusSessionEntryTimeStamp: undefined,
+          initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
+        };
+      }
+
+      return {
+        ...prev,
+        sessionState: 'REWARD_SELECTION',
+        focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+        workSessionDurationRemaining: newWorkSessionRemaining,
+        focusSessionEntryTimeStamp: undefined,
+        initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
+      };
+    });
   }, []);
 
-  // Rewards list (static for now)
+  // Rewards list
   const rewards: Reward[] = [
     { id: '1', name: 'Netflix', duration: '15 min' },
     { id: '2', name: 'Tiktok', duration: '10 min' },
     { id: '3', name: 'Instagram', duration: '5 min' },
   ];
 
-  // Format time helper (using shared utility)
+  // Format time helper
   const formatTime = useCallback((seconds: number): string => {
     return formatTimeUtil(seconds);
   }, []);

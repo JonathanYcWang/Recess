@@ -3,6 +3,32 @@
 @import './spacing.module.css';
 @import './breakpoints.module.css';
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10.6%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 10.6%;
+    --radius: 0.5rem;
+    --primary: 142 76% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 10.6%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 10.6%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+  }
+}
+
+
 /* Global Styles */
 * {
   box-sizing: border-box;

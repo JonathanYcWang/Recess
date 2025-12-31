@@ -3,38 +3,22 @@ import { Dialog } from '@mui/material';
 import PrimaryButton from './PrimaryButton';
 import WorkWindow from './WorkWindow';
 import EditTimeRangeOverlay from './EditTimeRangeOverlay';
+import { useWorkHours } from '../storage';
 import styles from './WorkHoursSettings.module.css';
 
-interface WorkHoursEntry {
-  id: string;
-  timeRange: string;
-  days: string;
-  enabled: boolean;
-  startTime?: string;
-  endTime?: string;
-  selectedDays?: boolean[];
-}
-
 const WorkHoursSettings: React.FC = () => {
-  const [entries, setEntries] = useState<WorkHoursEntry[]>([]);
-
+  const { entries, addEntry, updateEntry, deleteEntry, toggleEntry } = useWorkHours();
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<WorkHoursEntry | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const toggleEntry = (id: string) => {
-    setEntries(
-      entries.map((entry) => (entry.id === id ? { ...entry, enabled: !entry.enabled } : entry))
-    );
-  };
-
-  const openOverlay = (entry: WorkHoursEntry | null = null) => {
-    setEditingEntry(entry);
+  const openOverlay = (id: string | null = null) => {
+    setEditingId(id);
     setOverlayOpen(true);
   };
 
   const closeOverlay = () => {
     setOverlayOpen(false);
-    setEditingEntry(null);
+    setEditingId(null);
   };
 
   const formatDays = (selectedDays: boolean[]) => {
@@ -46,33 +30,22 @@ const WorkHoursSettings: React.FC = () => {
   };
 
   const handleSave = (timeRange: { start: string; end: string }, selectedDays: boolean[]) => {
-    const newEntry: Partial<WorkHoursEntry> = {
-      timeRange: `${timeRange.start} - ${timeRange.end}`,
-      days: formatDays(selectedDays),
-      startTime: timeRange.start,
-      endTime: timeRange.end,
-      selectedDays,
-    };
-
-    if (editingEntry) {
-      setEntries(
-        entries.map((entry) => (entry.id === editingEntry.id ? { ...entry, ...newEntry } : entry))
-      );
+    if (editingId) {
+      updateEntry(editingId, timeRange.start, timeRange.end, selectedDays);
     } else {
-      setEntries([
-        ...entries,
-        { ...newEntry, id: Date.now().toString(), enabled: true } as WorkHoursEntry,
-      ]);
+      addEntry(timeRange.start, timeRange.end, selectedDays);
     }
     closeOverlay();
   };
 
   const handleDelete = () => {
-    if (editingEntry) {
-      setEntries(entries.filter((entry) => entry.id !== editingEntry.id));
+    if (editingId) {
+      deleteEntry(editingId);
       closeOverlay();
     }
   };
+
+  const editingEntry = editingId ? entries.find((e) => e.id === editingId) : null;
 
   return (
     <div className={styles.workHoursSettings}>
@@ -85,11 +58,11 @@ const WorkHoursSettings: React.FC = () => {
         {entries.map((entry) => (
           <WorkWindow
             key={entry.id}
-            timeRange={entry.timeRange}
-            days={entry.days}
+            timeRange={`${entry.startTime} - ${entry.endTime}`}
+            days={formatDays(entry.days)}
             enabled={entry.enabled}
             onToggle={() => toggleEntry(entry.id)}
-            onEdit={() => openOverlay(entry)}
+            onEdit={() => openOverlay(entry.id)}
           />
         ))}
       </div>
@@ -113,10 +86,10 @@ const WorkHoursSettings: React.FC = () => {
             start: editingEntry?.startTime || '11:30 AM',
             end: editingEntry?.endTime || '1:30 PM',
           }}
-          selectedDays={editingEntry?.selectedDays}
+          selectedDays={editingEntry?.days}
           onSave={handleSave}
           onCancel={closeOverlay}
-          onDelete={editingEntry ? handleDelete : undefined}
+          onDelete={editingId ? handleDelete : undefined}
         />
       </Dialog>
     </div>
