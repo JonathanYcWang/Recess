@@ -3,23 +3,10 @@ import PrimaryButton from './PrimaryButton';
 import Icon from './Icon';
 import TimesIcon from '../assets/times.svg?url';
 import styles from './BlockedSites.module.css';
-
-const defaultSites = [
-  'youtube.com',
-  'instagram.com',
-  'facebook.com',
-  'messenger.com',
-  'web.whatsapp.com',
-  'discord.com',
-  'tiktok.com',
-  'netflix.com',
-  'primevideo.com',
-  'amazon.com',
-  'reddit.com',
-];
+import { useBlockedSites } from '../storage';
 
 const BlockedSites: React.FC = () => {
-  const [sites, setSites] = useState<string[]>(defaultSites);
+  const { sites, addSite, removeSite } = useBlockedSites();
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string>('');
 
@@ -80,13 +67,9 @@ const BlockedSites: React.FC = () => {
       return;
     }
 
-    setSites([...sites, normalizedUrl]);
+    addSite(normalizedUrl);
     setInputValue('');
     setError('');
-  };
-
-  const handleRemove = (site: string) => {
-    setSites(sites.filter((s) => s !== site));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -121,7 +104,7 @@ const BlockedSites: React.FC = () => {
           {sites.map((site) => (
             <div key={site} className={styles.siteItem}>
               <p className={styles.siteName}>{site}</p>
-              <Icon src={TimesIcon} alt="Remove" size={9} onClick={() => handleRemove(site)} />
+              <Icon src={TimesIcon} alt="Remove" size={9} onClick={() => removeSite(site)} />
             </div>
           ))}
         </div>

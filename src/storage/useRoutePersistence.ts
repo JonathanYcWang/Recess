@@ -1,34 +1,25 @@
 import { useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useStorage } from './StorageContext';
 
-const LAST_ROUTE_KEY = 'lastRoute';
+const HAS_ONBOARDED_KEY = 'hasOnboarded';
 
 export const useRoutePersistence = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { get, set, isReady } = useStorage();
-  const hasRestoredRef = useRef(false);
+  const { get, isReady } = useStorage();
+  const hasCheckedRef = useRef(false);
 
   useEffect(() => {
-    // Load saved route on mount only (once)
-    if (isReady && !hasRestoredRef.current) {
-      hasRestoredRef.current = true;
-      get<string>(LAST_ROUTE_KEY).then((lastRoute) => {
-        // Only redirect on initial load if we're on the welcome page and have a saved route
+    // Check onboarding status on mount only (once)
+    if (isReady && !hasCheckedRef.current) {
+      hasCheckedRef.current = true;
+      get<boolean>(HAS_ONBOARDED_KEY).then((hasOnboarded) => {
+        // If user has onboarded and is currently on the root (welcome) page, redirect to main
         const currentPath = window.location.hash.replace('#', '') || '/';
-        if (lastRoute && lastRoute !== '/' && currentPath === '/') {
-          navigate(lastRoute, { replace: true });
+        if (hasOnboarded && currentPath === '/') {
+          navigate('/main', { replace: true });
         }
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady]); // Only run when storage becomes ready
-
-  useEffect(() => {
-    // Save route whenever it changes (skip the initial restore)
-    if (isReady && hasRestoredRef.current && location.pathname) {
-      set(LAST_ROUTE_KEY, location.pathname);
-    }
-  }, [location.pathname, isReady, set]);
+  }, [isReady, get, navigate]);
 };

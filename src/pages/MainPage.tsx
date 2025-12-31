@@ -15,13 +15,11 @@ import styles from './MainPage.module.css';
 const MainPage: React.FC = () => {
   const {
     timerState,
-    startSession,
+    startFocusSession,
     pauseSession,
     resumeSession,
     selectReward,
     handleReroll,
-    endBreakEarly,
-    holdOn,
     endSessionEarly,
     resetTimerState,
     rewards,
@@ -37,6 +35,7 @@ const MainPage: React.FC = () => {
     rerolls,
     selectedReward,
     workSessionDurationRemaining,
+    pausedFrom,
   } = timerState;
 
   // Show loading state until timer state is loaded
@@ -56,7 +55,7 @@ const MainPage: React.FC = () => {
           <>
             <SecondaryTimerDescription text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`} />
             <CountdownTimer time={formatTime(DEFAULT_FOCUS_TIME)} label="Next session length" />
-            <PrimaryButton text="Start Session" onClick={startSession} iconSrc={PlayIcon} />
+            <PrimaryButton text="Start Session" onClick={startFocusSession} iconSrc={PlayIcon} />
           </>
         );
 
@@ -70,10 +69,13 @@ const MainPage: React.FC = () => {
         );
 
       case 'PAUSED':
+        const pausedTime = pausedFrom === 'BACK_TO_IT' ? backToItTimeRemaining : focusSessionDurationRemaining;
+        const pausedLabel = pausedFrom === 'BACK_TO_IT' ? 'starting in' : 'Remaining';
+        
         return (
           <>
             <SecondaryTimerDescription text="Paused Session" />
-            <CountdownTimer time={formatTime(focusSessionDurationRemaining)} label="Remaining" />
+            <CountdownTimer time={formatTime(pausedTime)} label={pausedLabel} />
             <div className={styles.contentContainer}>
               <PrimaryButton text="Resume Session" onClick={resumeSession} iconSrc={PlayIcon} />
               <TertiaryButton text="Wrap up session early" onClick={endSessionEarly} />
@@ -117,7 +119,7 @@ const MainPage: React.FC = () => {
               {selectedReward && (
                 <RewardLink siteName={selectedReward.name} status="Site Unlocked" />
               )}
-              <TertiaryButton text="Wrap up session early" onClick={endBreakEarly} />
+              <TertiaryButton text="Wrap up session early" onClick={endSessionEarly} />
             </div>
             <div className={styles.illustration}>
               <div className={styles.illustrationContainer}>
@@ -137,8 +139,8 @@ const MainPage: React.FC = () => {
             <SecondaryTimerDescription text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`} />
             <CountdownTimer time={formatTime(backToItTimeRemaining)} label="starting in" />
             <div className={styles.contentContainer}>
-              <PrimaryButton text="Start Session" onClick={startSession} iconSrc={PlayIcon} />
-              <SecondaryButton text="Hold On" onClick={holdOn} iconSrc={PauseIcon} />
+              <PrimaryButton text="Start Session" onClick={startFocusSession} iconSrc={PlayIcon} />
+              <SecondaryButton text="Hold On" onClick={pauseSession} iconSrc={PauseIcon} />
             </div>
           </>
         );

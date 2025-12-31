@@ -7,34 +7,16 @@ import {
   DEFAULT_REROLLS,
   DEFAULT_TOTAL_WORK_DURATION,
 } from './constants';
-import { SessionState, Reward } from './types';
+import { TimerState } from './types';
 import { formatTime as formatTimeUtil } from './utils';
-
-export interface TimerState {
-  sessionState: SessionState;
-  
-  // Requested Variables
-  workSessionDurationRemaining: number;
-  initialWorkSessionDuration: number;
-  initialFocusSessionDuration: number;
-  initialBreakSessionDuration: number;
-  focusSessionDurationRemaining: number;
-  breakSessionDurationRemaining: number;
-  focusSessionEntryTimeStamp?: number;
-  breakSessionEntryTimeStamp?: number;
-
-  // Other necessary state
-  backToItTimeRemaining: number;
-  rerolls: number;
-  selectedReward: Reward | null;
-}
+import { useRewardLogic } from './useRewardLogic';
 
 const TIMER_STATE_KEY = 'timerState';
 
 const DEFAULT_TIMER_STATE: TimerState = {
   sessionState: 'BEFORE_SESSION',
-  workSessionDurationRemaining: DEFAULT_TOTAL_WORK_DURATION,
   initialWorkSessionDuration: DEFAULT_TOTAL_WORK_DURATION,
+  workSessionDurationRemaining: DEFAULT_TOTAL_WORK_DURATION,
   initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
   initialBreakSessionDuration: DEFAULT_BREAK_TIME,
   focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
@@ -43,6 +25,12 @@ const DEFAULT_TIMER_STATE: TimerState = {
   backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
   rerolls: DEFAULT_REROLLS,
   selectedReward: null,
+  pausedFrom: null,
+
+  nextFocusDuration: DEFAULT_FOCUS_TIME,
+  nextBreakDuration: DEFAULT_BREAK_TIME,
+  lastFocusSessionCompleted: false,
+  generatedRewards: [],
 };
 
 // Helper: Calculate remaining time based on timestamps
@@ -57,7 +45,9 @@ const calculateRemaining = (initialDuration: number, entryTimeStamp?: number): n
 const getNextFocusState = (
   currentWorkRemaining: number, 
   initialFocusDuration: number, 
-  actualFocusRemaining: number
+  actualFocusRemaining: number,
+  lastCompleted: boolean,
+  nextFocusDuration: number
 ): Partial<TimerState> => {
   const completedInSegment = Math.max(0, initialFocusDuration - actualFocusRemaining);
   const newWorkRemaining = Math.max(0, currentWorkRemaining - completedInSegment);
@@ -65,19 +55,21 @@ const getNextFocusState = (
   if (newWorkRemaining <= 0) {
     return {
       sessionState: 'SESSION_COMPLETE',
-      focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
-      workSessionDurationRemaining: 0, // Ensure 0
+      focusSessionDurationRemaining: nextFocusDuration,
+      workSessionDurationRemaining: 0,
       focusSessionEntryTimeStamp: undefined,
-      initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
+      initialFocusSessionDuration: nextFocusDuration,
+      lastFocusSessionCompleted: lastCompleted,
     };
   }
   
   return {
     sessionState: 'REWARD_SELECTION',
-    focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+    focusSessionDurationRemaining: nextFocusDuration,
     workSessionDurationRemaining: newWorkRemaining,
     focusSessionEntryTimeStamp: undefined,
-    initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
+    initialFocusSessionDuration: nextFocusDuration,
+    lastFocusSessionCompleted: lastCompleted,
   };
 };
 
@@ -86,13 +78,16 @@ export const useTimerState = () => {
   const [timerState, setTimerState] = useState<TimerState>(DEFAULT_TIMER_STATE);
   const [isLoaded, setIsLoaded] = useState(false);
   const [, setTick] = useState(0); // Force re-render for UI updates
+  
+  const { rewards, selectReward, handleReroll } = useRewardLogic(timerState, setTimerState);
 
   // Load timer state from storage on mount
   useEffect(() => {
     if (isReady && !isLoaded) {
       get<TimerState>(TIMER_STATE_KEY).then((savedState) => {
         if (savedState) {
-          setTimerState(savedState);
+          // Merge with DEFAULT_TIMER_STATE to ensure new properties like generatedRewards exist
+          setTimerState({ ...DEFAULT_TIMER_STATE, ...savedState });
         }
         setIsLoaded(true);
       });
@@ -126,7 +121,9 @@ export const useTimerState = () => {
                      nextState = getNextFocusState(
                          timerState.workSessionDurationRemaining,
                          timerState.initialFocusSessionDuration,
-                         remaining // 0
+                         remaining,
+                         true, // lastCompleted = true (natural end)
+                         timerState.nextFocusDuration
                      );
                  }
                  break;
@@ -138,10 +135,10 @@ export const useTimerState = () => {
                     // Transition Logic
                     nextState = {
                         sessionState: 'BACK_TO_IT',
-                        breakSessionDurationRemaining: DEFAULT_BREAK_TIME,
+                        breakSessionDurationRemaining: timerState.nextBreakDuration,
                         backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
                         breakSessionEntryTimeStamp: undefined,
-                        initialBreakSessionDuration: DEFAULT_BREAK_TIME,
+                        initialBreakSessionDuration: timerState.nextBreakDuration,
                     };
                 }
                 break;
@@ -151,10 +148,10 @@ export const useTimerState = () => {
                     shouldUpdateState = true;
                     nextState = {
                         sessionState: 'DURING_SESSION',
-                        focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
+                        focusSessionDurationRemaining: timerState.nextFocusDuration,
                         backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
                         focusSessionEntryTimeStamp: Date.now(),
-                        initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
+                        initialFocusSessionDuration: timerState.nextFocusDuration,
                     };
                 } else {
                     shouldUpdateState = true;
@@ -206,11 +203,11 @@ export const useTimerState = () => {
 
   // Reset timer state to default
   const resetTimerState = useCallback(() => {
-    setTimerState(DEFAULT_TIMER_STATE);
+    setTimerState({ ...DEFAULT_TIMER_STATE });
   }, []);
 
   // Start focus session
-  const startSession = useCallback(() => {
+  const startFocusSession = useCallback(() => {
     setTimerState((prev) => ({
       ...prev,
       sessionState: 'DURING_SESSION',
@@ -223,93 +220,90 @@ export const useTimerState = () => {
   // Pause session
   const pauseSession = useCallback(() => {
     setTimerState((prev) => {
-        // Freeze current time using helper
-        const currentRemaining = calculateRemaining(
-            prev.initialFocusSessionDuration, 
-            prev.focusSessionEntryTimeStamp
-        );
+        // Freeze current time using helper if active session
+        // If BACK_TO_IT, we don't have a timestamp, just current value in state is sufficient (as it's just a counter)
+        
+        // We only care about calculating active focus time if we are in DURING_SESSION
+        let currentRemaining = prev.focusSessionDurationRemaining;
+        if (prev.sessionState === 'DURING_SESSION') {
+            currentRemaining = calculateRemaining(
+                prev.initialFocusSessionDuration, 
+                prev.focusSessionEntryTimeStamp
+            );
+        }
+        
+        let pausedFrom = prev.sessionState as 'DURING_SESSION' | 'BACK_TO_IT';
+        if (prev.sessionState !== 'DURING_SESSION' && prev.sessionState !== 'BACK_TO_IT') {
+             if (prev.sessionState === 'PAUSED') return prev;
+             pausedFrom = 'DURING_SESSION';
+        }
 
         return {
             ...prev,
             sessionState: 'PAUSED',
-            focusSessionDurationRemaining: currentRemaining,
+            focusSessionDurationRemaining: currentRemaining, // save this
             focusSessionEntryTimeStamp: undefined,
+            pausedFrom: pausedFrom,
         };
     });
   }, []);
 
   // Resume session
   const resumeSession = useCallback(() => {
-    setTimerState((prev) => ({
-      ...prev,
-      sessionState: 'DURING_SESSION',
-      focusSessionEntryTimeStamp: Date.now(),
-      initialFocusSessionDuration: prev.focusSessionDurationRemaining,
-    }));
-  }, []);
-
-  // Select reward and start break
-  const selectReward = useCallback((reward: Reward) => {
-    setTimerState((prev) => ({
-      ...prev,
-      selectedReward: reward,
-      breakSessionDurationRemaining: DEFAULT_BREAK_TIME,
-      sessionState: 'BREAK',
-      breakSessionEntryTimeStamp: Date.now(),
-      initialBreakSessionDuration: DEFAULT_BREAK_TIME,
-    }));
-  }, []);
-
-  // Handle reroll
-  const handleReroll = useCallback((_index: number) => {
-    setTimerState((prev) => ({
-      ...prev,
-      rerolls: Math.max(0, prev.rerolls - 1),
-    }));
-  }, []);
-
-  // End break early
-  const endBreakEarly = useCallback(() => {
-    setTimerState((prev) => ({
-      ...prev,
-      sessionState: 'BACK_TO_IT',
-      breakSessionEntryTimeStamp: undefined,
-      backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
-    }));
-  }, []);
-
-  // Hold on (go back to before session)
-  const holdOn = useCallback(() => {
-    setTimerState((prev) => ({
-      ...prev,
-      sessionState: 'BEFORE_SESSION',
-    }));
-  }, []);
-
-  // End session early
-  const endSessionEarly = useCallback(() => {
     setTimerState((prev) => {
-      // Calculate current remaining
-      let actualRemaining = prev.focusSessionDurationRemaining;
-      
-      // If we are active, calculate fresh remaining. If paused, rely on stored state.
-      if (prev.sessionState === 'DURING_SESSION') {
-          actualRemaining = calculateRemaining(prev.initialFocusSessionDuration, prev.focusSessionEntryTimeStamp);
-      }
-      
-      return {
-          ...prev,
-          ...getNextFocusState(prev.workSessionDurationRemaining, prev.initialFocusSessionDuration, actualRemaining)
-      };
+        const resumeTo = prev.pausedFrom || 'DURING_SESSION'; // Default
+        
+        if (resumeTo === 'BACK_TO_IT') {
+             return {
+                 ...prev,
+                 sessionState: 'BACK_TO_IT',
+                 pausedFrom: null,
+             };
+        } else {
+            // Resume to DURING_SESSION
+            return {
+                ...prev,
+                sessionState: 'DURING_SESSION',
+                focusSessionEntryTimeStamp: Date.now(),
+                initialFocusSessionDuration: prev.focusSessionDurationRemaining,
+                pausedFrom: null,
+            };
+        }
     });
   }, []);
 
-  // Rewards list
-  const rewards: Reward[] = [
-    { id: '1', name: 'Netflix', duration: '15 min' },
-    { id: '2', name: 'Tiktok', duration: '10 min' },
-    { id: '3', name: 'Instagram', duration: '5 min' },
-  ];
+  // End session early (merges endBreakEarly and endSessionEarly)
+  const endSessionEarly = useCallback(() => {
+    setTimerState((prev) => {
+        // Break case
+        if (prev.sessionState === 'BREAK') {
+             return {
+                ...prev,
+                sessionState: 'BACK_TO_IT',
+                breakSessionEntryTimeStamp: undefined,
+                backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
+             };
+        }
+
+        // Session case (DURING_SESSION or PAUSED)
+        // Calculate current remaining if active
+        let actualRemaining = prev.focusSessionDurationRemaining;
+        if (prev.sessionState === 'DURING_SESSION') {
+            actualRemaining = calculateRemaining(prev.initialFocusSessionDuration, prev.focusSessionEntryTimeStamp);
+        }
+
+        return {
+            ...prev,
+            ...getNextFocusState(
+                prev.workSessionDurationRemaining, 
+                prev.initialFocusSessionDuration, 
+                actualRemaining,
+                false, // lastCompleted = false (early end)
+                prev.nextFocusDuration
+            )
+        };
+    });
+  }, []);
 
   // Format time helper
   const formatTime = useCallback((seconds: number): string => {
@@ -320,13 +314,11 @@ export const useTimerState = () => {
     timerState: derivedTimerState, // Expose the derived state to the UI
     updateTimerState,
     resetTimerState,
-    startSession,
+    startFocusSession,
     pauseSession,
     resumeSession,
     selectReward,
     handleReroll,
-    endBreakEarly,
-    holdOn,
     endSessionEarly,
     rewards,
     formatTime,
