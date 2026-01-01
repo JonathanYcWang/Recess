@@ -10,10 +10,7 @@ export const useOnboardingRedirect = () => {
   const hasOnboarded = useAppSelector((state) => state.routing.hasOnboarded);
 
   useEffect(() => {
-    const currentPath = location.hash.slice(1) || '/';
-    if (hasOnboarded && currentPath === '/') {
-      navigate('/main', { replace: true });
-    }
+    // No longer needed - MainPage handles onboarding check internally
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount - hasOnboarded is loaded before first render
 };

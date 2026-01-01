@@ -27,11 +27,9 @@ const NavBar: React.FC<NavBarProps> = ({ energyLevel = 'High' }) => {
     setAnchorEl(null);
   };
 
-
-
   const handleSettingsClick = () => {
     if (location.pathname === '/settings') {
-      navigate('/main');
+      navigate('/');
     } else {
       navigate('/settings');
     }

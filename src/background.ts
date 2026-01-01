@@ -37,7 +37,7 @@ async function updateBlockingRules() {
         action: {
           type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
           redirect: {
-            url: chrome.runtime.getURL('index.html#/main'),
+            url: chrome.runtime.getURL('index.html'),
           },
         },
         condition: {

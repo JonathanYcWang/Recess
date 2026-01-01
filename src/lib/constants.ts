@@ -2,7 +2,7 @@
 // Note: Focus and break times are now dynamically calculated based on momentum, fatigue, and progress
 export const DEFAULT_BACK_TO_IT_TIME = 10; // 10 seconds
 export const DEFAULT_REROLLS = 3;
-export const DEFAULT_TOTAL_WORK_DURATION = 10; //4.5 * 60 * 60; // 4.5 hours in seconds
+export const DEFAULT_TOTAL_WORK_DURATION = 4.5 * 60 * 60; // 4.5 hours in seconds
 
 // Reward constants (in minutes)
 export const REWARD_TIME_INTERVAL = 5;
