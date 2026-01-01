@@ -44,6 +44,10 @@ const initialState: TimerState = {
   completedWorkMinutesToday: 0,
   targetWorkMinutesToday: secondsToMinutes(DEFAULT_WORK_SESSION_DURATION), // Convert from seconds
   lastCompletedFocusSessionMinutes: 0,
+
+  // Weight multipliers (default to 1.0)
+  fatigueWeightMultiplier: 1.0,
+  momentumWeightMultiplier: 1.0,
 };
 
 // Calculate initial session durations based on starting state (momentum=0.5, fatigue=0, progress=0)
@@ -72,9 +76,21 @@ function calculateNextSessionDurations(state: TimerState): {
     state.lastCompletedFocusSessionMinutes
   );
 
-  const focusDurationMinutes = calculateFocusSessionDuration(state.momentum, fatigue, progress);
+  const focusDurationMinutes = calculateFocusSessionDuration(
+    state.momentum,
+    fatigue,
+    progress,
+    state.momentumWeightMultiplier,
+    state.fatigueWeightMultiplier
+  );
 
-  const breakDurationMinutes = calculateBreakDuration(fatigue, progress, state.momentum);
+  const breakDurationMinutes = calculateBreakDuration(
+    fatigue,
+    progress,
+    state.momentum,
+    state.fatigueWeightMultiplier,
+    state.momentumWeightMultiplier
+  );
 
   // Clamp focus duration to remaining work time if the calculated duration exceeds it
   let focusDurationSeconds = minutesToSeconds(focusDurationMinutes);
@@ -309,6 +325,23 @@ const timerSlice = createSlice({
       state.initialBreakSessionDuration = state.nextBreakDuration;
       state.isPaused = false;
     },
+
+    updateWeightMultipliers: (
+      state,
+      action: PayloadAction<{ fatigueMultiplier?: number; momentumMultiplier?: number }>
+    ) => {
+      if (action.payload.fatigueMultiplier !== undefined) {
+        state.fatigueWeightMultiplier = action.payload.fatigueMultiplier;
+      }
+      if (action.payload.momentumMultiplier !== undefined) {
+        state.momentumWeightMultiplier = action.payload.momentumMultiplier;
+      }
+
+      // Recalculate next session durations with updated weights
+      const durations = calculateNextSessionDurations(state);
+      state.nextFocusDuration = durations.nextFocusDuration;
+      state.nextBreakDuration = durations.nextBreakDuration;
+    },
   },
 });
 
@@ -326,6 +359,7 @@ export const {
   transitionToFocusSession,
   transitionToRewardSelection,
   transitionToFocusSessionCountdown,
+  updateWeightMultipliers,
 } = timerSlice.actions;
 
 export default timerSlice.reducer;

@@ -3,21 +3,27 @@
 ## Quick Start
 
 1. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 2. **Development Mode**
+
    ```bash
    npm run dev
    ```
+
    This starts the Vite dev server. Note: For Chrome extension testing, you'll need to build and load the extension.
 
 3. **Build for Production**
+
    ```bash
    npm run build
    ```
+
    This will:
+
    - Compile TypeScript
    - Build the React app with Vite
    - Copy manifest.json to dist/
@@ -51,6 +57,7 @@ Extension icons are located at `public/assets/logo.png`. This single icon file i
 ## Features Implemented
 
 ✅ All state views implemented:
+
 1. Welcome Page (onboarding)
 2. Before Work Session View
 3. Ongoing Focus Session View (with pause/resume)
@@ -62,6 +69,7 @@ Extension icons are located at `public/assets/logo.png`. This single icon file i
 9. Settings - Work Hours
 
 ✅ Core Features:
+
 - Dynamic session duration calculation based on momentum, fatigue, and progress
 - Site blocking using Chrome's declarativeNetRequest API
 - Redux state management with Chrome storage persistence
@@ -69,6 +77,7 @@ Extension icons are located at `public/assets/logo.png`. This single icon file i
 - Timer survives popup close/reopen
 
 ✅ Technical Implementation:
+
 - React Router for navigation
 - Tailwind CSS styling matching Figma designs
 - TypeScript for type safety
@@ -90,12 +99,14 @@ For detailed information about the system architecture, session lifecycle, and d
 ## Next Steps
 
 The extension is feature-complete with:
+
 - Dynamic session duration calculation
 - Site blocking enforcement
 - State persistence across sessions
 - Comprehensive documentation
 
 Potential enhancements:
+
 1. Automatic daily reset at midnight
 2. Session history and analytics
 3. Customizable momentum/fatigue formulas
@@ -105,15 +116,17 @@ Potential enhancements:
 ## Troubleshooting
 
 **Build fails:**
+
 - Make sure all dependencies are installed: `npm install`
 - Check that Node.js version is 18+
 
 **Extension won't load:**
+
 - Make sure you're loading the `dist` folder, not the project root
 - Check browser console for errors
 - Verify manifest.json is in dist/ folder
 
 **Styles not working:**
+
 - Ensure Tailwind CSS is properly configured
 - Check that fonts are loaded (Patrick Hand, BenchNine)
-

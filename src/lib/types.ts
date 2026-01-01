@@ -64,4 +64,8 @@ export interface TimerState {
   completedWorkMinutesToday: number; // Total work completed today (W)
   targetWorkMinutesToday: number; // User's daily work target (T)
   lastCompletedFocusSessionMinutes: number; // Length of most recent completed focus session
+
+  // Weight multipliers for dynamic adjustment based on user feedback
+  fatigueWeightMultiplier: number; // Multiplier for fatigue weight (1.0 = default, 1.5 = 50% increase)
+  momentumWeightMultiplier: number; // Multiplier for momentum weight (1.0 = default, 1.5 = 50% increase)
 }

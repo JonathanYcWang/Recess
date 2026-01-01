@@ -23,6 +23,7 @@ const MainPage: React.FC = () => {
     endSessionEarly,
     resetTimerState,
     setWorkSessionDuration,
+    updateWeightMultipliers,
     rewards,
     formatTime,
     isLoaded,
@@ -111,6 +112,7 @@ const MainPage: React.FC = () => {
             focusSessionCountdownTimeRemaining={focusSessionCountdownTimeRemaining}
             formatTime={formatTime}
             startFocusSession={startFocusSession}
+            updateWeightMultipliers={updateWeightMultipliers}
           />
         );
 

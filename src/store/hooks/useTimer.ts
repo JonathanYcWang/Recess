@@ -14,6 +14,7 @@ import {
   resetTimer,
   updateTimerState,
   setWorkSessionDuration,
+  updateWeightMultipliers,
 } from '../slices/timerSlice';
 import { Reward } from '../../lib/types';
 import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../lib/constants';
@@ -200,6 +201,13 @@ export const useTimer = () => {
     [dispatch]
   );
 
+  const handleUpdateWeightMultipliers = useCallback(
+    (multipliers: { fatigueMultiplier?: number; momentumMultiplier?: number }) => {
+      dispatch(updateWeightMultipliers(multipliers));
+    },
+    [dispatch]
+  );
+
   const formatTime = useCallback((seconds: number): string => {
     return formatTimeUtil(seconds);
   }, []);
@@ -215,6 +223,7 @@ export const useTimer = () => {
     resetTimerState: handleResetTimer,
     updateTimerState: handleUpdateTimerState,
     setWorkSessionDuration: handleSetWorkSessionDuration,
+    updateWeightMultipliers: handleUpdateWeightMultipliers,
     rewards: timerState.generatedRewards,
     formatTime,
     isLoaded: true,

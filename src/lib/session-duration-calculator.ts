@@ -101,12 +101,14 @@ export function calculateFatigue(
 export function calculateFocusSessionDuration(
   momentum: number,
   fatigue: number,
-  progress: number
+  progress: number,
+  momentumWeightMultiplier: number = 1.0,
+  fatigueWeightMultiplier: number = 1.0
 ): number {
   const duration =
     BASE_WORK_MINUTES +
-    MOMENTUM_WORK_WEIGHT * momentum -
-    FATIGUE_WORK_WEIGHT * fatigue -
+    MOMENTUM_WORK_WEIGHT * momentumWeightMultiplier * momentum -
+    FATIGUE_WORK_WEIGHT * fatigueWeightMultiplier * fatigue -
     PROGRESS_WORK_WEIGHT * progress;
 
   // Enforce minimum duration and round to whole minutes
@@ -128,13 +130,15 @@ export function calculateFocusSessionDuration(
 export function calculateBreakDuration(
   fatigue: number,
   progress: number,
-  momentum: number
+  momentum: number,
+  fatigueWeightMultiplier: number = 1.0,
+  momentumWeightMultiplier: number = 1.0
 ): number {
   const duration =
     BASE_BREAK_MINUTES +
-    FATIGUE_BREAK_WEIGHT * fatigue +
+    FATIGUE_BREAK_WEIGHT * fatigueWeightMultiplier * fatigue +
     PROGRESS_BREAK_WEIGHT * progress +
-    MOMENTUM_BREAK_WEIGHT * momentum;
+    MOMENTUM_BREAK_WEIGHT * momentumWeightMultiplier * momentum;
 
   // Round to whole minutes (BASE_BREAK_MINUTES already defines the floor)
   return Math.round(duration);

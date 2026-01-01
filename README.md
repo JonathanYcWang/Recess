@@ -26,17 +26,19 @@ A focus session manager Chrome extension built with React and Tailwind CSS. This
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Setup
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Build the extension:
+
 ```bash
 npm run build
 ```
@@ -46,6 +48,7 @@ npm run build
 ### Development Mode
 
 Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -53,6 +56,7 @@ npm run dev
 ### Loading the Extension in Chrome
 
 1. Build the extension:
+
 ```bash
 npm run build
 ```
@@ -124,6 +128,7 @@ See [docs/README.md](docs/README.md) for the full documentation index.
 ## Design
 
 The extension follows the Figma designs provided, using:
+
 - Patrick Hand font for body text
 - BenchNine font for the logo
 - Custom color palette matching the designs
@@ -132,4 +137,3 @@ The extension follows the Figma designs provided, using:
 ## License
 
 MIT
-
