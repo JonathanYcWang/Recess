@@ -1,33 +1,91 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TimerState, Reward } from '../../lib/types';
 import {
-  DEFAULT_FOCUS_TIME,
-  DEFAULT_BREAK_TIME,
   DEFAULT_BACK_TO_IT_TIME,
   DEFAULT_REROLLS,
   DEFAULT_TOTAL_WORK_DURATION,
 } from '../../lib/constants';
 import { calculateRemaining } from '../../lib/timer-utils';
+import {
+  getInitialCEWMA,
+  updateCEWMA,
+  calculateProgress,
+  calculateFatigue,
+  calculateFocusSessionDuration,
+  calculateBreakDuration,
+  secondsToMinutes,
+  minutesToSeconds,
+} from '../../lib/session-duration-calculator';
 
+// Create initial state with temporary placeholder values that will be replaced by dynamic calculations
 const initialState: TimerState = {
   sessionState: 'BEFORE_SESSION',
   initialWorkSessionDuration: DEFAULT_TOTAL_WORK_DURATION,
   workSessionDurationRemaining: DEFAULT_TOTAL_WORK_DURATION,
-  initialFocusSessionDuration: DEFAULT_FOCUS_TIME,
-  initialBreakSessionDuration: DEFAULT_BREAK_TIME,
-  focusSessionDurationRemaining: DEFAULT_FOCUS_TIME,
-  breakSessionDurationRemaining: DEFAULT_BREAK_TIME,
+  initialFocusSessionDuration: 0, // Will be set below
+  initialBreakSessionDuration: 0, // Will be set below
+  focusSessionDurationRemaining: 0, // Will be set below
+  breakSessionDurationRemaining: 0, // Will be set below
 
   backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
   rerolls: DEFAULT_REROLLS,
   selectedReward: null,
   pausedFrom: null,
 
-  nextFocusDuration: DEFAULT_FOCUS_TIME,
-  nextBreakDuration: DEFAULT_BREAK_TIME,
+  // Will be calculated below based on initial momentum/fatigue/progress
+  nextFocusDuration: 0, // Will be set below
+  nextBreakDuration: 0, // Will be set below
   lastFocusSessionCompleted: false,
   generatedRewards: [],
+
+  // Dynamic session duration tracking
+  momentum: getInitialCEWMA(), // Start at neutral 0.5
+  completedWorkMinutesToday: 0,
+  targetWorkMinutesToday: secondsToMinutes(DEFAULT_TOTAL_WORK_DURATION), // Convert from seconds
+  lastCompletedSessionMinutes: 0,
 };
+
+// Calculate initial session durations based on starting state (momentum=0.5, fatigue=0, progress=0)
+const initialDurations = calculateNextSessionDurations(initialState);
+initialState.nextFocusDuration = initialDurations.nextFocusDuration;
+initialState.nextBreakDuration = initialDurations.nextBreakDuration;
+initialState.initialFocusSessionDuration = initialDurations.nextFocusDuration;
+initialState.initialBreakSessionDuration = initialDurations.nextBreakDuration;
+initialState.focusSessionDurationRemaining = initialDurations.nextFocusDuration;
+initialState.breakSessionDurationRemaining = initialDurations.nextBreakDuration;
+
+/**
+ * Helper to calculate next focus and break durations based on current state
+ * Uses momentum, fatigue, and progress to determine optimal session lengths
+ * Clamps focus duration to remaining work time if needed
+ */
+function calculateNextSessionDurations(state: TimerState): {
+  nextFocusDuration: number;
+  nextBreakDuration: number;
+} {
+  const progress = calculateProgress(state.completedWorkMinutesToday, state.targetWorkMinutesToday);
+
+  const fatigue = calculateFatigue(
+    state.completedWorkMinutesToday,
+    state.targetWorkMinutesToday,
+    state.lastCompletedSessionMinutes
+  );
+
+  const focusDurationMinutes = calculateFocusSessionDuration(state.momentum, fatigue, progress);
+
+  const breakDurationMinutes = calculateBreakDuration(fatigue, progress, state.momentum);
+
+  // Clamp focus duration to remaining work time if the calculated duration exceeds it
+  let focusDurationSeconds = minutesToSeconds(focusDurationMinutes);
+  if (focusDurationSeconds > state.workSessionDurationRemaining) {
+    focusDurationSeconds = state.workSessionDurationRemaining;
+  }
+
+  return {
+    nextFocusDuration: focusDurationSeconds,
+    nextBreakDuration: minutesToSeconds(breakDurationMinutes),
+  };
+}
 
 const timerSlice = createSlice({
   name: 'timer',
@@ -41,9 +99,9 @@ const timerSlice = createSlice({
 
     startFocusSession: (state) => {
       state.sessionState = 'DURING_SESSION';
-      state.focusSessionDurationRemaining = DEFAULT_FOCUS_TIME;
+      state.focusSessionDurationRemaining = state.nextFocusDuration;
       state.focusSessionEntryTimeStamp = Date.now();
-      state.initialFocusSessionDuration = DEFAULT_FOCUS_TIME;
+      state.initialFocusSessionDuration = state.nextFocusDuration;
     },
 
     pauseSession: (state) => {
@@ -86,30 +144,56 @@ const timerSlice = createSlice({
         currentWorkRemaining: number,
         initialFocusDuration: number,
         actualFocusRemaining: number,
-        lastCompleted: boolean,
-        nextFocusDuration: number
+        lastCompleted: boolean
       ): Partial<TimerState> => {
         const completedInSegment = Math.max(0, initialFocusDuration - actualFocusRemaining);
         const newWorkRemaining = Math.max(0, currentWorkRemaining - completedInSegment);
 
+        // Update momentum - session was abandoned (not completed)
+        const newMomentum = updateCEWMA(state.momentum, false);
+
+        // Track partial completed work (convert seconds to minutes)
+        const completedMinutes = secondsToMinutes(completedInSegment);
+        const newCompletedWork = state.completedWorkMinutesToday + completedMinutes;
+        const newLastSessionMinutes = completedMinutes;
+
+        // Calculate next session durations with updated momentum
+        const tempState = {
+          ...state,
+          momentum: newMomentum,
+          completedWorkMinutesToday: newCompletedWork,
+          lastCompletedSessionMinutes: newLastSessionMinutes,
+        };
+        const durations = calculateNextSessionDurations(tempState);
+
         if (newWorkRemaining <= 0) {
           return {
             sessionState: 'SESSION_COMPLETE',
-            focusSessionDurationRemaining: nextFocusDuration,
+            focusSessionDurationRemaining: durations.nextFocusDuration,
             workSessionDurationRemaining: 0,
             focusSessionEntryTimeStamp: undefined,
-            initialFocusSessionDuration: nextFocusDuration,
+            initialFocusSessionDuration: durations.nextFocusDuration,
             lastFocusSessionCompleted: lastCompleted,
+            momentum: newMomentum,
+            completedWorkMinutesToday: newCompletedWork,
+            lastCompletedSessionMinutes: newLastSessionMinutes,
+            nextFocusDuration: durations.nextFocusDuration,
+            nextBreakDuration: durations.nextBreakDuration,
           };
         }
 
         return {
           sessionState: 'REWARD_SELECTION',
-          focusSessionDurationRemaining: nextFocusDuration,
+          focusSessionDurationRemaining: durations.nextFocusDuration,
           workSessionDurationRemaining: newWorkRemaining,
           focusSessionEntryTimeStamp: undefined,
-          initialFocusSessionDuration: nextFocusDuration,
+          initialFocusSessionDuration: durations.nextFocusDuration,
           lastFocusSessionCompleted: lastCompleted,
+          momentum: newMomentum,
+          completedWorkMinutesToday: newCompletedWork,
+          lastCompletedSessionMinutes: newLastSessionMinutes,
+          nextFocusDuration: durations.nextFocusDuration,
+          nextBreakDuration: durations.nextBreakDuration,
         };
       };
 
@@ -134,8 +218,7 @@ const timerSlice = createSlice({
         state.workSessionDurationRemaining,
         state.initialFocusSessionDuration,
         actualRemaining,
-        false,
-        state.nextFocusDuration
+        false
       );
 
       Object.assign(state, nextState);
@@ -179,6 +262,19 @@ const timerSlice = createSlice({
     transitionToRewardSelection: (state) => {
       const completedInSegment = state.initialFocusSessionDuration;
       const newWorkRemaining = Math.max(0, state.workSessionDurationRemaining - completedInSegment);
+
+      // Update momentum - session was completed
+      state.momentum = updateCEWMA(state.momentum, true);
+
+      // Track completed work (convert seconds to minutes)
+      const completedMinutes = secondsToMinutes(completedInSegment);
+      state.completedWorkMinutesToday += completedMinutes;
+      state.lastCompletedSessionMinutes = completedMinutes;
+
+      // Calculate next session durations based on updated state
+      const durations = calculateNextSessionDurations(state);
+      state.nextFocusDuration = durations.nextFocusDuration;
+      state.nextBreakDuration = durations.nextBreakDuration;
 
       if (newWorkRemaining <= 0) {
         state.sessionState = 'SESSION_COMPLETE';

@@ -10,7 +10,6 @@ import RewardLink from '../components/RewardLink';
 import PauseIcon from '../assets/pause.svg?url';
 import PlayIcon from '../assets/play.svg?url';
 import { useTimer } from '../store/hooks/useTimer';
-import { DEFAULT_FOCUS_TIME } from '../lib/constants';
 import { formatWorkSessionTime } from '../lib/timer-utils';
 import styles from './MainPage.module.css';
 
@@ -38,6 +37,7 @@ const MainPage: React.FC = () => {
     selectedReward,
     workSessionDurationRemaining,
     pausedFrom,
+    nextFocusDuration,
   } = timerState;
 
   // Show loading state until timer state is loaded
@@ -58,7 +58,7 @@ const MainPage: React.FC = () => {
             <SecondaryTimerDescription
               text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`}
             />
-            <CountdownTimer time={formatTime(DEFAULT_FOCUS_TIME)} label="Next session length" />
+            <CountdownTimer time={formatTime(nextFocusDuration)} label="Next session length" />
             <PrimaryButton text="Start Session" onClick={startFocusSession} iconSrc={PlayIcon} />
           </>
         );

@@ -1,6 +1,6 @@
 // Shared types for timer/session state management
 
-export type SessionState = 
+export type SessionState =
   | 'BEFORE_SESSION'
   | 'DURING_SESSION'
   | 'PAUSED'
@@ -24,10 +24,9 @@ export interface WorkHoursEntry {
   enabled: boolean;
 }
 
-
 export interface TimerState {
   sessionState: SessionState;
-  
+
   // Requested Variables
   workSessionDurationRemaining: number;
   initialWorkSessionDuration: number;
@@ -49,4 +48,13 @@ export interface TimerState {
   nextBreakDuration: number;
   lastFocusSessionCompleted: boolean;
   generatedRewards: Reward[];
+
+  // Dynamic Session Duration Tracking
+  // CEWMA (Completion Exponentially Weighted Moving Average) - momentum/likelihood of completing next session
+  momentum: number; // 0.0 to 1.0, starts at 0.5 each day
+
+  // Work tracking (all in minutes)
+  completedWorkMinutesToday: number; // Total work completed today (W)
+  targetWorkMinutesToday: number; // User's daily work target (T)
+  lastCompletedSessionMinutes: number; // Length of most recent completed focus session
 }
