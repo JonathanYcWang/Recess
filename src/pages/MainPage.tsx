@@ -22,6 +22,7 @@ const MainPage: React.FC = () => {
     handleReroll,
     endSessionEarly,
     resetTimerState,
+    setWorkSessionDuration,
     rewards,
     formatTime,
     isLoaded,
@@ -67,6 +68,7 @@ const MainPage: React.FC = () => {
             nextFocusDuration={nextFocusDuration}
             formatTime={formatTime}
             startFocusSession={startFocusSession}
+            onDurationChange={setWorkSessionDuration}
           />
         );
 

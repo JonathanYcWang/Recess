@@ -11,6 +11,20 @@
   border-radius: 35px;
 }
 
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable:hover {
+  background-color: var(--recess-gray-border);
+  transform: scale(1.02);
+}
+
+.clickable:active {
+  transform: scale(0.98);
+}
+
 .dot {
   flex-shrink: 0;
   width: 8px;
@@ -29,3 +43,4 @@
   white-space: nowrap;
   color: var(--recess-black);
 }
+

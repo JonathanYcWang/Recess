@@ -98,6 +98,20 @@ const timerSlice = createSlice({
 
     resetTimer: () => initialState,
 
+    setWorkSessionDuration: (state, action: PayloadAction<number>) => {
+      const durationInSeconds = action.payload * 60; // Convert minutes to seconds
+      state.initialWorkSessionDuration = durationInSeconds;
+      state.workSessionDurationRemaining = durationInSeconds;
+      state.targetWorkMinutesToday = action.payload;
+      
+      // Recalculate next session durations based on new work session duration
+      const durations = calculateNextSessionDurations(state);
+      state.nextFocusDuration = durations.nextFocusDuration;
+      state.nextBreakDuration = durations.nextBreakDuration;
+      state.initialFocusSessionDuration = durations.nextFocusDuration;
+      state.focusSessionDurationRemaining = durations.nextFocusDuration;
+    },
+
     startFocusSession: (state) => {
       state.sessionState = 'ONGOING_FOCUS_SESSION';
       state.focusSessionDurationRemaining = state.nextFocusDuration;
@@ -301,6 +315,7 @@ const timerSlice = createSlice({
 export const {
   updateTimerState,
   resetTimer,
+  setWorkSessionDuration,
   startFocusSession,
   pauseSession,
   resumeSession,

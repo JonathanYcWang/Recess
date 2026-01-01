@@ -13,6 +13,7 @@ import {
   transitionToFocusSessionCountdown,
   resetTimer,
   updateTimerState,
+  setWorkSessionDuration,
 } from '../slices/timerSlice';
 import { Reward } from '../../lib/types';
 import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../lib/constants';
@@ -192,6 +193,13 @@ export const useTimer = () => {
     [dispatch]
   );
 
+  const handleSetWorkSessionDuration = useCallback(
+    (durationInMinutes: number) => {
+      dispatch(setWorkSessionDuration(durationInMinutes));
+    },
+    [dispatch]
+  );
+
   const formatTime = useCallback((seconds: number): string => {
     return formatTimeUtil(seconds);
   }, []);
@@ -206,6 +214,7 @@ export const useTimer = () => {
     handleReroll,
     resetTimerState: handleResetTimer,
     updateTimerState: handleUpdateTimerState,
+    setWorkSessionDuration: handleSetWorkSessionDuration,
     rewards: timerState.generatedRewards,
     formatTime,
     isLoaded: true,
