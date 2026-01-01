@@ -103,6 +103,8 @@ This document summarizes the cleanup and documentation pass completed on Decembe
 - No compilation warnings
 - Clean code
 
+**Note:** After the terminology refactoring (see TERMINOLOGY_REFACTOR.md), the constant was renamed to `DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME` to match the new naming convention.
+
 ---
 
 ## Documentation Created
@@ -133,12 +135,12 @@ All documentation lives in `/docs` directory.
 **Contents:**
 
 - All six session states explained in detail:
-  - BEFORE_SESSION
-  - DURING_SESSION
+  - BEFORE_WORK_SESSION
+  - ONGOING_FOCUS_SESSION
   - REWARD_SELECTION
-  - BREAK
-  - BACK_TO_IT
-  - SESSION_COMPLETE
+  - ONGOING_BREAK_SESSION
+  - FOCUS_SESSION_COUNTDOWN
+  - WORK_SESSION_COMPLETE
 - Exact state changes at each transition
 - Code locations for each stage
 - When calculations happen

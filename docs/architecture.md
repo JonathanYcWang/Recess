@@ -42,7 +42,7 @@ Recess is a Chrome extension that helps users maintain focus by managing work/br
 **How it works:**
 
 - Listens to storage changes for `blockedSites` and `timerState`
-- When a focus session is active (`sessionState === 'DURING_SESSION'`):
+- When a focus session is active (`sessionState === 'ONGOING_FOCUS_SESSION'`):
   - Creates `declarativeNetRequest` rules for each blocked site
   - Redirects blocked sites to the extension popup
 - When session ends or user is on break:
@@ -112,13 +112,13 @@ src/
 │   ├── BlockedSitesPage.tsx # Settings: manage blocked sites
 │   └── WorkHoursPage.tsx    # Settings: configure work schedule
 ├── components/          # Reusable UI components
-└── pages/views/         # State-specific views for main page
-    ├── BeforeSessionView.tsx    # Pre-session (start button)
-    ├── DuringSessionView.tsx    # Active focus session
+├── pages/views/         # State-specific views for main page
+    ├── BeforeWorkSessionView.tsx    # Pre-session (start button)
+    ├── OngoingFocusSessionView.tsx    # Active focus session
     ├── RewardSelectionView.tsx  # Choose break activity
-    ├── BreakView.tsx            # Active break
-    ├── BackToItView.tsx         # Transition back to focus
-    └── SessionCompleteView.tsx  # End of work session
+    ├── OngoingBreakSessionView.tsx            # Active break
+    ├── FocusSessionCountdownView.tsx         # Transition back to focus
+    └── WorkSessionCompleteView.tsx  # End of work session
 ```
 
 **Key patterns:**
@@ -140,7 +140,7 @@ MainPage → useTimer.startFocusSession()
 dispatch(startFocusSession())
     ↓
 timerSlice updates:
-  - sessionState → 'DURING_SESSION'
+  - sessionState → 'ONGOING_FOCUS_SESSION'
   - focusSessionEntryTimeStamp → Date.now()
   - focusSessionDurationRemaining → nextFocusDuration
     ↓
@@ -168,7 +168,7 @@ timerSlice:
   - Updates momentum (CEWMA) based on completion
   - Calculates new fatigue score
   - Recalculates next session durations
-  - sessionState → 'REWARD_SELECTION' or 'SESSION_COMPLETE'
+  - sessionState → 'REWARD_SELECTION' or 'WORK_SESSION_COMPLETE'
     ↓
 MainPage renders RewardSelectionView
     ↓
@@ -176,7 +176,7 @@ User selects reward
     ↓
 dispatch(selectReward(reward))
     ↓
-timerSlice: sessionState → 'BREAK'
+timerSlice: sessionState → 'ONGOING_BREAK_SESSION'
     ↓
 background.ts removes blocking rules
     ↓

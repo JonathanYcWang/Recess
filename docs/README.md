@@ -227,15 +227,15 @@ These docs follow a few principles:
 
 **Constants:**
 
-| Constant            | Value      | Location       |
-| ------------------- | ---------- | -------------- |
-| Daily work target   | 4.5 hours  | `constants.ts` |
-| Back-to-it time     | 10 seconds | `constants.ts` |
-| Starting momentum   | 0.5        | `constants.ts` |
-| Momentum alpha      | 0.5        | `constants.ts` |
-| Base focus duration | 10 minutes | `constants.ts` |
-| Min focus duration  | 5 minutes  | `constants.ts` |
-| Base break duration | 5 minutes  | `constants.ts` |
+| Constant                       | Value      | Location       |
+| ------------------------------ | ---------- | -------------- |
+| Daily work target              | 4.5 hours  | `constants.ts` |
+| Focus session countdown time   | 10 seconds | `constants.ts` |
+| Starting momentum              | 0.5        | `constants.ts` |
+| Momentum alpha                 | 0.5        | `constants.ts` |
+| Base focus duration            | 10 minutes | `constants.ts` |
+| Min focus duration             | 5 minutes  | `constants.ts` |
+| Base break duration            | 5 minutes  | `constants.ts` |
 
 **State shapes:**
 

@@ -7,15 +7,15 @@ A "session" in Recess refers to one complete work/break cycle. This document wal
 ## The Complete Cycle
 
 ```
-BEFORE_SESSION → DURING_SESSION → REWARD_SELECTION → BREAK → BACK_TO_IT → [repeat]
-                                         ↓
-                                  SESSION_COMPLETE
-                                  (when work target met)
+BEFORE_WORK_SESSION → ONGOING_FOCUS_SESSION → REWARD_SELECTION → ONGOING_BREAK_SESSION → FOCUS_SESSION_COUNTDOWN → [repeat]
+                                                   ↓
+                                        WORK_SESSION_COMPLETE
+                                        (when work target met)
 ```
 
 ---
 
-## Stage 1: BEFORE_SESSION
+## Stage 1: BEFORE_WORK_SESSION
 
 **What the user sees:**
 
@@ -35,7 +35,7 @@ BEFORE_SESSION → DURING_SESSION → REWARD_SELECTION → BREAK → BACK_TO_IT 
 
 ```typescript
 {
-  sessionState: 'BEFORE_SESSION',
+  sessionState: 'BEFORE_WORK_SESSION',
   nextFocusDuration: <calculated value>,
   nextBreakDuration: <calculated value>,
   workSessionDurationRemaining: <remaining daily target>,
@@ -77,7 +77,7 @@ isPaused: false;
 
 ---
 
-## Stage 2: DURING_SESSION
+## Stage 2: ONGOING_FOCUS_SESSION
 
 **What the user sees:**
 
@@ -98,7 +98,7 @@ isPaused: false;
 
 ```typescript
 {
-  sessionState: 'DURING_SESSION',
+  sessionState: 'ONGOING_FOCUS_SESSION',
   focusSessionDurationRemaining: <decreasing value>,
   focusSessionEntryTimeStamp: <timestamp>,
   initialFocusSessionDuration: <starting value>,
@@ -170,7 +170,7 @@ nextBreakDuration: calculateBreakDuration(newFatigue, newProgress, newMomentum)
 workSessionDurationRemaining: -= initialFocusSessionDuration
 
 // Transition to reward selection or completion
-sessionState: workRemaining > 0 ? 'REWARD_SELECTION' : 'SESSION_COMPLETE'
+sessionState: workRemaining > 0 ? 'REWARD_SELECTION' : 'WORK_SESSION_COMPLETE'
 focusSessionEntryTimeStamp: undefined  // Clear timestamp
 ```
 
@@ -191,13 +191,13 @@ nextBreakDuration: <recalculated>
 // Reduce daily work by partial amount
 workSessionDurationRemaining: -= completedPortion
 
-sessionState: workRemaining > 0 ? 'REWARD_SELECTION' : 'SESSION_COMPLETE'
+sessionState: workRemaining > 0 ? 'REWARD_SELECTION' : 'WORK_SESSION_COMPLETE'
 ```
 
 **Side effects:**
 
 - Interval is cleared when transitioning out
-- Blocking rules removed (happens when state !== 'DURING_SESSION')
+- Blocking rules removed (happens when state !== 'ONGOING_FOCUS_SESSION')
 
 ---
 
@@ -266,7 +266,7 @@ nextBreakDuration: reward.durationSeconds; // Overrides pre-calculated value
 
 ---
 
-## Stage 4: BREAK
+## Stage 4: ONGOING_BREAK_SESSION
 
 **What the user sees:**
 
@@ -284,7 +284,7 @@ nextBreakDuration: reward.durationSeconds; // Overrides pre-calculated value
 
 ```typescript
 {
-  sessionState: 'BREAK',
+  sessionState: 'ONGOING_BREAK_SESSION',
   breakSessionDurationRemaining: <decreasing>,
   breakSessionEntryTimeStamp: <timestamp>,
   initialBreakSessionDuration: <starting value>,
@@ -301,28 +301,28 @@ Either:
 **Action dispatched:**
 
 ```typescript
-dispatch(transitionToBackToIt());
+dispatch(transitionToFocusSessionCountdown());
 ```
 
 **Code location:**
 
-- View: `src/pages/views/BreakView.tsx`
-- Actions: `src/store/slices/timerSlice.ts` → `transitionToBackToIt`, `endSessionEarly`
+- View: `src/pages/views/OngoingBreakSessionView.tsx`
+- Actions: `src/store/slices/timerSlice.ts` → `transitionToFocusSessionCountdown`, `endSessionEarly`
 
 **State changes:**
 
 ```typescript
-sessionState: 'BACK_TO_IT';
-backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME; // Fixed 10 seconds
-backToItEntryTimeStamp: Date.now();
-initialBackToItDuration: DEFAULT_BACK_TO_IT_TIME;
+sessionState: 'FOCUS_SESSION_COUNTDOWN';
+focusSessionCountdownTimeRemaining: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME; // Fixed 10 seconds
+focusSessionCountdownEntryTimeStamp: Date.now();
+initialFocusSessionCountdownDuration: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
 breakSessionEntryTimeStamp: undefined;
 isPaused: false;
 ```
 
 ---
 
-## Stage 5: BACK_TO_IT
+## Stage 5: FOCUS_SESSION_COUNTDOWN
 
 **What the user sees:**
 
@@ -340,10 +340,10 @@ isPaused: false;
 
 ```typescript
 {
-  sessionState: 'BACK_TO_IT',
-  backToItTimeRemaining: <10, 9, 8, ...>,
-  backToItEntryTimeStamp: <timestamp>,
-  initialBackToItDuration: 10,
+  sessionState: 'FOCUS_SESSION_COUNTDOWN',
+  focusSessionCountdownTimeRemaining: <10, 9, 8, ...>,
+  focusSessionCountdownEntryTimeStamp: <timestamp>,
+  initialFocusSessionCountdownDuration: 10,
   nextFocusDuration: <already calculated>,
   nextBreakDuration: <already calculated>
 }
@@ -360,18 +360,18 @@ dispatch(transitionToFocusSession());
 
 **Code location:**
 
-- View: `src/pages/views/BackToItView.tsx`
+- View: `src/pages/views/FocusSessionCountdownView.tsx`
 - Action: `src/store/slices/timerSlice.ts` → `transitionToFocusSession`
 
 **State changes:**
 
 ```typescript
-sessionState: 'DURING_SESSION';
+sessionState: 'ONGOING_FOCUS_SESSION';
 focusSessionDurationRemaining: nextFocusDuration;
 focusSessionEntryTimeStamp: Date.now();
 initialFocusSessionDuration: nextFocusDuration;
-backToItEntryTimeStamp: undefined;
-backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME; // Reset for next time
+focusSessionCountdownEntryTimeStamp: undefined;
+focusSessionCountdownTimeRemaining: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME; // Reset for next time
 ```
 
 **Side effects:**
@@ -382,7 +382,7 @@ backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME; // Reset for next time
 
 ---
 
-## Stage 6: SESSION_COMPLETE
+## Stage 6: WORK_SESSION_COMPLETE
 
 **What the user sees:**
 
@@ -402,7 +402,7 @@ backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME; // Reset for next time
 
 ```typescript
 {
-  sessionState: 'SESSION_COMPLETE',
+  sessionState: 'WORK_SESSION_COMPLETE',
   workSessionDurationRemaining: 0,
   completedWorkMinutesToday: <meets or exceeds target>,
   momentum: <final value>,
@@ -423,7 +423,7 @@ dispatch(resetTimer()); // If user wants to start fresh
 
 **Code location:**
 
-- View: `src/pages/views/SessionCompleteView.tsx`
+- View: `src/pages/views/WorkSessionCompleteView.tsx`
 - Action: `src/store/slices/timerSlice.ts` → `resetTimer`
 
 ---
@@ -492,7 +492,7 @@ When popup reopens:
 
 1. `main.tsx` calls `loadStateFromStorage()`
 2. Redux store hydrates with saved state
-3. If `sessionState === 'DURING_SESSION'` and `focusSessionEntryTimeStamp` exists:
+3. If `sessionState === 'ONGOING_FOCUS_SESSION'` and `focusSessionEntryTimeStamp` exists:
    - Timer automatically resumes
    - Calculates remaining time from timestamp
    - No accumulated time is lost
@@ -509,9 +509,9 @@ When popup reopens:
 
 Things that should always be true:
 
-1. **If sessionState === 'DURING_SESSION'**, then `focusSessionEntryTimeStamp` exists (unless paused)
-2. **If sessionState === 'BREAK'**, then `breakSessionEntryTimeStamp` exists
-3. **If sessionState === 'BACK_TO_IT'**, then `backToItEntryTimeStamp` exists
+1. **If sessionState === 'ONGOING_FOCUS_SESSION'**, then `focusSessionEntryTimeStamp` exists (unless paused)
+2. **If sessionState === 'ONGOING_BREAK_SESSION'**, then `breakSessionEntryTimeStamp` exists
+3. **If sessionState === 'FOCUS_SESSION_COUNTDOWN'**, then `focusSessionCountdownEntryTimeStamp` exists
 4. **`workSessionDurationRemaining`** is always >= 0
 5. **`momentum`** is always between 0 and 1
 6. **`completedWorkMinutesToday`** is monotonically increasing (never decreases)
@@ -544,5 +544,5 @@ If any of these are violated, it indicates a bug in transition logic.
 
 - Check `background.ts` console logs
 - Verify `blockedSites` array is populated
-- Verify `sessionState === 'DURING_SESSION'`
+- Verify `sessionState === 'ONGOING_FOCUS_SESSION'`
 - Check Chrome's declarativeNetRequest rules in `chrome://extensions` (Developer mode → Service worker → Network)

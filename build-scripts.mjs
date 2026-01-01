@@ -1,111 +1,51 @@
-// Post-build script to copy background and content scripts
-import { readFileSync, writeFileSync, copyFileSync } from 'fs';
+// Post-build script to compile and copy background and content scripts
+import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
+const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Copy manifest.json
-copyFileSync(
-  join(__dirname, 'manifest.json'),
-  join(__dirname, 'dist', 'manifest.json')
-);
-
-function transformTypeScriptToJS(code) {
-  let result = code;
-  
-  // Replace enum with string literal for Chrome API
-  result = result.replace(/chrome\.declarativeNetRequest\.RuleActionType\.BLOCK/g, "'block'");
-  
-  // Remove underscore-prefixed unused parameter type annotations
-  result = result.replace(/:\s*_[A-Za-z]+(\[\])?/g, '');
-  
-  // Remove type annotations from arrow function parameters in .some(), .map(), etc
-  result = result.replace(/\(([^:)]+):\s*string\)/g, '($1)');
-  
-  // Remove single-line comments but preserve strings
-  result = result.replace(/\/\/(?![^'"]*['"'][^'"]*$)[^\n]*/g, '');
-  
-  // Clean up extra blank lines
-  result = result.replace(/\n\s*\n\s*\n+/g, '\n\n');
-  
-  return result.trim() + '\n';
+async function buildScripts() {
+  try {
+    // Compile TypeScript files to JavaScript
+    console.log('Compiling background and content scripts...');
+    
+    // Read the TypeScript files
+    const backgroundTS = readFileSync(join(__dirname, 'src', 'background.ts'), 'utf-8');
+    const contentTS = readFileSync(join(__dirname, 'src', 'content.ts'), 'utf-8');
+    
+    // Simple TypeScript to JavaScript conversion (remove type annotations)
+    const backgroundJS = backgroundTS
+      .replace(/:\s*\w+(\[\])?(\s*\|\s*\w+)*\s*(?=[,;=)\n])/g, '') // Remove type annotations
+      .replace(/as\s+\w+(\[\])?(\s*\|\s*\w+)*/g, '') // Remove 'as' type assertions
+      .replace(/interface\s+\w+\s*{[^}]*}/gs, '') // Remove interface declarations
+      .replace(/type\s+\w+\s*=\s*[^;]+;/gs, '') // Remove type aliases
+      .replace(/\/\/\s*.*$/gm, '') // Remove single-line comments
+      .replace(/\n\s*\n\s*\n+/g, '\n\n') // Clean up extra blank lines
+      .trim();
+    
+    const contentJS = contentTS
+      .replace(/:\s*\w+(\[\])?(\s*\|\s*\w+)*\s*(?=[,;=)\n])/g, '')
+      .replace(/as\s+\w+(\[\])?(\s*\|\s*\w+)*/g, '')
+      .replace(/interface\s+\w+\s*{[^}]*}/gs, '')
+      .replace(/type\s+\w+\s*=\s*[^;]+;/gs, '')
+      .replace(/\/\/\s*.*$/gm, '')
+      .replace(/\n\s*\n\s*\n+/g, '\n\n')
+      .trim();
+    
+    // Write to dist folder
+    writeFileSync(join(__dirname, 'dist', 'background.js'), backgroundJS + '\n');
+    writeFileSync(join(__dirname, 'dist', 'content.js'), contentJS + '\n');
+    
+    console.log('✓ Background and content scripts compiled successfully');
+  } catch (error) {
+    console.error('Error processing scripts:', error);
+    process.exit(1);
+  }
 }
 
-try {
-  // Read background.ts and manually write clean JS
-  const backgroundCode = `chrome.runtime.onInstalled.addListener(() => {
-  console.log('Recess extension installed');
-});
-
-chrome.action.onClicked.addListener(() => {
-  chrome.tabs.create({
-    url: chrome.runtime.getURL('index.html')
-  });
-});
-
-chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
-  if (message.type === 'SESSION_START') {
-    chrome.declarativeNetRequest.updateDynamicRules({
-      addRules: [
-        {
-          id: 1,
-          priority: 1,
-          action: { type: 'block' },
-          condition: {
-            urlFilter: '*',
-            excludedInitiatorDomains: ['chrome-extension://'],
-          },
-        },
-      ],
-      removeRuleIds: [],
-    });
-  } else if (message.type === 'SESSION_END') {
-    chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: [1],
-    });
-  }
-  return true;
-});
-
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === 'session-end') {
-    chrome.storage.local.set({ sessionState: 'ended' });
-  } else if (alarm.name === 'break-end') {
-    chrome.storage.local.set({ breakState: 'ended' });
-  }
-});
-`;
-
-  writeFileSync(
-    join(__dirname, 'dist', 'background.js'),
-    backgroundCode
-  );
-  
-  // Read content.ts and manually write clean JS
-  const contentCode = `chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
-  if (message.type === 'CHECK_BLOCKED') {
-    const currentUrl = window.location.href;
-    chrome.storage.local.get(['blockedSites', 'sessionState'], (result) => {
-      const blockedSites = result.blockedSites || [];
-      const isBlocked = blockedSites.some((site) => currentUrl.includes(site));
-      
-      if (isBlocked && result.sessionState === 'active') {
-        window.location.href = chrome.runtime.getURL('index.html#/break');
-      }
-    });
-  }
-});
-`;
-
-  writeFileSync(
-    join(__dirname, 'dist', 'content.js'),
-    contentCode
-  );
-  
-  console.log('✓ Background and content scripts compiled successfully');
-} catch (error) {
-  console.error('Error processing scripts:', error);
-  process.exit(1);
-}
+buildScripts();

@@ -31,12 +31,12 @@ The Redux store has four slices:
 interface TimerState {
   // Session lifecycle
   sessionState:
-    | 'BEFORE_SESSION'
-    | 'DURING_SESSION'
+    | 'BEFORE_WORK_SESSION'
+    | 'ONGOING_FOCUS_SESSION'
     | 'REWARD_SELECTION'
-    | 'BREAK'
-    | 'BACK_TO_IT'
-    | 'SESSION_COMPLETE';
+    | 'ONGOING_BREAK_SESSION'
+    | 'FOCUS_SESSION_COUNTDOWN'
+    | 'WORK_SESSION_COMPLETE';
   isPaused: boolean;
 
   // Daily work tracking
@@ -53,10 +53,10 @@ interface TimerState {
   initialBreakSessionDuration: number; // Starting value for break
   breakSessionEntryTimeStamp?: number; // When break started (ms)
 
-  // Back-to-it transition
-  backToItTimeRemaining: number; // Seconds in transition
-  initialBackToItDuration: number; // Always 10 seconds
-  backToItEntryTimeStamp?: number; // When transition started (ms)
+  // Focus Session Countdown - Transition period before returning to focus
+  focusSessionCountdownTimeRemaining: number; // Seconds in transition
+  initialFocusSessionCountdownDuration: number; // Always 10 seconds
+  focusSessionCountdownEntryTimeStamp?: number; // When transition started (ms)
 
   // Reward system
   rerolls: number; // Rerolls available (3 default)
@@ -67,7 +67,7 @@ interface TimerState {
   momentum: number; // CEWMA score (0-1)
   completedWorkMinutesToday: number; // Total work done (minutes)
   targetWorkMinutesToday: number; // Daily goal (270 min = 4.5 hrs)
-  lastCompletedSessionMinutes: number; // Length of last session
+  lastCompletedFocusSessionMinutes: number; // Length of last session
 
   // Pre-calculated durations
   nextFocusDuration: number; // Calculated focus session length (seconds)
@@ -305,7 +305,7 @@ User starts 25-minute focus session, closes popup after 10 minutes.
 
 ```typescript
 {
-  sessionState: 'DURING_SESSION',
+  sessionState: 'ONGOING_FOCUS_SESSION',
   focusSessionEntryTimeStamp: 1234567890000,  // Absolute time when started
   initialFocusSessionDuration: 1500,          // 25 minutes in seconds
   focusSessionDurationRemaining: 900,         // Not used for calculation
@@ -387,8 +387,8 @@ Timer resumes at 10:00, continues countdown normally.
 
 - `momentum` → 0.5 (neutral)
 - `completedWorkMinutesToday` → 0
-- `workSessionDurationRemaining` → DEFAULT_TOTAL_WORK_DURATION
-- `sessionState` → 'BEFORE_SESSION'
+- `workSessionDurationRemaining` → DEFAULT_WORK_SESSION_DURATION
+- `sessionState` → 'BEFORE_WORK_SESSION'
 
 **What persists:**
 

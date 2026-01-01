@@ -4,23 +4,23 @@ A focus session manager Chrome extension built with React and Tailwind CSS. This
 
 ## Features
 
-- 🎯 **Focus Sessions**: Start, pause, and resume focus sessions with customizable timers
-- 🎮 **Break Management**: Take breaks with reward selection
-- 🚫 **Site Blocking**: Block distracting websites during focus sessions
-- ⏰ **Work Hours**: Set custom work hours for automatic session management
-- 💪 **Energy Tracking**: Monitor your energy levels throughout sessions
+- 🎯 **Dynamic Focus Sessions**: Adaptive session lengths based on your momentum, fatigue, and progress
+- 🎮 **Break Management**: Earn breaks with reward selection from your blocked sites
+- 🚫 **Site Blocking**: Block distracting websites during focus sessions using Chrome's declarativeNetRequest API
+- ⏰ **Work Hours**: Set custom work hours for your daily work target
+- 📊 **Smart Duration Calculations**: Uses CEWMA (Completion Exponentially Weighted Moving Average) to adjust session lengths
 
-## Pages
+## Pages & Views
 
-1. **Welcome Page** - Initial landing page
-2. **Main Page - Before Session** - Start a new focus session
-3. **Main Page - During Session** - Active session with timer and pause option
-4. **Main Page - Paused** - Paused session with resume option
-5. **Break Page** - Active break with unlocked site access
-6. **Reward Selection Page** - Choose how to spend your break time
-7. **Settings - Blocked Sites** - Manage blocked websites
-8. **Settings - Work Hours** - Configure work hours schedule
-9. **Back To It Page** - Transition page after break
+1. **Welcome Page** - Initial onboarding with feature overview
+2. **Before Work Session View** - Start your daily work session with duration preview
+3. **Ongoing Focus Session View** - Active focus session with countdown timer and pause option
+4. **Reward Selection View** - Choose your break reward after completing a focus session
+5. **Ongoing Break Session View** - Active break with selected reward
+6. **Focus Session Countdown View** - 10-second transition before returning to focus
+7. **Work Session Complete View** - Congratulations screen when daily target is met
+8. **Settings - Blocked Sites** - Manage blocked websites list
+9. **Settings - Work Hours** - Configure work hours schedule
 
 ## Development
 
@@ -63,7 +63,7 @@ npm run build
 5. Select the `dist` folder from this project
 6. The extension icon should appear in your Chrome toolbar
 
-**Note**: You'll need to create icon files (icon-16.png, icon-48.png, icon-128.png) in the `public/assets` folder or update the manifest.json to point to existing icons.
+**Note**: Extension icons are located in `public/assets/logo.png`. The extension will open in a new tab when clicked.
 
 ## Project Structure
 
@@ -72,14 +72,27 @@ Recess-Extension/
 ├── src/
 │   ├── assets/          # Images and SVG icons
 │   ├── components/      # Reusable React components
+│   │   └── ui/         # UI components (TimeField, etc.)
+│   ├── lib/            # Business logic and utilities
+│   │   ├── constants.ts              # Configuration constants
+│   │   ├── session-duration-calculator.ts  # Dynamic duration formulas
+│   │   ├── timer-utils.ts            # Time formatting utilities
+│   │   ├── types.ts                  # TypeScript type definitions
+│   │   └── utils.ts                  # General utilities
 │   ├── pages/          # Page components
-│   ├── types/          # TypeScript type definitions
+│   │   └── views/      # State-specific views for MainPage
+│   ├── store/          # Redux store
+│   │   ├── slices/     # Redux slices (timer, workHours, blockedSites, routing)
+│   │   ├── hooks/      # Custom hooks (useTimer)
+│   │   ├── selectors/  # Redux selectors
+│   │   └── storageMiddleware.ts  # Chrome storage persistence
+│   ├── styles/         # CSS modules and global styles
 │   ├── App.tsx         # Main app component with routing
-│   ├── main.tsx        # Entry point
-│   ├── background.ts   # Background service worker
-│   ├── content.ts      # Content script
-│   └── index.css       # Global styles
-├── manifest.json       # Chrome extension manifest
+│   ├── main.tsx        # Entry point and store initialization
+│   ├── background.ts   # Background service worker for site blocking
+│   └── content.ts      # Content script (minimal, for future features)
+├── docs/               # Comprehensive developer documentation
+├── manifest.json       # Chrome extension manifest (v3)
 ├── package.json        # Dependencies and scripts
 ├── vite.config.ts      # Vite configuration
 ├── tailwind.config.js  # Tailwind CSS configuration
@@ -90,10 +103,23 @@ Recess-Extension/
 
 - **React 18** - UI framework
 - **TypeScript** - Type safety
+- **Redux Toolkit** - State management with persistence
 - **Tailwind CSS** - Styling
 - **React Router** - Client-side routing
-- **Vite** - Build tool
-- **Chrome Extensions API** - Extension functionality
+- **Vite** - Build tool and dev server
+- **Chrome Extensions API** - Manifest V3 with declarativeNetRequest for site blocking
+
+## Documentation
+
+Comprehensive developer documentation is available in the `/docs` directory:
+
+- **[Architecture Overview](docs/architecture.md)** - System design and data flow
+- **[Session Lifecycle](docs/session-lifecycle.md)** - Step-by-step walkthrough of focus/break cycles
+- **[Time Calculations](docs/time-calculations.md)** - Explanation of dynamic duration formulas
+- **[State and Storage](docs/state-and-storage.md)** - Redux state structure and persistence
+- **[Developer Notes](docs/developer-notes.md)** - Design decisions and tradeoffs
+
+See [docs/README.md](docs/README.md) for the full documentation index.
 
 ## Design
 
