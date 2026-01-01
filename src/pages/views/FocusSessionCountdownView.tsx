@@ -6,16 +6,16 @@ import PlayIcon from '../../assets/play.svg?url';
 import { formatWorkSessionTime } from '../../lib/timer-utils';
 import styles from '../MainPage.module.css';
 
-interface BackToItViewProps {
+interface FocusSessionCountdownViewProps {
   workSessionDurationRemaining: number;
-  backToItTimeRemaining: number;
+  focusSessionCountdownTimeRemaining: number;
   formatTime: (seconds: number) => string;
   startFocusSession: () => void;
 }
 
-const BackToItView: React.FC<BackToItViewProps> = ({
+const FocusSessionCountdownView: React.FC<FocusSessionCountdownViewProps> = ({
   workSessionDurationRemaining,
-  backToItTimeRemaining,
+  focusSessionCountdownTimeRemaining,
   formatTime,
   startFocusSession,
 }) => {
@@ -28,10 +28,10 @@ const BackToItView: React.FC<BackToItViewProps> = ({
       <SecondaryTimerDescription
         text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`}
       />
-      <CountdownTimer time={formatTime(backToItTimeRemaining)} label="starting in" />
+      <CountdownTimer time={formatTime(focusSessionCountdownTimeRemaining)} label="starting in" />
       <div className={styles.contentContainer}>
         <PrimaryButton
-          text="Start Next Session Now"
+          text="Start Focus Session Now"
           onClick={startFocusSession}
           iconSrc={PlayIcon}
         />
@@ -40,4 +40,4 @@ const BackToItView: React.FC<BackToItViewProps> = ({
   );
 };
 
-export default BackToItView;
+export default FocusSessionCountdownView;

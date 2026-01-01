@@ -27,7 +27,7 @@ async function updateBlockingRules() {
     const timerState = data.timerState;
 
     // Only block sites during active focus sessions
-    const shouldBlock = timerState?.sessionState === 'DURING_SESSION';
+    const shouldBlock = timerState?.sessionState === 'ONGOING_FOCUS_SESSION';
 
     if (shouldBlock && blockedSites.length > 0) {
       // Create blocking rules for each site

@@ -5,14 +5,14 @@ import TertiaryButton from '../../components/TertiaryButton';
 import { Reward } from '../../lib/types';
 import styles from '../MainPage.module.css';
 
-interface BreakViewProps {
+interface OngoingBreakSessionViewProps {
   breakSessionDurationRemaining: number;
   selectedReward: Reward | null;
   formatTime: (seconds: number) => string;
   endSessionEarly: () => void;
 }
 
-const BreakView: React.FC<BreakViewProps> = ({
+const OngoingBreakSessionView: React.FC<OngoingBreakSessionViewProps> = ({
   breakSessionDurationRemaining,
   selectedReward,
   formatTime,
@@ -23,7 +23,7 @@ const BreakView: React.FC<BreakViewProps> = ({
       <div className={styles.headerContainer}>
         <p className={styles.header}>Time To Recharge</p>
         <p className={styles.caption}>
-          Give your brain a pause, and you'll crush the next session.
+          Give your brain a pause, and you'll crush the next focus session.
         </p>
       </div>
       <CountdownTimer time={formatTime(breakSessionDurationRemaining)} label="Remaining" />
@@ -35,7 +35,7 @@ const BreakView: React.FC<BreakViewProps> = ({
             siteUrl={selectedReward.name}
           />
         )}
-        <TertiaryButton text="Wrap up session early" onClick={endSessionEarly} />
+        <TertiaryButton text="Wrap up break early" onClick={endSessionEarly} />
       </div>
       <div className={styles.illustration}>
         <div className={styles.illustrationContainer}>
@@ -46,4 +46,4 @@ const BreakView: React.FC<BreakViewProps> = ({
   );
 };
 
-export default BreakView;
+export default OngoingBreakSessionView;

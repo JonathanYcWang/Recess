@@ -10,7 +10,7 @@ import {
   rerollReward,
   transitionToFocusSession,
   transitionToRewardSelection,
-  transitionToBackToIt,
+  transitionToFocusSessionCountdown,
   resetTimer,
   updateTimerState,
 } from '../slices/timerSlice';
@@ -55,14 +55,18 @@ export const useTimer = () => {
   }, [blockedSites, timerState.generatedRewards.length, generateReward, dispatch]);
 
   useEffect(() => {
-    const activeStates = ['DURING_SESSION', 'BREAK', 'BACK_TO_IT'];
+    const activeStates = [
+      'ONGOING_FOCUS_SESSION',
+      'ONGOING_BREAK_SESSION',
+      'FOCUS_SESSION_COUNTDOWN',
+    ];
 
     if (activeStates.includes(timerState.sessionState) && !timerState.isPaused) {
       const intervalId = setInterval(() => {
         let shouldTransition = false;
 
         switch (timerState.sessionState) {
-          case 'DURING_SESSION': {
+          case 'ONGOING_FOCUS_SESSION': {
             const remaining = calculateRemaining(
               timerState.initialFocusSessionDuration,
               timerState.focusSessionEntryTimeStamp
@@ -73,21 +77,21 @@ export const useTimer = () => {
             }
             break;
           }
-          case 'BREAK': {
+          case 'ONGOING_BREAK_SESSION': {
             const remaining = calculateRemaining(
               timerState.initialBreakSessionDuration,
               timerState.breakSessionEntryTimeStamp
             );
             if (remaining <= 0) {
               shouldTransition = true;
-              dispatch(transitionToBackToIt());
+              dispatch(transitionToFocusSessionCountdown());
             }
             break;
           }
-          case 'BACK_TO_IT': {
+          case 'FOCUS_SESSION_COUNTDOWN': {
             const remaining = calculateRemaining(
-              timerState.initialBackToItDuration,
-              timerState.backToItEntryTimeStamp
+              timerState.initialFocusSessionCountdownDuration,
+              timerState.focusSessionCountdownEntryTimeStamp
             );
             if (remaining <= 0) {
               shouldTransition = true;
@@ -112,8 +116,8 @@ export const useTimer = () => {
     timerState.focusSessionEntryTimeStamp,
     timerState.initialBreakSessionDuration,
     timerState.breakSessionEntryTimeStamp,
-    timerState.initialBackToItDuration,
-    timerState.backToItEntryTimeStamp,
+    timerState.initialFocusSessionCountdownDuration,
+    timerState.focusSessionCountdownEntryTimeStamp,
     dispatch,
   ]);
 
@@ -121,20 +125,20 @@ export const useTimer = () => {
   const getDerivedTimerState = useCallback(() => {
     let derived = { ...timerState };
 
-    if (timerState.sessionState === 'DURING_SESSION' && !timerState.isPaused) {
+    if (timerState.sessionState === 'ONGOING_FOCUS_SESSION' && !timerState.isPaused) {
       derived.focusSessionDurationRemaining = calculateRemaining(
         timerState.initialFocusSessionDuration,
         timerState.focusSessionEntryTimeStamp
       );
-    } else if (timerState.sessionState === 'BREAK') {
+    } else if (timerState.sessionState === 'ONGOING_BREAK_SESSION') {
       derived.breakSessionDurationRemaining = calculateRemaining(
         timerState.initialBreakSessionDuration,
         timerState.breakSessionEntryTimeStamp
       );
-    } else if (timerState.sessionState === 'BACK_TO_IT' && !timerState.isPaused) {
-      derived.backToItTimeRemaining = calculateRemaining(
-        timerState.initialBackToItDuration,
-        timerState.backToItEntryTimeStamp
+    } else if (timerState.sessionState === 'FOCUS_SESSION_COUNTDOWN' && !timerState.isPaused) {
+      derived.focusSessionCountdownTimeRemaining = calculateRemaining(
+        timerState.initialFocusSessionCountdownDuration,
+        timerState.focusSessionCountdownEntryTimeStamp
       );
     }
 

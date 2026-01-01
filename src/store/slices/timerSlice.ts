@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TimerState, Reward } from '../../lib/types';
 import {
-  DEFAULT_BACK_TO_IT_TIME,
+  DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME,
   DEFAULT_REROLLS,
-  DEFAULT_TOTAL_WORK_DURATION,
+  DEFAULT_WORK_SESSION_DURATION,
 } from '../../lib/constants';
 import { calculateRemaining } from '../../lib/timer-utils';
 import {
@@ -19,17 +19,17 @@ import {
 
 // Create initial state with temporary placeholder values that will be replaced by dynamic calculations
 const initialState: TimerState = {
-  sessionState: 'BEFORE_SESSION',
+  sessionState: 'BEFORE_WORK_SESSION',
   isPaused: false,
-  initialWorkSessionDuration: DEFAULT_TOTAL_WORK_DURATION,
-  workSessionDurationRemaining: DEFAULT_TOTAL_WORK_DURATION,
+  initialWorkSessionDuration: DEFAULT_WORK_SESSION_DURATION,
+  workSessionDurationRemaining: DEFAULT_WORK_SESSION_DURATION,
   initialFocusSessionDuration: 0, // Will be set below
   initialBreakSessionDuration: 0, // Will be set below
   focusSessionDurationRemaining: 0, // Will be set below
   breakSessionDurationRemaining: 0, // Will be set below
 
-  backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
-  initialBackToItDuration: DEFAULT_BACK_TO_IT_TIME,
+  focusSessionCountdownTimeRemaining: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME,
+  initialFocusSessionCountdownDuration: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME,
   rerolls: DEFAULT_REROLLS,
   selectedReward: null,
 
@@ -42,8 +42,8 @@ const initialState: TimerState = {
   // Dynamic session duration tracking
   momentum: getInitialCEWMA(), // Start at neutral 0.5
   completedWorkMinutesToday: 0,
-  targetWorkMinutesToday: secondsToMinutes(DEFAULT_TOTAL_WORK_DURATION), // Convert from seconds
-  lastCompletedSessionMinutes: 0,
+  targetWorkMinutesToday: secondsToMinutes(DEFAULT_WORK_SESSION_DURATION), // Convert from seconds
+  lastCompletedFocusSessionMinutes: 0,
 };
 
 // Calculate initial session durations based on starting state (momentum=0.5, fatigue=0, progress=0)
@@ -69,7 +69,7 @@ function calculateNextSessionDurations(state: TimerState): {
   const fatigue = calculateFatigue(
     state.completedWorkMinutesToday,
     state.targetWorkMinutesToday,
-    state.lastCompletedSessionMinutes
+    state.lastCompletedFocusSessionMinutes
   );
 
   const focusDurationMinutes = calculateFocusSessionDuration(state.momentum, fatigue, progress);
@@ -99,7 +99,7 @@ const timerSlice = createSlice({
     resetTimer: () => initialState,
 
     startFocusSession: (state) => {
-      state.sessionState = 'DURING_SESSION';
+      state.sessionState = 'ONGOING_FOCUS_SESSION';
       state.focusSessionDurationRemaining = state.nextFocusDuration;
       state.focusSessionEntryTimeStamp = Date.now();
       state.initialFocusSessionDuration = state.nextFocusDuration;
@@ -112,7 +112,7 @@ const timerSlice = createSlice({
       state.isPaused = true;
 
       // Save current remaining time when pausing
-      if (state.sessionState === 'DURING_SESSION') {
+      if (state.sessionState === 'ONGOING_FOCUS_SESSION') {
         const currentRemaining = calculateRemaining(
           state.initialFocusSessionDuration,
           state.focusSessionEntryTimeStamp
@@ -128,7 +128,7 @@ const timerSlice = createSlice({
       state.isPaused = false;
 
       // Restore timestamps when resuming
-      if (state.sessionState === 'DURING_SESSION') {
+      if (state.sessionState === 'ONGOING_FOCUS_SESSION') {
         state.focusSessionEntryTimeStamp = Date.now();
         state.initialFocusSessionDuration = state.focusSessionDurationRemaining;
       }
@@ -157,13 +157,13 @@ const timerSlice = createSlice({
           ...state,
           momentum: newMomentum,
           completedWorkMinutesToday: newCompletedWork,
-          lastCompletedSessionMinutes: newLastSessionMinutes,
+          lastCompletedFocusSessionMinutes: newLastSessionMinutes,
         };
         const durations = calculateNextSessionDurations(tempState);
 
         if (newWorkRemaining <= 0) {
           return {
-            sessionState: 'SESSION_COMPLETE',
+            sessionState: 'WORK_SESSION_COMPLETE',
             focusSessionDurationRemaining: durations.nextFocusDuration,
             workSessionDurationRemaining: 0,
             focusSessionEntryTimeStamp: undefined,
@@ -171,7 +171,7 @@ const timerSlice = createSlice({
             lastFocusSessionCompleted: lastCompleted,
             momentum: newMomentum,
             completedWorkMinutesToday: newCompletedWork,
-            lastCompletedSessionMinutes: newLastSessionMinutes,
+            lastCompletedFocusSessionMinutes: newLastSessionMinutes,
             nextFocusDuration: durations.nextFocusDuration,
             nextBreakDuration: durations.nextBreakDuration,
           };
@@ -186,26 +186,26 @@ const timerSlice = createSlice({
           lastFocusSessionCompleted: lastCompleted,
           momentum: newMomentum,
           completedWorkMinutesToday: newCompletedWork,
-          lastCompletedSessionMinutes: newLastSessionMinutes,
+          lastCompletedFocusSessionMinutes: newLastSessionMinutes,
           nextFocusDuration: durations.nextFocusDuration,
           nextBreakDuration: durations.nextBreakDuration,
         };
       };
 
       // Break case
-      if (state.sessionState === 'BREAK') {
-        state.sessionState = 'BACK_TO_IT';
+      if (state.sessionState === 'ONGOING_BREAK_SESSION') {
+        state.sessionState = 'FOCUS_SESSION_COUNTDOWN';
         state.breakSessionEntryTimeStamp = undefined;
-        state.backToItTimeRemaining = DEFAULT_BACK_TO_IT_TIME;
-        state.initialBackToItDuration = DEFAULT_BACK_TO_IT_TIME;
-        state.backToItEntryTimeStamp = Date.now();
+        state.focusSessionCountdownTimeRemaining = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
+        state.initialFocusSessionCountdownDuration = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
+        state.focusSessionCountdownEntryTimeStamp = Date.now();
         state.isPaused = false;
         return;
       }
 
-      // Session case (DURING_SESSION or PAUSED)
+      // Session case (ONGOING_FOCUS_SESSION or PAUSED)
       let actualRemaining = state.focusSessionDurationRemaining;
-      if (state.sessionState === 'DURING_SESSION') {
+      if (state.sessionState === 'ONGOING_FOCUS_SESSION') {
         actualRemaining = calculateRemaining(
           state.initialFocusSessionDuration,
           state.focusSessionEntryTimeStamp
@@ -226,7 +226,7 @@ const timerSlice = createSlice({
       const reward = action.payload;
       state.selectedReward = reward;
       state.breakSessionDurationRemaining = reward.durationSeconds;
-      state.sessionState = 'BREAK';
+      state.sessionState = 'ONGOING_BREAK_SESSION';
       state.breakSessionEntryTimeStamp = Date.now();
       state.initialBreakSessionDuration = reward.durationSeconds;
       state.nextBreakDuration = reward.durationSeconds;
@@ -244,11 +244,11 @@ const timerSlice = createSlice({
     },
 
     transitionToFocusSession: (state) => {
-      state.sessionState = 'DURING_SESSION';
+      state.sessionState = 'ONGOING_FOCUS_SESSION';
       state.focusSessionDurationRemaining = state.nextFocusDuration;
-      state.backToItTimeRemaining = DEFAULT_BACK_TO_IT_TIME;
-      state.initialBackToItDuration = DEFAULT_BACK_TO_IT_TIME;
-      state.backToItEntryTimeStamp = undefined;
+      state.focusSessionCountdownTimeRemaining = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
+      state.initialFocusSessionCountdownDuration = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
+      state.focusSessionCountdownEntryTimeStamp = undefined;
       state.focusSessionEntryTimeStamp = Date.now();
       state.initialFocusSessionDuration = state.nextFocusDuration;
     },
@@ -263,7 +263,7 @@ const timerSlice = createSlice({
       // Track completed work (convert seconds to minutes)
       const completedMinutes = secondsToMinutes(completedInSegment);
       state.completedWorkMinutesToday += completedMinutes;
-      state.lastCompletedSessionMinutes = completedMinutes;
+      state.lastCompletedFocusSessionMinutes = completedMinutes;
 
       // Calculate next session durations based on updated state
       const durations = calculateNextSessionDurations(state);
@@ -271,7 +271,7 @@ const timerSlice = createSlice({
       state.nextBreakDuration = durations.nextBreakDuration;
 
       if (newWorkRemaining <= 0) {
-        state.sessionState = 'SESSION_COMPLETE';
+        state.sessionState = 'WORK_SESSION_COMPLETE';
         state.workSessionDurationRemaining = 0;
       } else {
         state.sessionState = 'REWARD_SELECTION';
@@ -285,12 +285,12 @@ const timerSlice = createSlice({
       state.isPaused = false;
     },
 
-    transitionToBackToIt: (state) => {
-      state.sessionState = 'BACK_TO_IT';
+    transitionToFocusSessionCountdown: (state) => {
+      state.sessionState = 'FOCUS_SESSION_COUNTDOWN';
       state.breakSessionDurationRemaining = state.nextBreakDuration;
-      state.backToItTimeRemaining = DEFAULT_BACK_TO_IT_TIME;
-      state.initialBackToItDuration = DEFAULT_BACK_TO_IT_TIME;
-      state.backToItEntryTimeStamp = Date.now();
+      state.focusSessionCountdownTimeRemaining = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
+      state.initialFocusSessionCountdownDuration = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
+      state.focusSessionCountdownEntryTimeStamp = Date.now();
       state.breakSessionEntryTimeStamp = undefined;
       state.initialBreakSessionDuration = state.nextBreakDuration;
       state.isPaused = false;
@@ -310,7 +310,7 @@ export const {
   rerollReward,
   transitionToFocusSession,
   transitionToRewardSelection,
-  transitionToBackToIt,
+  transitionToFocusSessionCountdown,
 } = timerSlice.actions;
 
 export default timerSlice.reducer;

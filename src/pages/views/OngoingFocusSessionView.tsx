@@ -8,7 +8,7 @@ import PauseIcon from '../../assets/pause.svg?url';
 import PlayIcon from '../../assets/play.svg?url';
 import styles from '../MainPage.module.css';
 
-interface DuringSessionViewProps {
+interface OngoingFocusSessionViewProps {
   focusSessionDurationRemaining: number;
   isPaused: boolean;
   formatTime: (seconds: number) => string;
@@ -17,7 +17,7 @@ interface DuringSessionViewProps {
   endSessionEarly: () => void;
 }
 
-const DuringSessionView: React.FC<DuringSessionViewProps> = ({
+const OngoingFocusSessionView: React.FC<OngoingFocusSessionViewProps> = ({
   focusSessionDurationRemaining,
   isPaused,
   formatTime,
@@ -27,18 +27,20 @@ const DuringSessionView: React.FC<DuringSessionViewProps> = ({
 }) => {
   return (
     <>
-      <SecondaryTimerDescription text={isPaused ? 'Paused Session' : 'Active Session'} />
+      <SecondaryTimerDescription
+        text={isPaused ? 'Paused Focus Session' : 'Active Focus Session'}
+      />
       <CountdownTimer time={formatTime(focusSessionDurationRemaining)} label="Remaining" />
       {isPaused ? (
         <div className={styles.contentContainer}>
-          <PrimaryButton text="Resume Session" onClick={resumeSession} iconSrc={PlayIcon} />
-          <TertiaryButton text="Wrap up session early" onClick={endSessionEarly} />
+          <PrimaryButton text="Resume Focus Session" onClick={resumeSession} iconSrc={PlayIcon} />
+          <TertiaryButton text="Wrap up focus session early" onClick={endSessionEarly} />
         </div>
       ) : (
-        <SecondaryButton text="Pause Session" onClick={pauseSession} iconSrc={PauseIcon} />
+        <SecondaryButton text="Pause Focus Session" onClick={pauseSession} iconSrc={PauseIcon} />
       )}
     </>
   );
 };
 
-export default DuringSessionView;
+export default OngoingFocusSessionView;

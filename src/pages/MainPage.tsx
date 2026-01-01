@@ -3,12 +3,12 @@ import NavBar from '../components/NavBar';
 import { useTimer } from '../store/hooks/useTimer';
 import { useAppSelector } from '../store/hooks';
 import WelcomeView from './views/WelcomeView';
-import BeforeSessionView from './views/BeforeSessionView';
-import DuringSessionView from './views/DuringSessionView';
+import BeforeWorkSessionView from './views/BeforeWorkSessionView';
+import OngoingFocusSessionView from './views/OngoingFocusSessionView';
 import RewardSelectionView from './views/RewardSelectionView';
-import BreakView from './views/BreakView';
-import BackToItView from './views/BackToItView';
-import SessionCompleteView from './views/SessionCompleteView';
+import OngoingBreakSessionView from './views/OngoingBreakSessionView';
+import FocusSessionCountdownView from './views/FocusSessionCountdownView';
+import WorkSessionCompleteView from './views/WorkSessionCompleteView';
 import styles from './MainPage.module.css';
 
 const MainPage: React.FC = () => {
@@ -32,7 +32,7 @@ const MainPage: React.FC = () => {
     isPaused,
     focusSessionDurationRemaining,
     breakSessionDurationRemaining,
-    backToItTimeRemaining,
+    focusSessionCountdownTimeRemaining,
     rerolls,
     selectedReward,
     workSessionDurationRemaining,
@@ -60,9 +60,9 @@ const MainPage: React.FC = () => {
 
   const renderContent = () => {
     switch (sessionState) {
-      case 'BEFORE_SESSION':
+      case 'BEFORE_WORK_SESSION':
         return (
-          <BeforeSessionView
+          <BeforeWorkSessionView
             workSessionDurationRemaining={workSessionDurationRemaining}
             nextFocusDuration={nextFocusDuration}
             formatTime={formatTime}
@@ -70,9 +70,9 @@ const MainPage: React.FC = () => {
           />
         );
 
-      case 'DURING_SESSION':
+      case 'ONGOING_FOCUS_SESSION':
         return (
-          <DuringSessionView
+          <OngoingFocusSessionView
             focusSessionDurationRemaining={focusSessionDurationRemaining}
             isPaused={isPaused}
             formatTime={formatTime}
@@ -92,9 +92,9 @@ const MainPage: React.FC = () => {
           />
         );
 
-      case 'BREAK':
+      case 'ONGOING_BREAK_SESSION':
         return (
-          <BreakView
+          <OngoingBreakSessionView
             breakSessionDurationRemaining={breakSessionDurationRemaining}
             selectedReward={selectedReward}
             formatTime={formatTime}
@@ -102,18 +102,18 @@ const MainPage: React.FC = () => {
           />
         );
 
-      case 'BACK_TO_IT':
+      case 'FOCUS_SESSION_COUNTDOWN':
         return (
-          <BackToItView
+          <FocusSessionCountdownView
             workSessionDurationRemaining={workSessionDurationRemaining}
-            backToItTimeRemaining={backToItTimeRemaining}
+            focusSessionCountdownTimeRemaining={focusSessionCountdownTimeRemaining}
             formatTime={formatTime}
             startFocusSession={startFocusSession}
           />
         );
 
-      case 'SESSION_COMPLETE':
-        return <SessionCompleteView resetTimerState={resetTimerState} />;
+      case 'WORK_SESSION_COMPLETE':
+        return <WorkSessionCompleteView resetTimerState={resetTimerState} />;
 
       default:
         return null;

@@ -3,11 +3,11 @@ import PrimaryButton from '../../components/PrimaryButton';
 import PlayIcon from '../../assets/play.svg?url';
 import styles from '../MainPage.module.css';
 
-interface SessionCompleteViewProps {
+interface WorkSessionCompleteViewProps {
   resetTimerState: () => void;
 }
 
-const SessionCompleteView: React.FC<SessionCompleteViewProps> = ({ resetTimerState }) => {
+const WorkSessionCompleteView: React.FC<WorkSessionCompleteViewProps> = ({ resetTimerState }) => {
   return (
     <>
       <div className={styles.headerContainer}>
@@ -21,4 +21,4 @@ const SessionCompleteView: React.FC<SessionCompleteViewProps> = ({ resetTimerSta
   );
 };
 
-export default SessionCompleteView;
+export default WorkSessionCompleteView;

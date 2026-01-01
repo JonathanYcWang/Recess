@@ -2,11 +2,13 @@
 // TIMER CONSTANTS
 // ============================================================================
 
-// Back-to-it transition period (in seconds)
-export const DEFAULT_BACK_TO_IT_TIME = 10;
+// Focus session countdown transition period (in seconds)
+// Time given to user to prepare before re-entering focus session
+export const DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME = 10;
 
-// Daily work target (in seconds)
-export const DEFAULT_TOTAL_WORK_DURATION = 4.5 * 60 * 60; // 4.5 hours
+// Daily work session target (in seconds)
+// Total duration user aims to work during the day
+export const DEFAULT_WORK_SESSION_DURATION = 4.5 * 60 * 60; // 4.5 hours
 
 // ============================================================================
 // REWARD SYSTEM CONSTANTS

@@ -5,14 +5,14 @@ import PrimaryButton from '../../components/PrimaryButton';
 import PlayIcon from '../../assets/play.svg?url';
 import { formatWorkSessionTime } from '../../lib/timer-utils';
 
-interface BeforeSessionViewProps {
+interface BeforeWorkSessionViewProps {
   workSessionDurationRemaining: number;
   nextFocusDuration: number;
   formatTime: (seconds: number) => string;
   startFocusSession: () => void;
 }
 
-const BeforeSessionView: React.FC<BeforeSessionViewProps> = ({
+const BeforeWorkSessionView: React.FC<BeforeWorkSessionViewProps> = ({
   workSessionDurationRemaining,
   nextFocusDuration,
   formatTime,
@@ -23,10 +23,10 @@ const BeforeSessionView: React.FC<BeforeSessionViewProps> = ({
       <SecondaryTimerDescription
         text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`}
       />
-      <CountdownTimer time={formatTime(nextFocusDuration)} label="Next session length" />
-      <PrimaryButton text="Start Session" onClick={startFocusSession} iconSrc={PlayIcon} />
+      <CountdownTimer time={formatTime(nextFocusDuration)} label="Next focus session length" />
+      <PrimaryButton text="Start Focus Session" onClick={startFocusSession} iconSrc={PlayIcon} />
     </>
   );
 };
 
-export default BeforeSessionView;
+export default BeforeWorkSessionView;

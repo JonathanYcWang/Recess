@@ -1,12 +1,12 @@
 // Shared types for timer/session state management
 
 export type SessionState =
-  | 'BEFORE_SESSION'
-  | 'DURING_SESSION'
+  | 'BEFORE_WORK_SESSION'
+  | 'ONGOING_FOCUS_SESSION'
   | 'REWARD_SELECTION'
-  | 'BREAK'
-  | 'BACK_TO_IT'
-  | 'SESSION_COMPLETE';
+  | 'ONGOING_BREAK_SESSION'
+  | 'FOCUS_SESSION_COUNTDOWN'
+  | 'WORK_SESSION_COMPLETE';
 
 export interface Reward {
   id: string;
@@ -27,28 +27,34 @@ export interface TimerState {
   sessionState: SessionState;
   isPaused: boolean;
 
-  // Requested Variables
+  // Work Session - Total duration user will work today
   workSessionDurationRemaining: number;
   initialWorkSessionDuration: number;
-  initialFocusSessionDuration: number;
-  initialBreakSessionDuration: number;
-  focusSessionDurationRemaining: number;
-  breakSessionDurationRemaining: number;
-  focusSessionEntryTimeStamp?: number;
-  breakSessionEntryTimeStamp?: number;
-  backToItEntryTimeStamp?: number;
 
-  // Other necessary state
-  backToItTimeRemaining: number;
-  initialBackToItDuration: number;
+  // Focus Session - Individual work periods between breaks
+  initialFocusSessionDuration: number;
+  focusSessionDurationRemaining: number;
+  focusSessionEntryTimeStamp?: number;
+
+  // Break Session - Rest periods between focus sessions
+  initialBreakSessionDuration: number;
+  breakSessionDurationRemaining: number;
+  breakSessionEntryTimeStamp?: number;
+
+  // Focus Session Countdown - Transition period before returning to focus
+  focusSessionCountdownTimeRemaining: number;
+  initialFocusSessionCountdownDuration: number;
+  focusSessionCountdownEntryTimeStamp?: number;
+
+  // Reward system
   rerolls: number;
   selectedReward: Reward | null;
+  generatedRewards: Reward[];
 
-  // Dynamic variables
+  // Next session durations (pre-calculated)
   nextFocusDuration: number;
   nextBreakDuration: number;
   lastFocusSessionCompleted: boolean;
-  generatedRewards: Reward[];
 
   // Dynamic Session Duration Tracking
   // CEWMA (Completion Exponentially Weighted Moving Average) - momentum/likelihood of completing next session
@@ -57,5 +63,5 @@ export interface TimerState {
   // Work tracking (all in minutes)
   completedWorkMinutesToday: number; // Total work completed today (W)
   targetWorkMinutesToday: number; // User's daily work target (T)
-  lastCompletedSessionMinutes: number; // Length of most recent completed focus session
+  lastCompletedFocusSessionMinutes: number; // Length of most recent completed focus session
 }
