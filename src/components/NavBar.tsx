@@ -39,6 +39,26 @@ const NavBar: React.FC<NavBarProps> = () => {
           <div className={styles.tertiaryButtonsContainer}>
             <TertiaryButton text="Work Hours" onClick={handleWorkHoursClick} />
             <TertiaryButton text="Blocked Sites" onClick={handleBlockedSitesClick} />
+            <TertiaryButton
+              text="Reset"
+              onClick={async () => {
+                if (
+                  confirm(
+                    'Are you sure you want to reset all storage? This will clear all timers and settings.'
+                  )
+                ) {
+                  // Clear Chrome storage
+                  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                    await chrome.storage.local.clear();
+                  }
+                  // Clear localStorage fallback
+                  localStorage.clear();
+
+                  // Reload the page to reinitialize with defaults
+                  window.location.reload();
+                }
+              }}
+            />
           </div>
         </>
       )}

@@ -66,7 +66,7 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
     storageAPI.set(STORAGE_KEYS.workHours, state.workHours.entries);
   }
   if (typedAction.type && typedAction.type.startsWith('blockedSites/')) {
-    storageAPI.set(STORAGE_KEYS.blockedSites, state.blockedSites.sites);
+    storageAPI.set(STORAGE_KEYS.blockedSites, state.blockedSites);
   }
   if (typedAction.type && typedAction.type.startsWith('routing/')) {
     storageAPI.set(STORAGE_KEYS.routing, state.routing.hasOnboarded);
@@ -76,17 +76,17 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
 };
 
 export const loadStateFromStorage = async () => {
-  const [timerState, workHoursEntries, blockedSites, hasOnboarded] = await Promise.all([
+  const [timerState, workHoursEntries, blockedSitesState, hasOnboarded] = await Promise.all([
     storageAPI.get(STORAGE_KEYS.timer),
     storageAPI.get<any[]>(STORAGE_KEYS.workHours),
-    storageAPI.get<string[]>(STORAGE_KEYS.blockedSites),
+    storageAPI.get<any>(STORAGE_KEYS.blockedSites),
     storageAPI.get<boolean>(STORAGE_KEYS.routing),
   ]);
 
   return {
     timer: timerState,
     workHours: workHoursEntries ? workHoursEntries : undefined,
-    blockedSites: blockedSites,
+    blockedSites: blockedSitesState,
     routing: hasOnboarded !== undefined ? hasOnboarded : undefined,
   };
 };

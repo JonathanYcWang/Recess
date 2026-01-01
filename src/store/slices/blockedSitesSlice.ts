@@ -17,20 +17,29 @@ const DEFAULT_SITES = [
 interface BlockedSitesState {
   sites: string[];
   isLoaded: boolean;
+  closeDistractingSites: boolean;
 }
 
 const initialState: BlockedSitesState = {
   sites: DEFAULT_SITES,
   isLoaded: false,
+  closeDistractingSites: false,
 };
 
 const blockedSitesSlice = createSlice({
   name: 'blockedSites',
   initialState,
   reducers: {
-    setBlockedSites: (state, action: PayloadAction<string[]>) => {
-      state.sites = action.payload;
-      state.isLoaded = true;
+    setBlockedSites: (state, action: PayloadAction<string[] | BlockedSitesState>) => {
+      // Handle both legacy format (just sites array) and new format (full state object)
+      if (Array.isArray(action.payload)) {
+        state.sites = action.payload;
+        state.isLoaded = true;
+      } else {
+        state.sites = action.payload.sites || state.sites;
+        state.isLoaded = action.payload.isLoaded !== undefined ? action.payload.isLoaded : true;
+        state.closeDistractingSites = action.payload.closeDistractingSites || false;
+      }
     },
 
     addBlockedSite: (state, action: PayloadAction<string>) => {
@@ -46,10 +55,24 @@ const blockedSitesSlice = createSlice({
     markBlockedSitesLoaded: (state) => {
       state.isLoaded = true;
     },
+
+    toggleCloseDistractingSites: (state) => {
+      state.closeDistractingSites = !state.closeDistractingSites;
+    },
+
+    setCloseDistractingSites: (state, action: PayloadAction<boolean>) => {
+      state.closeDistractingSites = action.payload;
+    },
   },
 });
 
-export const { setBlockedSites, addBlockedSite, removeBlockedSite, markBlockedSitesLoaded } =
-  blockedSitesSlice.actions;
+export const {
+  setBlockedSites,
+  addBlockedSite,
+  removeBlockedSite,
+  markBlockedSitesLoaded,
+  toggleCloseDistractingSites,
+  setCloseDistractingSites,
+} = blockedSitesSlice.actions;
 
 export default blockedSitesSlice.reducer;

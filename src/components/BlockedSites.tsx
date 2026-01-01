@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import PrimaryButton from './PrimaryButton';
 import Icon from './Icon';
 import TimesIcon from '../assets/times.svg?url';
+import Toggle from './Toggle';
 import styles from './BlockedSites.module.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { addBlockedSite, removeBlockedSite } from '../store/slices/blockedSitesSlice';
+import {
+  addBlockedSite,
+  removeBlockedSite,
+  toggleCloseDistractingSites,
+} from '../store/slices/blockedSitesSlice';
 
 const BlockedSites: React.FC = () => {
   const dispatch = useAppDispatch();
   const sites = useAppSelector((state) => state.blockedSites.sites);
+  const closeDistractingSites = useAppSelector((state) => state.blockedSites.closeDistractingSites);
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string>('');
 
@@ -78,6 +84,23 @@ const BlockedSites: React.FC = () => {
         <p className={styles.header}>Blocked Sites</p>
         <p className={styles.caption}>Manage sites that should be blocked during focus time.</p>
       </div>
+
+      <div
+        className={styles.toggleContainer}
+        onClick={() => dispatch(toggleCloseDistractingSites())}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '12px 0',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <Toggle isOn={closeDistractingSites} />
+        <span style={{ fontSize: '14px', fontWeight: '500' }}>Close Distracting Sites</span>
+      </div>
+
       <div className={styles.contentContainer}>
         <div className={styles.inputContainer}>
           <input
