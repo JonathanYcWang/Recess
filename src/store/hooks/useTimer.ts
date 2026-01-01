@@ -15,11 +15,7 @@ import {
   updateTimerState,
 } from '../slices/timerSlice';
 import { Reward } from '../../lib/types';
-import {
-  REWARD_TIME_INTERVAL,
-  MAX_REWARD_TIME,
-  DEFAULT_BACK_TO_IT_TIME,
-} from '../../lib/constants';
+import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../lib/constants';
 import { formatTime as formatTimeUtil, calculateRemaining } from '../../lib/timer-utils';
 
 import { selectTimerState } from '../selectors/timerSelectors';

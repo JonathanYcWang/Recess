@@ -1,36 +1,17 @@
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 
-// Basic selectors
+// Base selector - use this when you need the entire timer state
 export const selectTimerState = (state: RootState) => state.timer;
-export const selectSessionState = (state: RootState) => state.timer.sessionState;
-export const selectFocusSessionDurationRemaining = (state: RootState) =>
-  state.timer.focusSessionDurationRemaining;
-export const selectBreakSessionDurationRemaining = (state: RootState) =>
-  state.timer.breakSessionDurationRemaining;
-export const selectWorkSessionDurationRemaining = (state: RootState) =>
-  state.timer.workSessionDurationRemaining;
-export const selectBackToItTimeRemaining = (state: RootState) => state.timer.backToItTimeRemaining;
-export const selectRerolls = (state: RootState) => state.timer.rerolls;
-export const selectSelectedReward = (state: RootState) => state.timer.selectedReward;
-export const selectGeneratedRewards = (state: RootState) => state.timer.generatedRewards;
-export const selectIsPaused = (state: RootState) => state.timer.isPaused;
 
-// Memoized selectors
-export const selectIsSessionActive = createSelector([selectSessionState], (sessionState) =>
-  ['DURING_SESSION', 'BREAK', 'BACK_TO_IT'].includes(sessionState)
+// Derived selectors for specific UI needs
+export const selectIsSessionActive = createSelector([selectTimerState], (timer) =>
+  ['DURING_SESSION', 'BREAK', 'BACK_TO_IT'].includes(timer.sessionState)
 );
 
 export const selectCanPause = createSelector(
-  [selectSessionState, selectIsPaused],
-  (sessionState, isPaused) => !isPaused && ['DURING_SESSION', 'BACK_TO_IT'].includes(sessionState)
+  [selectTimerState],
+  (timer) => !timer.isPaused && ['DURING_SESSION', 'BACK_TO_IT'].includes(timer.sessionState)
 );
 
-export const selectCanResume = createSelector([selectIsPaused], (isPaused) => isPaused);
-
-export const selectIsBreakTime = createSelector(
-  [selectSessionState],
-  (sessionState) => sessionState === 'BREAK'
-);
-
-export const selectHasRerollsAvailable = createSelector([selectRerolls], (rerolls) => rerolls > 0);
+export const selectCanResume = createSelector([selectTimerState], (timer) => timer.isPaused);
