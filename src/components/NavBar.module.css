@@ -31,11 +31,43 @@
   opacity: 0.8;
 }
 
+/* Tertiary buttons container - visible on large viewports */
+.tertiaryButtonsContainer {
+  display: none;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+@media (min-width: 601px) {
+  .tertiaryButtonsContainer {
+    display: flex;
+  }
+}
+
+/* Settings button - visible on small viewports */
 .settingsButton {
+  display: flex;
   transition: opacity 0.2s;
   cursor: pointer;
 }
 
+@media (min-width: 601px) {
+  .settingsButton {
+    display: none;
+  }
+}
+
 .settingsButton:hover {
+  opacity: 0.8;
+}
+
+/* Close button - shown when on settings pages */
+.closeButton {
+  display: flex;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.closeButton:hover {
   opacity: 0.8;
 }

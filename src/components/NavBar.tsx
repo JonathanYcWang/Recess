@@ -4,9 +4,11 @@ import { Menu } from '@mui/material';
 import MainLogoPng from './MainLogoPng';
 import Icon from './Icon';
 import SecondaryButton from './SecondaryButton';
+import TertiaryButton from './TertiaryButton';
 import EnergyCheckToolTip from './EnergyCheckToolTip';
 import BoltIcon from '../assets/bolt.svg?url';
 import SettingsIcon from '../assets/settings.svg?url';
+import TimesIcon from '../assets/times.svg?url';
 import styles from './NavBar.module.css';
 
 interface NavBarProps {
@@ -19,6 +21,8 @@ const NavBar: React.FC<NavBarProps> = ({ energyLevel = 'High' }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
+  const isOnSettingsPage = location.pathname.startsWith('/settings');
+
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -27,12 +31,16 @@ const NavBar: React.FC<NavBarProps> = ({ energyLevel = 'High' }) => {
     setAnchorEl(null);
   };
 
-  const handleSettingsClick = () => {
-    if (location.pathname === '/settings') {
-      navigate('/');
-    } else {
-      navigate('/settings');
-    }
+  const handleBackToMain = () => {
+    navigate('/');
+  };
+
+  const handleWorkHoursClick = () => {
+    navigate('/settings/work-hours');
+  };
+
+  const handleBlockedSitesClick = () => {
+    navigate('/settings/blocked-sites');
   };
 
   return (
@@ -75,9 +83,24 @@ const NavBar: React.FC<NavBarProps> = ({ energyLevel = 'High' }) => {
           <EnergyCheckToolTip />
         </Menu>
       </div>
-      <div className={styles.settingsButton}>
-        <Icon src={SettingsIcon} alt="Settings" size={28} onClick={handleSettingsClick} />
-      </div>
+
+      {/* Large viewport: Show tertiary buttons or X icon */}
+      {isOnSettingsPage ? (
+        <div className={styles.closeButton}>
+          <Icon src={TimesIcon} alt="Close" size={28} onClick={handleBackToMain} />
+        </div>
+      ) : (
+        <>
+          <div className={styles.tertiaryButtonsContainer}>
+            <TertiaryButton text="Work Hours" onClick={handleWorkHoursClick} />
+            <TertiaryButton text="Blocked Sites" onClick={handleBlockedSitesClick} />
+          </div>
+          {/* Small viewport: Show settings icon */}
+          <div className={styles.settingsButton}>
+            <Icon src={SettingsIcon} alt="Settings" size={28} onClick={handleWorkHoursClick} />
+          </div>
+        </>
+      )}
     </div>
   );
 };
