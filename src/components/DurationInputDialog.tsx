@@ -20,7 +20,7 @@ const DurationInputDialog: React.FC<DurationInputDialogProps> = ({
 }) => {
   const initialHours = Math.floor(currentDurationMinutes / 60);
   const initialMinutes = currentDurationMinutes % 60;
-  
+
   const [time, setTime] = useState<Time>(new Time(initialHours, initialMinutes));
 
   if (!isOpen) return null;
@@ -42,17 +42,11 @@ const DurationInputDialog: React.FC<DurationInputDialogProps> = ({
     <div className={styles.overlay}>
       <div className={styles.dialog}>
         <h2 className={styles.title}>Set Work Session Duration</h2>
-        <p className={styles.description}>
-          How long would you like to work for?
-        </p>
-        
+        <p className={styles.description}>How long would you like to work for?</p>
+
         <div className={styles.inputContainer}>
           <label className={styles.label}>Duration (Hours:Minutes)</label>
-          <TimeField
-            value={time}
-            onChange={handleTimeChange}
-            hourCycle={24}
-          >
+          <TimeField value={time} onChange={handleTimeChange} hourCycle={24}>
             <DateInput />
           </TimeField>
         </div>

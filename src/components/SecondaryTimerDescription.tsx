@@ -8,7 +8,7 @@ interface SecondaryTimerDescriptionProps {
 
 const SecondaryTimerDescription: React.FC<SecondaryTimerDescriptionProps> = ({ text, onClick }) => {
   return (
-    <div 
+    <div
       className={`${styles.secondaryTimerDescription} ${onClick ? styles.clickable : ''}`}
       onClick={onClick}
     >

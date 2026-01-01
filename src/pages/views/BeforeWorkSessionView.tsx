@@ -38,7 +38,7 @@ const BeforeWorkSessionView: React.FC<BeforeWorkSessionViewProps> = ({
       />
       <CountdownTimer time={formatTime(nextFocusDuration)} label="Next focus session length" />
       <PrimaryButton text="Start Focus Session" onClick={startFocusSession} iconSrc={PlayIcon} />
-      
+
       <DurationInputDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}

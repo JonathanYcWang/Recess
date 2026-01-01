@@ -103,7 +103,7 @@ const timerSlice = createSlice({
       state.initialWorkSessionDuration = durationInSeconds;
       state.workSessionDurationRemaining = durationInSeconds;
       state.targetWorkMinutesToday = action.payload;
-      
+
       // Recalculate next session durations based on new work session duration
       const durations = calculateNextSessionDurations(state);
       state.nextFocusDuration = durations.nextFocusDuration;
