@@ -12,12 +12,10 @@ const routingSlice = createSlice({
   name: 'routing',
   initialState,
   reducers: {
-    // Set onboarding status
     setHasOnboarded: (state, action: PayloadAction<boolean>) => {
       state.hasOnboarded = action.payload;
     },
 
-    // Complete onboarding
     completeOnboarding: (state) => {
       state.hasOnboarded = true;
     },

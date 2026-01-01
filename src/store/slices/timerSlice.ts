@@ -1,12 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TimerState, Reward } from '../../storage/types';
+import { TimerState, Reward } from '../../lib/types';
 import {
   DEFAULT_FOCUS_TIME,
   DEFAULT_BREAK_TIME,
   DEFAULT_BACK_TO_IT_TIME,
   DEFAULT_REROLLS,
   DEFAULT_TOTAL_WORK_DURATION,
-} from '../../storage/constants';
+} from '../../lib/constants';
+import { calculateRemaining } from '../../lib/timer-utils';
 
 const initialState: TimerState = {
   sessionState: 'BEFORE_SESSION',
@@ -32,15 +33,12 @@ const timerSlice = createSlice({
   name: 'timer',
   initialState,
   reducers: {
-    // Update timer state with partial updates
     updateTimerState: (state, action: PayloadAction<Partial<TimerState>>) => {
       return { ...state, ...action.payload };
     },
 
-    // Reset timer to initial state
     resetTimer: () => initialState,
 
-    // Start focus session
     startFocusSession: (state) => {
       state.sessionState = 'DURING_SESSION';
       state.focusSessionDurationRemaining = DEFAULT_FOCUS_TIME;
@@ -48,15 +46,7 @@ const timerSlice = createSlice({
       state.initialFocusSessionDuration = DEFAULT_FOCUS_TIME;
     },
 
-    // Pause session
     pauseSession: (state) => {
-      const calculateRemaining = (initialDuration: number, entryTimeStamp?: number): number => {
-        if (!entryTimeStamp) return initialDuration;
-        const currentTime = Date.now();
-        const elapsed = Math.floor((currentTime - entryTimeStamp) / 1000);
-        return Math.max(0, initialDuration - elapsed);
-      };
-
       let currentRemaining = state.focusSessionDurationRemaining;
       if (state.sessionState === 'DURING_SESSION') {
         currentRemaining = calculateRemaining(
@@ -77,7 +67,6 @@ const timerSlice = createSlice({
       state.pausedFrom = pausedFrom;
     },
 
-    // Resume session
     resumeSession: (state) => {
       const resumeTo = state.pausedFrom || 'DURING_SESSION';
 
@@ -92,15 +81,7 @@ const timerSlice = createSlice({
       }
     },
 
-    // End session early
     endSessionEarly: (state) => {
-      const calculateRemaining = (initialDuration: number, entryTimeStamp?: number): number => {
-        if (!entryTimeStamp) return initialDuration;
-        const currentTime = Date.now();
-        const elapsed = Math.floor((currentTime - entryTimeStamp) / 1000);
-        return Math.max(0, initialDuration - elapsed);
-      };
-
       const getNextFocusState = (
         currentWorkRemaining: number,
         initialFocusDuration: number,
@@ -160,7 +141,6 @@ const timerSlice = createSlice({
       Object.assign(state, nextState);
     },
 
-    // Select reward and start break
     selectReward: (state, action: PayloadAction<Reward>) => {
       const reward = action.payload;
       state.selectedReward = reward;
@@ -171,12 +151,10 @@ const timerSlice = createSlice({
       state.nextBreakDuration = reward.durationSeconds;
     },
 
-    // Set generated rewards
     setGeneratedRewards: (state, action: PayloadAction<Reward[]>) => {
       state.generatedRewards = action.payload;
     },
 
-    // Reroll a specific reward
     rerollReward: (state, action: PayloadAction<{ index: number; newReward: Reward }>) => {
       if (state.rerolls > 0) {
         state.generatedRewards[action.payload.index] = action.payload.newReward;
@@ -184,14 +162,12 @@ const timerSlice = createSlice({
       }
     },
 
-    // Decrement back to it timer
     decrementBackToIt: (state) => {
       if (state.backToItTimeRemaining > 0) {
         state.backToItTimeRemaining -= 1;
       }
     },
 
-    // Transition from BACK_TO_IT to DURING_SESSION
     transitionToFocusSession: (state) => {
       state.sessionState = 'DURING_SESSION';
       state.focusSessionDurationRemaining = state.nextFocusDuration;
@@ -200,7 +176,6 @@ const timerSlice = createSlice({
       state.initialFocusSessionDuration = state.nextFocusDuration;
     },
 
-    // Transition from DURING_SESSION to REWARD_SELECTION (timer naturally expired)
     transitionToRewardSelection: (state) => {
       const completedInSegment = state.initialFocusSessionDuration;
       const newWorkRemaining = Math.max(0, state.workSessionDurationRemaining - completedInSegment);
@@ -219,7 +194,6 @@ const timerSlice = createSlice({
       state.lastFocusSessionCompleted = true;
     },
 
-    // Transition from BREAK to BACK_TO_IT
     transitionToBackToIt: (state) => {
       state.sessionState = 'BACK_TO_IT';
       state.breakSessionDurationRemaining = state.nextBreakDuration;

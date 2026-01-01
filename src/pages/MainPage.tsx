@@ -10,8 +10,8 @@ import RewardLink from '../components/RewardLink';
 import PauseIcon from '../assets/pause.svg?url';
 import PlayIcon from '../assets/play.svg?url';
 import { useTimer } from '../store/hooks/useTimer';
-import { DEFAULT_FOCUS_TIME } from '../storage/constants';
-import { formatWorkSessionTime } from '../storage';
+import { DEFAULT_FOCUS_TIME } from '../lib/constants';
+import { formatWorkSessionTime } from '../lib/timer-utils';
 import styles from './MainPage.module.css';
 
 const MainPage: React.FC = () => {

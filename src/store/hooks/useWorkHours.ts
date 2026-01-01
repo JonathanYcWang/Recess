@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import {
   addWorkHoursEntry,
@@ -6,47 +5,20 @@ import {
   deleteWorkHoursEntry,
   toggleWorkHoursEntry,
 } from '../slices/workHoursSlice';
-import { selectWorkHoursEntries, selectWorkHoursIsLoaded } from '../selectors/workHoursSelectors';
 
-export const useWorkHoursRedux = () => {
+export const useWorkHours = () => {
   const dispatch = useAppDispatch();
-  const entries = useAppSelector(selectWorkHoursEntries);
-  const isLoaded = useAppSelector(selectWorkHoursIsLoaded);
-
-  const addEntry = useCallback(
-    (startTime: string, endTime: string, days: boolean[]) => {
-      dispatch(addWorkHoursEntry({ startTime, endTime, days }));
-    },
-    [dispatch]
-  );
-
-  const updateEntry = useCallback(
-    (id: string, startTime: string, endTime: string, days: boolean[]) => {
-      dispatch(updateWorkHoursEntry({ id, startTime, endTime, days }));
-    },
-    [dispatch]
-  );
-
-  const deleteEntry = useCallback(
-    (id: string) => {
-      dispatch(deleteWorkHoursEntry(id));
-    },
-    [dispatch]
-  );
-
-  const toggleEntry = useCallback(
-    (id: string) => {
-      dispatch(toggleWorkHoursEntry(id));
-    },
-    [dispatch]
-  );
+  const entries = useAppSelector((state) => state.workHours.entries);
+  const isLoaded = useAppSelector((state) => state.workHours.isLoaded);
 
   return {
     entries,
     isLoaded,
-    addEntry,
-    updateEntry,
-    deleteEntry,
-    toggleEntry,
+    addEntry: (startTime: string, endTime: string, days: boolean[]) =>
+      dispatch(addWorkHoursEntry({ startTime, endTime, days })),
+    updateEntry: (id: string, startTime: string, endTime: string, days: boolean[]) =>
+      dispatch(updateWorkHoursEntry({ id, startTime, endTime, days })),
+    deleteEntry: (id: string) => dispatch(deleteWorkHoursEntry(id)),
+    toggleEntry: (id: string) => dispatch(toggleWorkHoursEntry(id)),
   };
 };

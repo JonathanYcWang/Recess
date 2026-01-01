@@ -15,25 +15,16 @@ import {
   resetTimer,
   updateTimerState,
 } from '../slices/timerSlice';
-import { Reward } from '../../storage/types';
-import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../storage/constants';
-import { formatTime as formatTimeUtil } from '../../storage/utils';
-
-// Helper: Calculate remaining time based on timestamps
-const calculateRemaining = (initialDuration: number, entryTimeStamp?: number): number => {
-  if (!entryTimeStamp) return initialDuration;
-  const currentTime = Date.now();
-  const elapsed = Math.floor((currentTime - entryTimeStamp) / 1000);
-  return Math.max(0, initialDuration - elapsed);
-};
+import { Reward } from '../../lib/types';
+import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../lib/constants';
+import { formatTime as formatTimeUtil, calculateRemaining } from '../../lib/timer-utils';
 
 import { selectTimerState } from '../selectors/timerSelectors';
-import { selectBlockedSites } from '../selectors/blockedSitesSelectors';
 
 export const useTimer = () => {
   const dispatch = useAppDispatch();
   const timerState = useAppSelector(selectTimerState);
-  const blockedSites = useAppSelector(selectBlockedSites);
+  const blockedSites = useAppSelector((state) => state.blockedSites.sites);
   const [, setTick] = useState(0); // Force re-render for UI updates
 
   // Generate rewards helper

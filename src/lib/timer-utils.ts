@@ -15,7 +15,7 @@ export const formatTime = (seconds: number): string => {
 export const formatWorkSessionTime = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  
+
   if (hours === 0) {
     return `${minutes} Min`;
   } else if (minutes === 0) {
@@ -23,4 +23,15 @@ export const formatWorkSessionTime = (seconds: number): string => {
   } else {
     return `${hours} Hrs ${minutes} Min`;
   }
+};
+
+/**
+ * Calculate remaining time based on entry timestamp
+ * Used by timer to compute live countdown values
+ */
+export const calculateRemaining = (initialDuration: number, entryTimeStamp?: number): number => {
+  if (!entryTimeStamp) return initialDuration;
+  const currentTime = Date.now();
+  const elapsed = Math.floor((currentTime - entryTimeStamp) / 1000);
+  return Math.max(0, initialDuration - elapsed);
 };

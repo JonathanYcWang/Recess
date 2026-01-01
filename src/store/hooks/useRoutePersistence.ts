@@ -1,21 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks';
-import { selectHasOnboarded } from '../selectors/routingSelectors';
 
-export const useRoutePersistenceRedux = () => {
+/**
+ * Redirects to main page if user has already completed onboarding
+ */
+export const useOnboardingRedirect = () => {
   const navigate = useNavigate();
-  const hasOnboarded = useAppSelector(selectHasOnboarded);
-  const hasCheckedRef = useRef(false);
+  const hasOnboarded = useAppSelector((state) => state.routing.hasOnboarded);
 
   useEffect(() => {
-    // Check onboarding status on mount only (once)
-    if (!hasCheckedRef.current) {
-      hasCheckedRef.current = true;
-      const currentPath = window.location.hash.replace('#', '') || '/';
-      if (hasOnboarded && currentPath === '/') {
-        navigate('/main', { replace: true });
-      }
+    const currentPath = location.hash.slice(1) || '/';
+    if (hasOnboarded && currentPath === '/') {
+      navigate('/main', { replace: true });
     }
-  }, [hasOnboarded, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount - hasOnboarded is loaded before first render
 };

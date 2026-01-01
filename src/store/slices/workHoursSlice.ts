@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { WorkHoursEntry } from '../../storage/types';
+import { WorkHoursEntry } from '../../lib/types';
 
 interface WorkHoursState {
   entries: WorkHoursEntry[];
@@ -15,13 +15,11 @@ const workHoursSlice = createSlice({
   name: 'workHours',
   initialState,
   reducers: {
-    // Set all entries (used when loading from storage)
     setWorkHours: (state, action: PayloadAction<WorkHoursEntry[]>) => {
       state.entries = action.payload;
       state.isLoaded = true;
     },
 
-    // Add a new work hours entry
     addWorkHoursEntry: (
       state,
       action: PayloadAction<{ startTime: string; endTime: string; days: boolean[] }>
@@ -36,7 +34,6 @@ const workHoursSlice = createSlice({
       state.entries.push(newEntry);
     },
 
-    // Update an existing work hours entry
     updateWorkHoursEntry: (
       state,
       action: PayloadAction<{ id: string; startTime: string; endTime: string; days: boolean[] }>
@@ -52,12 +49,10 @@ const workHoursSlice = createSlice({
       }
     },
 
-    // Delete a work hours entry
     deleteWorkHoursEntry: (state, action: PayloadAction<string>) => {
       state.entries = state.entries.filter((entry) => entry.id !== action.payload);
     },
 
-    // Toggle enabled status of a work hours entry
     toggleWorkHoursEntry: (state, action: PayloadAction<string>) => {
       const index = state.entries.findIndex((entry) => entry.id === action.payload);
       if (index !== -1) {
@@ -65,7 +60,6 @@ const workHoursSlice = createSlice({
       }
     },
 
-    // Mark as loaded
     markWorkHoursLoaded: (state) => {
       state.isLoaded = true;
     },

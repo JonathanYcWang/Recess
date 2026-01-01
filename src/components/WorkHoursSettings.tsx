@@ -3,11 +3,18 @@ import { Dialog } from '@mui/material';
 import PrimaryButton from './PrimaryButton';
 import WorkWindow from './WorkWindow';
 import EditTimeRangeOverlay from './EditTimeRangeOverlay';
-import { useWorkHoursRedux } from '../store/hooks/useWorkHours';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  addWorkHoursEntry,
+  updateWorkHoursEntry,
+  deleteWorkHoursEntry,
+  toggleWorkHoursEntry,
+} from '../store/slices/workHoursSlice';
 import styles from './WorkHoursSettings.module.css';
 
 const WorkHoursSettings: React.FC = () => {
-  const { entries, addEntry, updateEntry, deleteEntry, toggleEntry } = useWorkHoursRedux();
+  const dispatch = useAppDispatch();
+  const entries = useAppSelector((state) => state.workHours.entries);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -31,16 +38,29 @@ const WorkHoursSettings: React.FC = () => {
 
   const handleSave = (timeRange: { start: string; end: string }, selectedDays: boolean[]) => {
     if (editingId) {
-      updateEntry(editingId, timeRange.start, timeRange.end, selectedDays);
+      dispatch(
+        updateWorkHoursEntry({
+          id: editingId,
+          startTime: timeRange.start,
+          endTime: timeRange.end,
+          days: selectedDays,
+        })
+      );
     } else {
-      addEntry(timeRange.start, timeRange.end, selectedDays);
+      dispatch(
+        addWorkHoursEntry({
+          startTime: timeRange.start,
+          endTime: timeRange.end,
+          days: selectedDays,
+        })
+      );
     }
     closeOverlay();
   };
 
   const handleDelete = () => {
     if (editingId) {
-      deleteEntry(editingId);
+      dispatch(deleteWorkHoursEntry(editingId));
       closeOverlay();
     }
   };
@@ -61,7 +81,7 @@ const WorkHoursSettings: React.FC = () => {
             timeRange={`${entry.startTime} - ${entry.endTime}`}
             days={formatDays(entry.days)}
             enabled={entry.enabled}
-            onToggle={() => toggleEntry(entry.id)}
+            onToggle={() => dispatch(toggleWorkHoursEntry(entry.id))}
             onEdit={() => openOverlay(entry.id)}
           />
         ))}

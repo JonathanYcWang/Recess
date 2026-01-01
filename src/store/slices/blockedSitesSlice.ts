@@ -28,25 +28,21 @@ const blockedSitesSlice = createSlice({
   name: 'blockedSites',
   initialState,
   reducers: {
-    // Set all blocked sites (used when loading from storage)
     setBlockedSites: (state, action: PayloadAction<string[]>) => {
       state.sites = action.payload;
       state.isLoaded = true;
     },
 
-    // Add a new blocked site
     addBlockedSite: (state, action: PayloadAction<string>) => {
       if (!state.sites.includes(action.payload)) {
         state.sites.push(action.payload);
       }
     },
 
-    // Remove a blocked site
     removeBlockedSite: (state, action: PayloadAction<string>) => {
       state.sites = state.sites.filter((site) => site !== action.payload);
     },
 
-    // Mark as loaded
     markBlockedSitesLoaded: (state) => {
       state.isLoaded = true;
     },

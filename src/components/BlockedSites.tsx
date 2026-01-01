@@ -3,10 +3,12 @@ import PrimaryButton from './PrimaryButton';
 import Icon from './Icon';
 import TimesIcon from '../assets/times.svg?url';
 import styles from './BlockedSites.module.css';
-import { useBlockedSitesRedux } from '../store/hooks/useBlockedSites';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { addBlockedSite, removeBlockedSite } from '../store/slices/blockedSitesSlice';
 
 const BlockedSites: React.FC = () => {
-  const { sites, addSite, removeSite } = useBlockedSitesRedux();
+  const dispatch = useAppDispatch();
+  const sites = useAppSelector((state) => state.blockedSites.sites);
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string>('');
 
@@ -19,18 +21,14 @@ const BlockedSites: React.FC = () => {
 
   const isValidUrl = (urlString: string): boolean => {
     try {
-      // Try to create a URL object - if it succeeds, check if it's http/https
       const url = new URL(urlString);
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
         return false;
       }
-      // Validate the hostname is a valid domain
       return isValidDomain(url.hostname);
     } catch {
-      // If URL constructor throws, try adding https:// prefix
       try {
         const url = new URL(`https://${urlString}`);
-        // Validate the hostname is a valid domain
         return isValidDomain(url.hostname);
       } catch {
         return false;
@@ -40,9 +38,7 @@ const BlockedSites: React.FC = () => {
 
   const normalizeUrl = (urlString: string): string => {
     const trimmed = urlString.trim().toLowerCase();
-    // Remove protocol if present
     const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
-    // Remove trailing slash
     return withoutProtocol.replace(/\/$/, '');
   };
 
@@ -55,19 +51,17 @@ const BlockedSites: React.FC = () => {
 
     const normalizedUrl = normalizeUrl(trimmedValue);
 
-    // Check if it's a valid URL format
     if (!isValidUrl(trimmedValue)) {
       setError('Please enter a valid URL format (e.g., example.com or https://example.com)');
       return;
     }
 
-    // Check for duplicates
     if (sites.includes(normalizedUrl)) {
       setError('This site is already in the blocked list');
       return;
     }
 
-    addSite(normalizedUrl);
+    dispatch(addBlockedSite(normalizedUrl));
     setInputValue('');
     setError('');
   };
@@ -104,7 +98,12 @@ const BlockedSites: React.FC = () => {
           {sites.map((site) => (
             <div key={site} className={styles.siteItem}>
               <p className={styles.siteName}>{site}</p>
-              <Icon src={TimesIcon} alt="Remove" size={9} onClick={() => removeSite(site)} />
+              <Icon
+                src={TimesIcon}
+                alt="Remove"
+                size={9}
+                onClick={() => dispatch(removeBlockedSite(site))}
+              />
             </div>
           ))}
         </div>
