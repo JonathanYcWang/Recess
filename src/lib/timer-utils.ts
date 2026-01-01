@@ -2,19 +2,23 @@
 
 /**
  * Format time in seconds to MM:SS format
+ * @param seconds - Time in seconds (will be floored to whole number)
  */
 export const formatTime = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+  const wholeSeconds = Math.floor(seconds);
+  const mins = Math.floor(wholeSeconds / 60);
+  const secs = wholeSeconds % 60;
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 /**
  * Format work session time in seconds to "X Hrs Y Min" format
+ * @param seconds - Time in seconds (will be floored to whole number)
  */
 export const formatWorkSessionTime = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
+  const wholeSeconds = Math.floor(seconds);
+  const hours = Math.floor(wholeSeconds / 3600);
+  const minutes = Math.floor((wholeSeconds % 3600) / 60);
 
   if (hours === 0) {
     return `${minutes} Min`;

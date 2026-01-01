@@ -14,21 +14,19 @@ export const selectBackToItTimeRemaining = (state: RootState) => state.timer.bac
 export const selectRerolls = (state: RootState) => state.timer.rerolls;
 export const selectSelectedReward = (state: RootState) => state.timer.selectedReward;
 export const selectGeneratedRewards = (state: RootState) => state.timer.generatedRewards;
-export const selectPausedFrom = (state: RootState) => state.timer.pausedFrom;
+export const selectIsPaused = (state: RootState) => state.timer.isPaused;
 
 // Memoized selectors
 export const selectIsSessionActive = createSelector([selectSessionState], (sessionState) =>
   ['DURING_SESSION', 'BREAK', 'BACK_TO_IT'].includes(sessionState)
 );
 
-export const selectCanPause = createSelector([selectSessionState], (sessionState) =>
-  ['DURING_SESSION', 'BACK_TO_IT'].includes(sessionState)
+export const selectCanPause = createSelector(
+  [selectSessionState, selectIsPaused],
+  (sessionState, isPaused) => !isPaused && ['DURING_SESSION', 'BACK_TO_IT'].includes(sessionState)
 );
 
-export const selectCanResume = createSelector(
-  [selectSessionState],
-  (sessionState) => sessionState === 'PAUSED'
-);
+export const selectCanResume = createSelector([selectIsPaused], (isPaused) => isPaused);
 
 export const selectIsBreakTime = createSelector(
   [selectSessionState],

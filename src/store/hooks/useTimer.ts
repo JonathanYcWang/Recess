@@ -8,7 +8,6 @@ import {
   selectReward,
   setGeneratedRewards,
   rerollReward,
-  decrementBackToIt,
   transitionToFocusSession,
   transitionToRewardSelection,
   transitionToBackToIt,
@@ -16,7 +15,11 @@ import {
   updateTimerState,
 } from '../slices/timerSlice';
 import { Reward } from '../../lib/types';
-import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../lib/constants';
+import {
+  REWARD_TIME_INTERVAL,
+  MAX_REWARD_TIME,
+  DEFAULT_BACK_TO_IT_TIME,
+} from '../../lib/constants';
 import { formatTime as formatTimeUtil, calculateRemaining } from '../../lib/timer-utils';
 
 import { selectTimerState } from '../selectors/timerSelectors';
@@ -54,11 +57,11 @@ export const useTimer = () => {
       dispatch(setGeneratedRewards(newRewards));
     }
   }, [blockedSites, timerState.generatedRewards.length, generateReward, dispatch]);
-  // Timer effect for active states
+
   useEffect(() => {
     const activeStates = ['DURING_SESSION', 'BREAK', 'BACK_TO_IT'];
 
-    if (activeStates.includes(timerState.sessionState)) {
+    if (activeStates.includes(timerState.sessionState) && !timerState.isPaused) {
       const intervalId = setInterval(() => {
         let shouldTransition = false;
 
@@ -86,11 +89,13 @@ export const useTimer = () => {
             break;
           }
           case 'BACK_TO_IT': {
-            if (timerState.backToItTimeRemaining <= 1) {
+            const remaining = calculateRemaining(
+              timerState.initialBackToItDuration,
+              timerState.backToItEntryTimeStamp
+            );
+            if (remaining <= 0) {
               shouldTransition = true;
               dispatch(transitionToFocusSession());
-            } else {
-              dispatch(decrementBackToIt());
             }
             break;
           }
@@ -104,13 +109,23 @@ export const useTimer = () => {
 
       return () => clearInterval(intervalId);
     }
-  }, [timerState, dispatch]);
+  }, [
+    timerState.sessionState,
+    timerState.isPaused,
+    timerState.initialFocusSessionDuration,
+    timerState.focusSessionEntryTimeStamp,
+    timerState.initialBreakSessionDuration,
+    timerState.breakSessionEntryTimeStamp,
+    timerState.initialBackToItDuration,
+    timerState.backToItEntryTimeStamp,
+    dispatch,
+  ]);
 
   // Derived state for UI
   const getDerivedTimerState = useCallback(() => {
     let derived = { ...timerState };
 
-    if (timerState.sessionState === 'DURING_SESSION') {
+    if (timerState.sessionState === 'DURING_SESSION' && !timerState.isPaused) {
       derived.focusSessionDurationRemaining = calculateRemaining(
         timerState.initialFocusSessionDuration,
         timerState.focusSessionEntryTimeStamp
@@ -119,6 +134,11 @@ export const useTimer = () => {
       derived.breakSessionDurationRemaining = calculateRemaining(
         timerState.initialBreakSessionDuration,
         timerState.breakSessionEntryTimeStamp
+      );
+    } else if (timerState.sessionState === 'BACK_TO_IT' && !timerState.isPaused) {
+      derived.backToItTimeRemaining = calculateRemaining(
+        timerState.initialBackToItDuration,
+        timerState.backToItEntryTimeStamp
       );
     }
 

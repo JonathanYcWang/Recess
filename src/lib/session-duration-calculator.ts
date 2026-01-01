@@ -96,7 +96,7 @@ export function calculateFatigue(
  * @param momentum - CEWMA value (0.0 to 1.0) - likelihood of completing next session
  * @param fatigue - Fatigue score (0.0 to 1.0+)
  * @param progress - Progress toward daily target (0.0 to 1.0+)
- * @returns Focus session duration in minutes (clamped to minimum)
+ * @returns Focus session duration in minutes (clamped to minimum, rounded to whole number)
  */
 export function calculateFocusSessionDuration(
   momentum: number,
@@ -109,8 +109,8 @@ export function calculateFocusSessionDuration(
     FATIGUE_WORK_WEIGHT * fatigue -
     PROGRESS_WORK_WEIGHT * progress;
 
-  // Enforce minimum duration
-  return Math.max(MIN_WORK_SESSION_MINUTES, duration);
+  // Enforce minimum duration and round to whole minutes
+  return Math.round(Math.max(MIN_WORK_SESSION_MINUTES, duration));
 }
 
 /**
@@ -123,7 +123,7 @@ export function calculateFocusSessionDuration(
  * @param fatigue - Fatigue score (0.0 to 1.0+) - main driver of break length
  * @param progress - Progress toward daily target (0.0 to 1.0+)
  * @param momentum - CEWMA value (0.0 to 1.0) - higher momentum = safer to allow longer recovery
- * @returns Break duration in minutes
+ * @returns Break duration in minutes (rounded to whole number)
  */
 export function calculateBreakDuration(
   fatigue: number,
@@ -136,20 +136,20 @@ export function calculateBreakDuration(
     PROGRESS_BREAK_WEIGHT * progress +
     MOMENTUM_BREAK_WEIGHT * momentum;
 
-  // No minimum clamp needed - BASE_BREAK_MINUTES already defines the floor
-  return duration;
+  // Round to whole minutes (BASE_BREAK_MINUTES already defines the floor)
+  return Math.round(duration);
 }
 
 /**
- * Helper to convert seconds to minutes
+ * Helper to convert seconds to minutes (rounded to whole number)
  */
 export function secondsToMinutes(seconds: number): number {
-  return seconds / 60;
+  return Math.round(seconds / 60);
 }
 
 /**
- * Helper to convert minutes to seconds
+ * Helper to convert minutes to seconds (always whole seconds)
  */
 export function minutesToSeconds(minutes: number): number {
-  return minutes * 60;
+  return Math.round(minutes * 60);
 }

@@ -2,9 +2,7 @@ import React from 'react';
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription';
 import CountdownTimer from '../../components/CountdownTimer';
 import PrimaryButton from '../../components/PrimaryButton';
-import SecondaryButton from '../../components/SecondaryButton';
 import PlayIcon from '../../assets/play.svg?url';
-import PauseIcon from '../../assets/pause.svg?url';
 import { formatWorkSessionTime } from '../../lib/timer-utils';
 import styles from '../MainPage.module.css';
 
@@ -13,7 +11,6 @@ interface BackToItViewProps {
   backToItTimeRemaining: number;
   formatTime: (seconds: number) => string;
   startFocusSession: () => void;
-  pauseSession: () => void;
 }
 
 const BackToItView: React.FC<BackToItViewProps> = ({
@@ -21,7 +18,6 @@ const BackToItView: React.FC<BackToItViewProps> = ({
   backToItTimeRemaining,
   formatTime,
   startFocusSession,
-  pauseSession,
 }) => {
   return (
     <>
@@ -34,8 +30,11 @@ const BackToItView: React.FC<BackToItViewProps> = ({
       />
       <CountdownTimer time={formatTime(backToItTimeRemaining)} label="starting in" />
       <div className={styles.contentContainer}>
-        <PrimaryButton text="Start Session" onClick={startFocusSession} iconSrc={PlayIcon} />
-        <SecondaryButton text="Hold On" onClick={pauseSession} iconSrc={PauseIcon} />
+        <PrimaryButton
+          text="Start Next Session Now"
+          onClick={startFocusSession}
+          iconSrc={PlayIcon}
+        />
       </div>
     </>
   );

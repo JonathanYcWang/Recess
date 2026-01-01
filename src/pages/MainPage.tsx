@@ -5,7 +5,6 @@ import { useAppSelector } from '../store/hooks';
 import WelcomeView from './views/WelcomeView';
 import BeforeSessionView from './views/BeforeSessionView';
 import DuringSessionView from './views/DuringSessionView';
-import PausedView from './views/PausedView';
 import RewardSelectionView from './views/RewardSelectionView';
 import BreakView from './views/BreakView';
 import BackToItView from './views/BackToItView';
@@ -30,13 +29,13 @@ const MainPage: React.FC = () => {
 
   const {
     sessionState,
+    isPaused,
     focusSessionDurationRemaining,
     breakSessionDurationRemaining,
     backToItTimeRemaining,
     rerolls,
     selectedReward,
     workSessionDurationRemaining,
-    pausedFrom,
     nextFocusDuration,
   } = timerState;
 
@@ -75,18 +74,9 @@ const MainPage: React.FC = () => {
         return (
           <DuringSessionView
             focusSessionDurationRemaining={focusSessionDurationRemaining}
+            isPaused={isPaused}
             formatTime={formatTime}
             pauseSession={pauseSession}
-          />
-        );
-
-      case 'PAUSED':
-        return (
-          <PausedView
-            focusSessionDurationRemaining={focusSessionDurationRemaining}
-            backToItTimeRemaining={backToItTimeRemaining}
-            pausedFrom={pausedFrom}
-            formatTime={formatTime}
             resumeSession={resumeSession}
             endSessionEarly={endSessionEarly}
           />
@@ -119,7 +109,6 @@ const MainPage: React.FC = () => {
             backToItTimeRemaining={backToItTimeRemaining}
             formatTime={formatTime}
             startFocusSession={startFocusSession}
-            pauseSession={pauseSession}
           />
         );
 

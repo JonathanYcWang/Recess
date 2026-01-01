@@ -20,6 +20,7 @@ import {
 // Create initial state with temporary placeholder values that will be replaced by dynamic calculations
 const initialState: TimerState = {
   sessionState: 'BEFORE_SESSION',
+  isPaused: false,
   initialWorkSessionDuration: DEFAULT_TOTAL_WORK_DURATION,
   workSessionDurationRemaining: DEFAULT_TOTAL_WORK_DURATION,
   initialFocusSessionDuration: 0, // Will be set below
@@ -28,9 +29,9 @@ const initialState: TimerState = {
   breakSessionDurationRemaining: 0, // Will be set below
 
   backToItTimeRemaining: DEFAULT_BACK_TO_IT_TIME,
+  initialBackToItDuration: DEFAULT_BACK_TO_IT_TIME,
   rerolls: DEFAULT_REROLLS,
   selectedReward: null,
-  pausedFrom: null,
 
   // Will be calculated below based on initial momentum/fatigue/progress
   nextFocusDuration: 0, // Will be set below
@@ -102,40 +103,34 @@ const timerSlice = createSlice({
       state.focusSessionDurationRemaining = state.nextFocusDuration;
       state.focusSessionEntryTimeStamp = Date.now();
       state.initialFocusSessionDuration = state.nextFocusDuration;
+      state.isPaused = false;
     },
 
     pauseSession: (state) => {
-      let currentRemaining = state.focusSessionDurationRemaining;
+      if (state.isPaused) return;
+
+      state.isPaused = true;
+
+      // Save current remaining time when pausing
       if (state.sessionState === 'DURING_SESSION') {
-        currentRemaining = calculateRemaining(
+        const currentRemaining = calculateRemaining(
           state.initialFocusSessionDuration,
           state.focusSessionEntryTimeStamp
         );
+        state.focusSessionDurationRemaining = currentRemaining;
+        state.focusSessionEntryTimeStamp = undefined;
       }
-
-      let pausedFrom = state.sessionState as 'DURING_SESSION' | 'BACK_TO_IT';
-      if (state.sessionState !== 'DURING_SESSION' && state.sessionState !== 'BACK_TO_IT') {
-        if (state.sessionState === 'PAUSED') return;
-        pausedFrom = 'DURING_SESSION';
-      }
-
-      state.sessionState = 'PAUSED';
-      state.focusSessionDurationRemaining = currentRemaining;
-      state.focusSessionEntryTimeStamp = undefined;
-      state.pausedFrom = pausedFrom;
     },
 
     resumeSession: (state) => {
-      const resumeTo = state.pausedFrom || 'DURING_SESSION';
+      if (!state.isPaused) return; // Not paused
 
-      if (resumeTo === 'BACK_TO_IT') {
-        state.sessionState = 'BACK_TO_IT';
-        state.pausedFrom = null;
-      } else {
-        state.sessionState = 'DURING_SESSION';
+      state.isPaused = false;
+
+      // Restore timestamps when resuming
+      if (state.sessionState === 'DURING_SESSION') {
         state.focusSessionEntryTimeStamp = Date.now();
         state.initialFocusSessionDuration = state.focusSessionDurationRemaining;
-        state.pausedFrom = null;
       }
     },
 
@@ -202,6 +197,9 @@ const timerSlice = createSlice({
         state.sessionState = 'BACK_TO_IT';
         state.breakSessionEntryTimeStamp = undefined;
         state.backToItTimeRemaining = DEFAULT_BACK_TO_IT_TIME;
+        state.initialBackToItDuration = DEFAULT_BACK_TO_IT_TIME;
+        state.backToItEntryTimeStamp = Date.now();
+        state.isPaused = false;
         return;
       }
 
@@ -245,16 +243,12 @@ const timerSlice = createSlice({
       }
     },
 
-    decrementBackToIt: (state) => {
-      if (state.backToItTimeRemaining > 0) {
-        state.backToItTimeRemaining -= 1;
-      }
-    },
-
     transitionToFocusSession: (state) => {
       state.sessionState = 'DURING_SESSION';
       state.focusSessionDurationRemaining = state.nextFocusDuration;
       state.backToItTimeRemaining = DEFAULT_BACK_TO_IT_TIME;
+      state.initialBackToItDuration = DEFAULT_BACK_TO_IT_TIME;
+      state.backToItEntryTimeStamp = undefined;
       state.focusSessionEntryTimeStamp = Date.now();
       state.initialFocusSessionDuration = state.nextFocusDuration;
     },
@@ -288,14 +282,18 @@ const timerSlice = createSlice({
       state.focusSessionEntryTimeStamp = undefined;
       state.initialFocusSessionDuration = state.nextFocusDuration;
       state.lastFocusSessionCompleted = true;
+      state.isPaused = false;
     },
 
     transitionToBackToIt: (state) => {
       state.sessionState = 'BACK_TO_IT';
       state.breakSessionDurationRemaining = state.nextBreakDuration;
       state.backToItTimeRemaining = DEFAULT_BACK_TO_IT_TIME;
+      state.initialBackToItDuration = DEFAULT_BACK_TO_IT_TIME;
+      state.backToItEntryTimeStamp = Date.now();
       state.breakSessionEntryTimeStamp = undefined;
       state.initialBreakSessionDuration = state.nextBreakDuration;
+      state.isPaused = false;
     },
   },
 });
@@ -310,7 +308,6 @@ export const {
   selectReward,
   setGeneratedRewards,
   rerollReward,
-  decrementBackToIt,
   transitionToFocusSession,
   transitionToRewardSelection,
   transitionToBackToIt,

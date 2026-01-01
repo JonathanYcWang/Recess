@@ -1,14 +1,10 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../hooks';
 
 /**
  * Redirects to main page if user has already completed onboarding
+ * NOTE: This hook is now deprecated as MainPage handles onboarding check internally
  */
 export const useOnboardingRedirect = () => {
-  const navigate = useNavigate();
-  const hasOnboarded = useAppSelector((state) => state.routing.hasOnboarded);
-
   useEffect(() => {
     // No longer needed - MainPage handles onboarding check internally
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -3,7 +3,6 @@
 export type SessionState =
   | 'BEFORE_SESSION'
   | 'DURING_SESSION'
-  | 'PAUSED'
   | 'REWARD_SELECTION'
   | 'BREAK'
   | 'BACK_TO_IT'
@@ -26,6 +25,7 @@ export interface WorkHoursEntry {
 
 export interface TimerState {
   sessionState: SessionState;
+  isPaused: boolean;
 
   // Requested Variables
   workSessionDurationRemaining: number;
@@ -36,12 +36,13 @@ export interface TimerState {
   breakSessionDurationRemaining: number;
   focusSessionEntryTimeStamp?: number;
   breakSessionEntryTimeStamp?: number;
+  backToItEntryTimeStamp?: number;
 
   // Other necessary state
   backToItTimeRemaining: number;
+  initialBackToItDuration: number;
   rerolls: number;
   selectedReward: Reward | null;
-  pausedFrom: 'DURING_SESSION' | 'BACK_TO_IT' | null;
 
   // Dynamic variables
   nextFocusDuration: number;
