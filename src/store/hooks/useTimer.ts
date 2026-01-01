@@ -1,0 +1,202 @@
+import { useCallback, useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import {
+  startFocusSession,
+  pauseSession,
+  resumeSession,
+  endSessionEarly,
+  selectReward,
+  setGeneratedRewards,
+  rerollReward,
+  decrementBackToIt,
+  transitionToFocusSession,
+  transitionToRewardSelection,
+  transitionToBackToIt,
+  resetTimer,
+  updateTimerState,
+} from '../slices/timerSlice';
+import { Reward } from '../../storage/types';
+import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../storage/constants';
+import { formatTime as formatTimeUtil } from '../../storage/utils';
+
+// Helper: Calculate remaining time based on timestamps
+const calculateRemaining = (initialDuration: number, entryTimeStamp?: number): number => {
+  if (!entryTimeStamp) return initialDuration;
+  const currentTime = Date.now();
+  const elapsed = Math.floor((currentTime - entryTimeStamp) / 1000);
+  return Math.max(0, initialDuration - elapsed);
+};
+
+import { selectTimerState } from '../selectors/timerSelectors';
+import { selectBlockedSites } from '../selectors/blockedSitesSelectors';
+
+export const useTimer = () => {
+  const dispatch = useAppDispatch();
+  const timerState = useAppSelector(selectTimerState);
+  const blockedSites = useAppSelector(selectBlockedSites);
+  const [, setTick] = useState(0); // Force re-render for UI updates
+
+  // Generate rewards helper
+  const generateReward = useCallback((availableSites: string[]): Reward | null => {
+    if (availableSites.length === 0) return null;
+
+    const randomSite = availableSites[Math.floor(Math.random() * availableSites.length)];
+    const numIntervals = Math.floor(MAX_REWARD_TIME / REWARD_TIME_INTERVAL);
+    const minutes = Math.floor(Math.random() * numIntervals + 1) * REWARD_TIME_INTERVAL;
+
+    return {
+      id: `${randomSite}-${Date.now()}-${Math.random()}`,
+      name: randomSite,
+      duration: `${minutes} min`,
+      durationSeconds: minutes * 60,
+    };
+  }, []);
+
+  // Initialize rewards when sites are loaded
+  useEffect(() => {
+    if (blockedSites.length > 0 && timerState.generatedRewards.length === 0) {
+      const newRewards: Reward[] = [];
+      for (let i = 0; i < 3; i++) {
+        const reward = generateReward(blockedSites);
+        if (reward) newRewards.push(reward);
+      }
+      dispatch(setGeneratedRewards(newRewards));
+    }
+  }, [blockedSites, timerState.generatedRewards.length, generateReward, dispatch]);
+  // Timer effect for active states
+  useEffect(() => {
+    const activeStates = ['DURING_SESSION', 'BREAK', 'BACK_TO_IT'];
+
+    if (activeStates.includes(timerState.sessionState)) {
+      const intervalId = setInterval(() => {
+        let shouldTransition = false;
+
+        switch (timerState.sessionState) {
+          case 'DURING_SESSION': {
+            const remaining = calculateRemaining(
+              timerState.initialFocusSessionDuration,
+              timerState.focusSessionEntryTimeStamp
+            );
+            if (remaining <= 0) {
+              shouldTransition = true;
+              dispatch(transitionToRewardSelection());
+            }
+            break;
+          }
+          case 'BREAK': {
+            const remaining = calculateRemaining(
+              timerState.initialBreakSessionDuration,
+              timerState.breakSessionEntryTimeStamp
+            );
+            if (remaining <= 0) {
+              shouldTransition = true;
+              dispatch(transitionToBackToIt());
+            }
+            break;
+          }
+          case 'BACK_TO_IT': {
+            if (timerState.backToItTimeRemaining <= 1) {
+              shouldTransition = true;
+              dispatch(transitionToFocusSession());
+            } else {
+              dispatch(decrementBackToIt());
+            }
+            break;
+          }
+        }
+
+        // Force re-render to update derived countdown values
+        if (!shouldTransition) {
+          setTick((t) => t + 1);
+        }
+      }, 1000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [timerState, dispatch]);
+
+  // Derived state for UI
+  const getDerivedTimerState = useCallback(() => {
+    let derived = { ...timerState };
+
+    if (timerState.sessionState === 'DURING_SESSION') {
+      derived.focusSessionDurationRemaining = calculateRemaining(
+        timerState.initialFocusSessionDuration,
+        timerState.focusSessionEntryTimeStamp
+      );
+    } else if (timerState.sessionState === 'BREAK') {
+      derived.breakSessionDurationRemaining = calculateRemaining(
+        timerState.initialBreakSessionDuration,
+        timerState.breakSessionEntryTimeStamp
+      );
+    }
+
+    return derived;
+  }, [timerState]);
+
+  // Action wrappers
+  const handleStartFocusSession = useCallback(() => {
+    dispatch(startFocusSession());
+  }, [dispatch]);
+
+  const handlePauseSession = useCallback(() => {
+    dispatch(pauseSession());
+  }, [dispatch]);
+
+  const handleResumeSession = useCallback(() => {
+    dispatch(resumeSession());
+  }, [dispatch]);
+
+  const handleEndSessionEarly = useCallback(() => {
+    dispatch(endSessionEarly());
+  }, [dispatch]);
+
+  const handleSelectReward = useCallback(
+    (reward: Reward) => {
+      dispatch(selectReward(reward));
+    },
+    [dispatch]
+  );
+
+  const handleReroll = useCallback(
+    (index: number) => {
+      if (timerState.rerolls > 0) {
+        const newReward = generateReward(blockedSites);
+        if (newReward) {
+          dispatch(rerollReward({ index, newReward }));
+        }
+      }
+    },
+    [timerState.rerolls, blockedSites, generateReward, dispatch]
+  );
+
+  const handleResetTimer = useCallback(() => {
+    dispatch(resetTimer());
+  }, [dispatch]);
+
+  const handleUpdateTimerState = useCallback(
+    (updates: Partial<typeof timerState>) => {
+      dispatch(updateTimerState(updates));
+    },
+    [dispatch]
+  );
+
+  const formatTime = useCallback((seconds: number): string => {
+    return formatTimeUtil(seconds);
+  }, []);
+
+  return {
+    timerState: getDerivedTimerState(),
+    startFocusSession: handleStartFocusSession,
+    pauseSession: handlePauseSession,
+    resumeSession: handleResumeSession,
+    endSessionEarly: handleEndSessionEarly,
+    selectReward: handleSelectReward,
+    handleReroll,
+    resetTimerState: handleResetTimer,
+    updateTimerState: handleUpdateTimerState,
+    rewards: timerState.generatedRewards,
+    formatTime,
+    isLoaded: true,
+  };
+};

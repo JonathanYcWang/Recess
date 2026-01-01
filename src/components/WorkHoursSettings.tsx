@@ -3,11 +3,11 @@ import { Dialog } from '@mui/material';
 import PrimaryButton from './PrimaryButton';
 import WorkWindow from './WorkWindow';
 import EditTimeRangeOverlay from './EditTimeRangeOverlay';
-import { useWorkHours } from '../storage';
+import { useWorkHoursRedux } from '../store/hooks/useWorkHours';
 import styles from './WorkHoursSettings.module.css';
 
 const WorkHoursSettings: React.FC = () => {
-  const { entries, addEntry, updateEntry, deleteEntry, toggleEntry } = useWorkHours();
+  const { entries, addEntry, updateEntry, deleteEntry, toggleEntry } = useWorkHoursRedux();
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -97,4 +97,3 @@ const WorkHoursSettings: React.FC = () => {
 };
 
 export default WorkHoursSettings;
-

@@ -2,15 +2,16 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLogoPng from '../components/MainLogoPng';
 import CardCarousel, { CardCarouselItem } from '../components/CardCarousel';
-import { useStorage } from '../storage/StorageContext';
+import { useAppDispatch } from '../store/hooks';
+import { completeOnboarding } from '../store/slices/routingSlice';
 import styles from './WelcomePage.module.css';
 
 const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { set } = useStorage();
+  const dispatch = useAppDispatch();
 
   const handleStart = (path: string) => {
-    set('hasOnboarded', true);
+    dispatch(completeOnboarding());
     navigate(path);
   };
 
@@ -21,7 +22,7 @@ const WelcomePage: React.FC = () => {
       description: 'Take a short quiz to tune your work sessions to how you work best.',
       footer: 'Plus, a surprise companion is waiting for you!',
       // Assuming quiz flow handles onboarding completion separately or eventually goes to main
-      onClick: () => navigate('/quiz'), 
+      onClick: () => navigate('/quiz'),
     },
     {
       id: '2',

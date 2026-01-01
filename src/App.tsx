@@ -1,12 +1,11 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import { StorageProvider } from './storage/StorageContext';
-import { useRoutePersistence } from './storage/useRoutePersistence';
+import { useRoutePersistenceRedux } from './store/hooks/useRoutePersistence';
 import WelcomePage from './pages/WelcomePage';
 import MainPage from './pages/MainPage';
 import Settings from './pages/Settings';
 
 function AppRoutes() {
-  useRoutePersistence();
+  useRoutePersistenceRedux();
 
   return (
     <Routes>
@@ -19,11 +18,9 @@ function AppRoutes() {
 
 function App() {
   return (
-    <StorageProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </StorageProvider>
+    <Router>
+      <AppRoutes />
+    </Router>
   );
 }
 

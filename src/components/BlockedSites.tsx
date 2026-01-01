@@ -3,10 +3,10 @@ import PrimaryButton from './PrimaryButton';
 import Icon from './Icon';
 import TimesIcon from '../assets/times.svg?url';
 import styles from './BlockedSites.module.css';
-import { useBlockedSites } from '../storage';
+import { useBlockedSitesRedux } from '../store/hooks/useBlockedSites';
 
 const BlockedSites: React.FC = () => {
-  const { sites, addSite, removeSite } = useBlockedSites();
+  const { sites, addSite, removeSite } = useBlockedSitesRedux();
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string>('');
 

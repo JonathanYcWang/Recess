@@ -1,13 +1,14 @@
 # Storage Module
 
-This directory contains reusable storage logic for the Recess extension.
+This directory contains shared storage types, constants, and utilities for the Recess extension.
+
+**Note:** The Redux store (`src/store`) is now used for state management. This directory only contains shared types and helper functions.
 
 ## Structure
 
-- `StorageContext.tsx` - React Context provider for Chrome storage API with localStorage fallback
-- `useRoutePersistence.ts` - Hook for persisting and restoring route state
-- `useTimerState.ts` - **Recommended** Hook for persisting and restoring timer/session state with timestamp-based accuracy
-- `types.ts` - Shared types (SessionState, Reward)
+- `types.ts` - Shared types (SessionState, Reward, WorkHoursEntry, TimerState)
+- `constants.ts` - App-wide constants (timer durations, reward settings)
+- `utils.ts` - Utility functions (formatTime, formatWorkSessionTime)
 - `utils.ts` - Shared utility functions (formatTime)
 - `constants.ts` - Timer constants (DEFAULT_FOCUS_TIME, etc.)
 - `index.ts` - Barrel export for all storage modules
