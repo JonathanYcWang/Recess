@@ -28,7 +28,13 @@ const BreakView: React.FC<BreakViewProps> = ({
       </div>
       <CountdownTimer time={formatTime(breakSessionDurationRemaining)} label="Remaining" />
       <div className={styles.contentContainer}>
-        {selectedReward && <RewardLink siteName={selectedReward.name} status="Site Unlocked" />}
+        {selectedReward && (
+          <RewardLink
+            siteName={selectedReward.name}
+            status="Site Unlocked"
+            siteUrl={selectedReward.name}
+          />
+        )}
         <TertiaryButton text="Wrap up session early" onClick={endSessionEarly} />
       </div>
       <div className={styles.illustration}>
