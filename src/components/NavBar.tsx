@@ -43,6 +43,10 @@ const NavBar: React.FC<NavBarProps> = ({ energyLevel = 'High' }) => {
     navigate('/settings/blocked-sites');
   };
 
+  const handleSettingsClick = () => {
+    navigate('/settings');
+  };
+
   return (
     <div className={styles.navBar}>
       <MainLogoPng />
@@ -97,7 +101,7 @@ const NavBar: React.FC<NavBarProps> = ({ energyLevel = 'High' }) => {
           </div>
           {/* Small viewport: Show settings icon */}
           <div className={styles.settingsButton}>
-            <Icon src={SettingsIcon} alt="Settings" size={28} onClick={handleWorkHoursClick} />
+            <Icon src={SettingsIcon} alt="Settings" size={28} onClick={handleSettingsClick} />
           </div>
         </>
       )}

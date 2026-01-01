@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { MemoryRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainPage from './pages/MainPage';
 import BlockedSitesPage from './pages/BlockedSitesPage';
 import WorkHoursPage from './pages/WorkHoursPage';
