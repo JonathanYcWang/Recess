@@ -8,7 +8,7 @@ export const DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME = 10;
 
 // Daily work session target (in seconds)
 // Total duration user aims to work during the day
-export const DEFAULT_WORK_SESSION_DURATION = 4.5 * 60 * 60; // 4.5 hours
+export const DEFAULT_WORK_SESSION_DURATION = 3 * 60 * 60; // 4.5 hours
 
 // ============================================================================
 // REWARD SYSTEM CONSTANTS

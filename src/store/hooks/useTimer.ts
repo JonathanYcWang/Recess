@@ -15,6 +15,7 @@ import {
   updateTimerState,
   setWorkSessionDuration,
   updateWeightMultipliers,
+  completeWorkSessionEarly,
 } from '../slices/timerSlice';
 import { Reward } from '../../lib/types';
 import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../lib/constants';
@@ -208,6 +209,10 @@ export const useTimer = () => {
     [dispatch]
   );
 
+  const handleCompleteWorkSessionEarly = useCallback(() => {
+    dispatch(completeWorkSessionEarly());
+  }, [dispatch]);
+
   const formatTime = useCallback((seconds: number): string => {
     return formatTimeUtil(seconds);
   }, []);
@@ -224,6 +229,7 @@ export const useTimer = () => {
     updateTimerState: handleUpdateTimerState,
     setWorkSessionDuration: handleSetWorkSessionDuration,
     updateWeightMultipliers: handleUpdateWeightMultipliers,
+    completeWorkSessionEarly: handleCompleteWorkSessionEarly,
     rewards: timerState.generatedRewards,
     formatTime,
     isLoaded: true,

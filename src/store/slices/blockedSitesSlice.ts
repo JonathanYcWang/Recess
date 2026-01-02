@@ -18,12 +18,14 @@ interface BlockedSitesState {
   sites: string[];
   isLoaded: boolean;
   closeDistractingSites: boolean;
+  isInWorkingSession: boolean;
 }
 
 const initialState: BlockedSitesState = {
   sites: DEFAULT_SITES,
   isLoaded: false,
   closeDistractingSites: false,
+  isInWorkingSession: false,
 };
 
 const blockedSitesSlice = createSlice({
@@ -39,6 +41,7 @@ const blockedSitesSlice = createSlice({
         state.sites = action.payload.sites || state.sites;
         state.isLoaded = action.payload.isLoaded !== undefined ? action.payload.isLoaded : true;
         state.closeDistractingSites = action.payload.closeDistractingSites || false;
+        state.isInWorkingSession = action.payload.isInWorkingSession || false;
       }
     },
 
@@ -63,6 +66,16 @@ const blockedSitesSlice = createSlice({
     setCloseDistractingSites: (state, action: PayloadAction<boolean>) => {
       state.closeDistractingSites = action.payload;
     },
+
+    startWorkingSession: (state) => {
+      state.isInWorkingSession = true;
+      state.closeDistractingSites = true;
+    },
+
+    endWorkingSession: (state) => {
+      state.isInWorkingSession = false;
+      state.closeDistractingSites = false;
+    },
   },
 });
 
@@ -73,6 +86,8 @@ export const {
   markBlockedSitesLoaded,
   toggleCloseDistractingSites,
   setCloseDistractingSites,
+  startWorkingSession,
+  endWorkingSession,
 } = blockedSitesSlice.actions;
 
 export default blockedSitesSlice.reducer;

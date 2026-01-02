@@ -342,6 +342,18 @@ const timerSlice = createSlice({
       state.nextFocusDuration = durations.nextFocusDuration;
       state.nextBreakDuration = durations.nextBreakDuration;
     },
+
+    completeWorkSessionEarly: (state) => {
+      // Immediately complete the work session as if all work was done
+      state.sessionState = 'WORK_SESSION_COMPLETE';
+      state.workSessionDurationRemaining = 0;
+      state.focusSessionDurationRemaining = 0;
+      state.breakSessionDurationRemaining = 0;
+      state.focusSessionEntryTimeStamp = undefined;
+      state.breakSessionEntryTimeStamp = undefined;
+      state.focusSessionCountdownEntryTimeStamp = undefined;
+      state.isPaused = false;
+    },
   },
 });
 
@@ -360,6 +372,7 @@ export const {
   transitionToRewardSelection,
   transitionToFocusSessionCountdown,
   updateWeightMultipliers,
+  completeWorkSessionEarly,
 } = timerSlice.actions;
 
 export default timerSlice.reducer;
