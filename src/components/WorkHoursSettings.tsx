@@ -10,22 +10,39 @@ import {
   deleteWorkHoursEntry,
   toggleWorkHoursEntry,
 } from '../store/slices/workHoursSlice';
+
 import styles from './WorkHoursSettings.module.css';
 
 const WorkHoursSettings: React.FC = () => {
   const dispatch = useAppDispatch();
   const entries = useAppSelector((state) => state.workHours.entries);
-  const [overlayOpen, setOverlayOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const openOverlay = (id: string | null = null) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTime, setEditTime] = useState('09:00 AM');
+  const [editDays, setEditDays] = useState([false, true, true, true, true, true, false]);
+
+  const openDialog = (id: string | null = null) => {
     setEditingId(id);
-    setOverlayOpen(true);
+    if (id) {
+      const entry = entries.find((e) => e.id === id);
+      if (entry) {
+        setEditTime(entry.time);
+        setEditDays(entry.days);
+      }
+    } else {
+      setEditTime('09:00 AM');
+      setEditDays([false, true, true, true, true, true, false]);
+    }
+    setDialogOpen(true);
   };
 
-  const closeOverlay = () => {
-    setOverlayOpen(false);
+  const closeDialog = () => {
+    setDialogOpen(false);
     setEditingId(null);
+  };
+  const handleToggle = (id: string) => {
+    dispatch(toggleWorkHoursEntry(id));
   };
 
   const formatDays = (selectedDays: boolean[]) => {
@@ -36,59 +53,44 @@ const WorkHoursSettings: React.FC = () => {
     return selectedDayNames.length > 0 ? selectedDayNames.join(', ') : 'No days selected';
   };
 
-  const handleSave = (timeRange: { start: string; end: string }, selectedDays: boolean[]) => {
+  const handleSave = (time: string, days: boolean[]) => {
     if (editingId) {
-      dispatch(
-        updateWorkHoursEntry({
-          id: editingId,
-          startTime: timeRange.start,
-          endTime: timeRange.end,
-          days: selectedDays,
-        })
-      );
+      dispatch(updateWorkHoursEntry({ id: editingId, time, days }));
     } else {
-      dispatch(
-        addWorkHoursEntry({
-          startTime: timeRange.start,
-          endTime: timeRange.end,
-          days: selectedDays,
-        })
-      );
+      dispatch(addWorkHoursEntry({ time, days }));
     }
-    closeOverlay();
+    closeDialog();
   };
 
   const handleDelete = () => {
     if (editingId) {
       dispatch(deleteWorkHoursEntry(editingId));
-      closeOverlay();
+      closeDialog();
     }
   };
-
-  const editingEntry = editingId ? entries.find((e) => e.id === editingId) : null;
 
   return (
     <div className={styles.workHoursSettings}>
       <div className={styles.headerContainer}>
-        <p className={styles.header}>Set Work Hours</p>
-        <p className={styles.caption}>Add the time ranges to focus which works best for you.</p>
+        <p className={styles.header}>Set Work Start Reminders</p>
+        <p className={styles.caption}>Pick a time and days to get a reminder to start work.</p>
       </div>
       <div className={styles.contentContainer}>
-        <PrimaryButton text="Add" onClick={() => openOverlay()} />
+        <PrimaryButton text="Add" onClick={() => openDialog()} />
         {entries.map((entry) => (
           <WorkWindow
             key={entry.id}
-            timeRange={`${entry.startTime} - ${entry.endTime}`}
+            timeRange={entry.time}
             days={formatDays(entry.days)}
             enabled={entry.enabled}
-            onToggle={() => dispatch(toggleWorkHoursEntry(entry.id))}
-            onEdit={() => openOverlay(entry.id)}
+            onEdit={() => openDialog(entry.id)}
+            onToggle={() => handleToggle(entry.id)}
           />
         ))}
       </div>
       <Dialog
-        open={overlayOpen}
-        onClose={closeOverlay}
+        open={dialogOpen}
+        onClose={closeDialog}
         maxWidth={false}
         slotProps={{
           paper: {
@@ -102,13 +104,10 @@ const WorkHoursSettings: React.FC = () => {
         }}
       >
         <EditTimeRangeOverlay
-          timeRange={{
-            start: editingEntry?.startTime || '11:30 AM',
-            end: editingEntry?.endTime || '1:30 PM',
-          }}
-          selectedDays={editingEntry?.days}
+          time={editTime}
+          selectedDays={editDays}
           onSave={handleSave}
-          onCancel={closeOverlay}
+          onCancel={closeDialog}
           onDelete={editingId ? handleDelete : undefined}
         />
       </Dialog>

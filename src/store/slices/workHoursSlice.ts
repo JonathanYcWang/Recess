@@ -20,14 +20,10 @@ const workHoursSlice = createSlice({
       state.isLoaded = true;
     },
 
-    addWorkHoursEntry: (
-      state,
-      action: PayloadAction<{ startTime: string; endTime: string; days: boolean[] }>
-    ) => {
+    addWorkHoursEntry: (state, action: PayloadAction<{ time: string; days: boolean[] }>) => {
       const newEntry: WorkHoursEntry = {
         id: Date.now().toString(),
-        startTime: action.payload.startTime,
-        endTime: action.payload.endTime,
+        time: action.payload.time,
         days: action.payload.days,
         enabled: true,
       };
@@ -36,14 +32,13 @@ const workHoursSlice = createSlice({
 
     updateWorkHoursEntry: (
       state,
-      action: PayloadAction<{ id: string; startTime: string; endTime: string; days: boolean[] }>
+      action: PayloadAction<{ id: string; time: string; days: boolean[] }>
     ) => {
       const index = state.entries.findIndex((entry) => entry.id === action.payload.id);
       if (index !== -1) {
         state.entries[index] = {
           ...state.entries[index],
-          startTime: action.payload.startTime,
-          endTime: action.payload.endTime,
+          time: action.payload.time,
           days: action.payload.days,
         };
       }

@@ -1,3 +1,87 @@
+// --- Work Hours Reminder Scheduling ---
+const WORK_REMINDER_ALARM_PREFIX = 'work-reminder-';
+
+// Helper: parse time string (e.g. '09:00 AM') to {hour, minute}
+function parseTimeString(timeStr: string) {
+  const [time, period] = timeStr.split(' ');
+  let [hour, minute] = time.split(':').map(Number);
+  if (period === 'PM' && hour !== 12) hour += 12;
+  if (period === 'AM' && hour === 12) hour = 0;
+  return { hour, minute };
+}
+
+// Schedule alarms for all enabled work hour entries
+async function scheduleWorkReminders() {
+  const { workHours } = await chrome.storage.local.get(['workHours']);
+  // Clear all previous alarms
+  const alarms = await chrome.alarms.getAll();
+  for (const alarm of alarms) {
+    if (alarm.name.startsWith(WORK_REMINDER_ALARM_PREFIX)) {
+      chrome.alarms.clear(alarm.name);
+    }
+  }
+  if (!workHours || !Array.isArray(workHours)) return;
+  const now = new Date();
+  for (const entry of workHours) {
+    if (!entry.enabled) continue;
+    const { hour, minute } = parseTimeString(entry.time);
+    for (let day = 0; day < 7; day++) {
+      if (!entry.days[day]) continue;
+      // Calculate next occurrence of this day/time
+      const next = new Date(now);
+      next.setHours(hour, minute, 0, 0);
+      const dayDiff = (day - now.getDay() + 7) % 7;
+      if (
+        dayDiff > 0 ||
+        (dayDiff === 0 &&
+          (now.getHours() > hour || (now.getHours() === hour && now.getMinutes() >= minute)))
+      ) {
+        next.setDate(now.getDate() + dayDiff + (dayDiff === 0 ? 7 : 0));
+      } else {
+        next.setDate(now.getDate() + dayDiff);
+      }
+      const when = next.getTime();
+      chrome.alarms.create(WORK_REMINDER_ALARM_PREFIX + entry.id + '-' + day, { when });
+    }
+  }
+}
+
+// Listen for changes to work hours and reschedule
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes.workHours) {
+    scheduleWorkReminders();
+  }
+});
+
+// Schedule on startup
+scheduleWorkReminders();
+
+// Handle alarm firing
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name.startsWith(WORK_REMINDER_ALARM_PREFIX)) {
+    chrome.notifications.create(alarm.name, {
+      type: 'basic',
+      iconUrl: 'assets/logo.png',
+      title: 'Recess: Time to Start Work?',
+      message: 'Would you like to start your work session now?',
+      buttons: [{ title: 'Start Work' }],
+      requireInteraction: true,
+    });
+  }
+});
+
+// Handle notification button click
+chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
+  if (notifId.startsWith(WORK_REMINDER_ALARM_PREFIX) && btnIdx === 0) {
+    chrome.windows.create({
+      url: chrome.runtime.getURL('index.html'),
+      type: 'popup',
+      width: 420,
+      height: 720,
+    });
+    chrome.notifications.clear(notifId);
+  }
+});
 // Listen for test notification message from popup or UI
 chrome.runtime.onMessage.addListener((message) => {
   console.log('Background received message:', message);

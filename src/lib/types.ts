@@ -17,8 +17,7 @@ export interface Reward {
 
 export interface WorkHoursEntry {
   id: string;
-  startTime: string;
-  endTime: string;
+  time: string; // e.g. '09:00 AM'
   days: boolean[]; // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
   enabled: boolean;
 }
