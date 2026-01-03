@@ -1,3 +1,13 @@
+// Listen for test notification message from popup or UI
+chrome.runtime.onMessage.addListener((message) => {
+  console.log('Background received message:', message);
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'assets/logo.png',
+    title: message.title || 'Recess',
+    message: message.message || '',
+  });
+});
 // Background service worker for Chrome extension
 
 chrome.runtime.onInstalled.addListener(() => {

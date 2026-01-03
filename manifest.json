@@ -9,11 +9,10 @@
     "webRequest",
     "declarativeNetRequest",
     "alarms",
-    "activeTab"
+    "activeTab",
+    "notifications"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_title": "Recess"
   },
@@ -33,4 +32,3 @@
     "128": "assets/logo.png"
   }
 }
-

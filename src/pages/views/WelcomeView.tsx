@@ -7,6 +7,14 @@ import { completeOnboarding } from '../../store/slices/routingSlice';
 import styles from '../WelcomePage.module.css';
 
 const WelcomeView: React.FC = () => {
+  // TEMP: Test notification button handler
+  const handleTestNotification = () => {
+    if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage({ type: 'TEST_NOTIFICATION' });
+    } else {
+      alert('chrome.runtime.sendMessage not available');
+    }
+  };
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -45,6 +53,12 @@ const WelcomeView: React.FC = () => {
         <MainLogoPng />
         <p className={styles.header}>Welcome to Recess!</p>
         <p className={styles.caption}>How would you like to get started?</p>
+        <button
+          onClick={handleTestNotification}
+          style={{ marginTop: 16, padding: '8px 16px', fontSize: 18 }}
+        >
+          Test Notification
+        </button>
       </div>
       <CardCarousel cards={cards} />
     </div>

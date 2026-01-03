@@ -24,12 +24,17 @@ import { formatTime as formatTimeUtil, calculateRemaining } from '../../lib/time
 import { selectTimerState } from '../selectors/timerSelectors';
 
 export const useTimer = () => {
+  const NOTIFY_TIME_LEFT_SECONDS = 300; // 5 minutes
+  const sendNotification = (title: string, message: string) => {
+    if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage({ type: 'SESSION_NOTIFICATION', title, message });
+    }
+  };
   const dispatch = useAppDispatch();
   const timerState = useAppSelector(selectTimerState);
   const blockedSites = useAppSelector((state) => state.blockedSites.sites);
   const [, setTick] = useState(0); // Force re-render for UI updates
 
-  // Generate rewards helper
   const generateReward = useCallback((availableSites: string[]): Reward | null => {
     if (availableSites.length === 0) return null;
 
@@ -45,8 +50,6 @@ export const useTimer = () => {
     };
   }, []);
 
-  // Initialize rewards when sites are loaded
-  // Only generate rewards when entering REWARD_SELECTION state
   useEffect(() => {
     if (
       timerState.sessionState === 'REWARD_SELECTION' &&
@@ -75,47 +78,55 @@ export const useTimer = () => {
       'FOCUS_SESSION_COUNTDOWN',
     ];
 
+    const notified = { focusEnding: false, focusEnd: false, breakEnding: false, breakEnd: false };
+
     if (activeStates.includes(timerState.sessionState) && !timerState.isPaused) {
       const intervalId = setInterval(() => {
         let shouldTransition = false;
 
-        switch (timerState.sessionState) {
-          case 'ONGOING_FOCUS_SESSION': {
-            const remaining = calculateRemaining(
-              timerState.initialFocusSessionDuration,
-              timerState.focusSessionEntryTimeStamp
-            );
-            if (remaining <= 0) {
-              shouldTransition = true;
-              dispatch(transitionToRewardSelection());
-            }
-            break;
+        if (timerState.sessionState === 'ONGOING_FOCUS_SESSION') {
+          const remaining = calculateRemaining(
+            timerState.initialFocusSessionDuration,
+            timerState.focusSessionEntryTimeStamp
+          );
+          if (remaining <= NOTIFY_TIME_LEFT_SECONDS && remaining > 0 && !notified.focusEnding) {
+            const mins = Math.ceil(NOTIFY_TIME_LEFT_SECONDS / 60);
+            sendNotification('Focus Ending Soon', `${mins} minutes left in your focus session!`);
+            notified.focusEnding = true;
           }
-          case 'ONGOING_BREAK_SESSION': {
-            const remaining = calculateRemaining(
-              timerState.initialBreakSessionDuration,
-              timerState.breakSessionEntryTimeStamp
-            );
-            if (remaining <= 0) {
-              shouldTransition = true;
-              dispatch(transitionToFocusSessionCountdown());
-            }
-            break;
+          if (remaining <= 0 && !notified.focusEnd) {
+            sendNotification('Focus Complete', 'Your focus session has ended!');
+            notified.focusEnd = true;
+            shouldTransition = true;
+            dispatch(transitionToRewardSelection());
           }
-          case 'FOCUS_SESSION_COUNTDOWN': {
-            const remaining = calculateRemaining(
-              timerState.initialFocusSessionCountdownDuration,
-              timerState.focusSessionCountdownEntryTimeStamp
-            );
-            if (remaining <= 0) {
-              shouldTransition = true;
-              dispatch(transitionToFocusSession());
-            }
-            break;
+        } else if (timerState.sessionState === 'ONGOING_BREAK_SESSION') {
+          const remaining = calculateRemaining(
+            timerState.initialBreakSessionDuration,
+            timerState.breakSessionEntryTimeStamp
+          );
+          if (remaining <= NOTIFY_TIME_LEFT_SECONDS && remaining > 0 && !notified.breakEnding) {
+            const mins = Math.ceil(NOTIFY_TIME_LEFT_SECONDS / 60);
+            sendNotification('Break Ending Soon', `${mins} minutes left in your break!`);
+            notified.breakEnding = true;
+          }
+          if (remaining <= 0 && !notified.breakEnd) {
+            sendNotification('Break Complete', 'Your break has ended!');
+            notified.breakEnd = true;
+            shouldTransition = true;
+            dispatch(transitionToFocusSessionCountdown());
+          }
+        } else if (timerState.sessionState === 'FOCUS_SESSION_COUNTDOWN') {
+          const remaining = calculateRemaining(
+            timerState.initialFocusSessionCountdownDuration,
+            timerState.focusSessionCountdownEntryTimeStamp
+          );
+          if (remaining <= 0) {
+            shouldTransition = true;
+            dispatch(transitionToFocusSession());
           }
         }
 
-        // Force re-render to update derived countdown values
         if (!shouldTransition) {
           setTick((t) => t + 1);
         }
