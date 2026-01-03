@@ -76,15 +76,22 @@ function calculateNextSessionDurations(state: TimerState): {
     state.lastCompletedFocusSessionMinutes
   );
 
-  const focusDurationMinutes = calculateFocusSessionDuration(
+  // Round helper to nearest interval
+  const roundToNearest = (value: number, interval: number) => {
+    return Math.round(value / interval) * interval;
+  };
+
+  const FOCUS_INTERVAL = 5; // minutes
+  const BREAK_INTERVAL = 5; // minutes
+
+  let focusDurationMinutes = calculateFocusSessionDuration(
     state.momentum,
     fatigue,
     progress,
     state.momentumWeightMultiplier,
     state.fatigueWeightMultiplier
   );
-
-  const breakDurationMinutes = calculateBreakDuration(
+  let breakDurationMinutes = calculateBreakDuration(
     fatigue,
     progress,
     state.momentum,
@@ -92,7 +99,17 @@ function calculateNextSessionDurations(state: TimerState): {
     state.momentumWeightMultiplier
   );
 
-  // Clamp focus duration to remaining work time if the calculated duration exceeds it
+  // Round to nearest 5 min
+  focusDurationMinutes = roundToNearest(focusDurationMinutes, FOCUS_INTERVAL);
+  breakDurationMinutes = roundToNearest(breakDurationMinutes, BREAK_INTERVAL);
+
+  // If less than 5 min left in work session, add it to focus
+  const workSessionMinutesLeft = state.workSessionDurationRemaining / 60;
+  if (workSessionMinutesLeft < FOCUS_INTERVAL) {
+    focusDurationMinutes += workSessionMinutesLeft;
+  }
+
+  // Clamp focus duration to remaining work time
   let focusDurationSeconds = minutesToSeconds(focusDurationMinutes);
   if (focusDurationSeconds > state.workSessionDurationRemaining) {
     focusDurationSeconds = state.workSessionDurationRemaining;

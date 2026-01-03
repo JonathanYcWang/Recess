@@ -18,13 +18,16 @@ import {
   completeWorkSessionEarly,
 } from '../slices/timerSlice';
 import { Reward } from '../../lib/types';
-import { REWARD_TIME_INTERVAL, MAX_REWARD_TIME } from '../../lib/constants';
+import {
+  REWARD_TIME_INTERVAL,
+  MAX_REWARD_TIME,
+  NOTIFY_TIME_LEFT_SECONDS,
+} from '../../lib/constants';
 import { formatTime as formatTimeUtil, calculateRemaining } from '../../lib/timer-utils';
 
 import { selectTimerState } from '../selectors/timerSelectors';
 
 export const useTimer = () => {
-  const NOTIFY_TIME_LEFT_SECONDS = 300; // 5 minutes
   const sendNotification = (title: string, message: string) => {
     if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
       chrome.runtime.sendMessage({ type: 'SESSION_NOTIFICATION', title, message });

@@ -10,6 +10,8 @@ export const DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME = 10;
 // Total duration user aims to work during the day
 export const DEFAULT_WORK_SESSION_DURATION = 3 * 60 * 60; // 3 hours
 
+export const NOTIFY_TIME_LEFT_SECONDS = 300; // Notify when 5 minutes are left in a session
+
 // ============================================================================
 // REWARD SYSTEM CONSTANTS
 // ============================================================================
