@@ -1,15 +1,31 @@
+src/store/
+├── index.ts # Store configuration
+├── hooks.ts # Typed Redux hooks
+├── storageMiddleware.ts # Chrome storage sync middleware
+├── slices/
+│ ├── timerSlice.ts # Timer state management
+│ ├── workHoursSlice.ts # Work hours settings
+│ ├── blockedSitesSlice.ts # Blocked sites list
+│ └── routingSlice.ts # App routing/onboarding
+├── selectors/
+│ ├── timerSelectors.ts # Timer state selectors
+│ ├── workHoursSelectors.ts # Work hours selectors
+│ ├── blockedSitesSelectors.ts # Blocked sites selectors
+│ ├── routingSelectors.ts # Routing selectors
+│ └── index.ts # Selector exports
+└── hooks/
+├── useTimer.ts # Timer functionality hook
+├── useWorkHours.ts # Work hours functionality hook
+├── useBlockedSites.ts # Blocked sites functionality hook
+└── useRoutePersistence.ts # Route persistence hook
+
 # Redux Store Documentation
 
 This directory contains the Redux store configuration and state management for the Recess Extension.
 
 ## Architecture Overview
 
-The store uses Redux Toolkit (@reduxjs/toolkit) for simplified Redux setup with the following features:
-
-- **Type-safe** state management with TypeScript
-- **Automatic persistence** to chrome.storage.local via middleware
-- **Predictable state updates** through actions and reducers
-- **Development tools** support for debugging
+The store uses Redux Toolkit (@reduxjs/toolkit) for type-safe state management, automatic persistence to chrome.storage.local via middleware, predictable state updates, and full support for Redux DevTools.
 
 ## Directory Structure
 
@@ -30,10 +46,7 @@ src/store/
 │   ├── routingSelectors.ts    # Routing selectors
 │   └── index.ts               # Selector exports
 └── hooks/
-    ├── useTimer.ts            # Timer functionality hook
-    ├── useWorkHours.ts        # Work hours functionality hook
-    ├── useBlockedSites.ts     # Blocked sites functionality hook
-    └── useRoutePersistence.ts # Route persistence hook
+  └── useTimer.ts            # Timer functionality hook
 ```
 
 ## State Structure
@@ -44,13 +57,14 @@ The Redux store manages four main slices of state:
 
 Manages the focus/break session timer with the following properties:
 
-- `sessionState`: Current state (BEFORE_SESSION, DURING_SESSION, PAUSED, etc.)
+- `sessionState`: Current state (BEFORE_WORK_SESSION, ONGOING_FOCUS_SESSION, etc.)
 - `workSessionDurationRemaining`: Total work time remaining
 - `focusSessionDurationRemaining`: Current focus session time
 - `breakSessionDurationRemaining`: Current break time
 - `rerolls`: Available reward rerolls
 - `selectedReward`: Currently selected reward
 - `generatedRewards`: Available reward options
+- `momentum`, `fatigue`, `progress`: Dynamic session calculation factors
 
 ### 2. Work Hours State (`workHours`)
 
@@ -71,6 +85,10 @@ Manages the list of sites to block during focus time:
 Manages app navigation and onboarding:
 
 - `hasOnboarded`: Whether user has completed onboarding
+
+### 2. Work Hours State (`workHours`)
+
+Manages user's work hour configurations:
 
 ## Using Redux in Components
 
@@ -94,14 +112,13 @@ function MyComponent() {
 
 ### Using Custom Hooks
 
-For convenience, use the custom hooks that wrap Redux logic:
+For timer logic, use the custom hook:
 
 ```typescript
 import { useTimer } from '../store/hooks/useTimer';
 
 function MyComponent() {
   const { timerState, startFocusSession, pauseSession } = useTimer();
-
   return (
     <div>
       <div>Time: {timerState.focusSessionDurationRemaining}</div>
@@ -115,80 +132,16 @@ function MyComponent() {
 
 For direct state access with memoization, use selectors:
 
-````typescript
+```typescript
 import { useAppSelector } from '../store/hooks';
 import { selectBlockedSites, selectIsSessionActive } from '../store/selectors';
 
 function MyComponent() {
   const sites = useAppSelector(selectBlockedSites);
   const isActive = useAppSelector(selectIsSessionActive);
-
   return <div>Active: {isActive ? 'Yes' : 'No'}</div>;
 }
-```## Storage Middleware
-
-The `storageMiddleware.ts` file provides automatic synchronization between Redux state and chrome.storage.local (or localStorage in development).
-
-## Selectors
-
-Selectors are functions that extract and compute derived state from the Redux store. They provide:
-
-### Benefits of Selectors
-
-1. **Memoization**: Selectors created with `createSelector` cache results and only recompute when inputs change
-2. **Reusability**: Use the same selector across multiple components
-3. **Type Safety**: Full TypeScript support with proper type inference
-4. **Testability**: Easy to test in isolation
-5. **Performance**: Prevents unnecessary re-renders
-
-### Available Selectors
-
-#### Timer Selectors
-- `selectTimerState` - Full timer state
-- `selectSessionState` - Current session state
-- `selectIsSessionActive` - Whether a session is currently active
-- `selectCanPause` - Whether pause is available
-- `selectCanResume` - Whether resume is available
-- `selectHasRerollsAvailable` - Whether rerolls are available
-
-#### Work Hours Selectors
-- `selectWorkHoursEntries` - All work hours entries
-- `selectEnabledWorkHours` - Only enabled entries
-- `selectWorkHoursCount` - Count of entries
-- `selectWorkHoursEntryById(id)` - Specific entry by ID
-
-#### Blocked Sites Selectors
-- `selectBlockedSites` - List of blocked sites
-- `selectBlockedSitesCount` - Count of blocked sites
-- `selectIsBlockedSite(site)` - Check if specific site is blocked
-
-#### Routing Selectors
-- `selectHasOnboarded` - Onboarding completion status
-
-### Example Usage
-
-```typescript
-import { useAppSelector } from '../store/hooks';
-import {
-  selectIsSessionActive,
-  selectBlockedSitesCount,
-  selectEnabledWorkHours
-} from '../store/selectors';
-
-function MyComponent() {
-  const isActive = useAppSelector(selectIsSessionActive);
-  const siteCount = useAppSelector(selectBlockedSitesCount);
-  const enabledHours = useAppSelector(selectEnabledWorkHours);
-
-  return (
-    <div>
-      <p>Session Active: {isActive}</p>
-      <p>Blocked Sites: {siteCount}</p>
-      <p>Active Work Hours: {enabledHours.length}</p>
-    </div>
-  );
-}
-````
+```
 
 ## Storage Middleware
 
@@ -196,10 +149,10 @@ The `storageMiddleware.ts` file provides automatic synchronization between Redux
 
 ### How It Works
 
-1. **Automatic Persistence**: Every Redux action triggers the middleware
-2. **Selective Sync**: Only relevant state slices are persisted based on action type
-3. **Initial Load**: State is loaded from storage on app initialization
-4. **Fallback Support**: Uses localStorage when chrome.storage is unavailable
+1. **Automatic Persistence:** Every Redux action triggers the middleware
+2. **Selective Sync:** Only relevant state slices are persisted based on action type
+3. **Initial Load:** State is loaded from storage on app initialization
+4. **Fallback Support:** Uses localStorage when chrome.storage is unavailable
 
 ### Storage Keys
 
@@ -255,6 +208,23 @@ The `storageMiddleware.ts` file provides automatic synchronization between Redux
 Install Redux DevTools browser extension to inspect:
 
 - Current state
+- Action history
+- State diffs
+- Time-travel debugging
+
+## Best Practices
+
+1. **Use typed hooks:** Always use `useAppDispatch` and `useAppSelector`
+2. **Keep actions small:** Each action should do one thing
+3. **Normalize state:** Avoid deeply nested state structures
+4. **Use selectors:** Create reusable selector functions for derived state
+5. **Avoid side effects in reducers:** Reducers must be pure functions
+6. **Use custom hooks:** Wrap Redux logic in custom hooks for cleaner components
+
+## Migration from Old System
+
+If you're updating old code that uses the context-based storage system, see `src/storage/MIGRATION.md` for migration instructions.
+
 - Action history
 - State diffs
 - Time-travel debugging

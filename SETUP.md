@@ -3,32 +3,23 @@
 ## Quick Start
 
 1. **Install Dependencies**
-
    ```bash
    npm install
    ```
-
 2. **Development Mode**
-
    ```bash
    npm run dev
    ```
-
-   This starts the Vite dev server. Note: For Chrome extension testing, you'll need to build and load the extension.
-
+   This starts the Vite dev server. For Chrome extension testing, always build and load from `dist`.
 3. **Build for Production**
-
    ```bash
    npm run build
    ```
-
    This will:
-
    - Compile TypeScript
    - Build the React app with Vite
    - Copy manifest.json to dist/
    - Compile background.ts and content.ts to JavaScript and copy to dist/
-
 4. **Load Extension in Chrome**
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode" (toggle in top right)
@@ -95,23 +86,6 @@ For detailed information about the system architecture, session lifecycle, and d
 - [docs/time-calculations.md](docs/time-calculations.md) - Duration formulas
 - [docs/state-and-storage.md](docs/state-and-storage.md) - Redux state structure
 - [docs/developer-notes.md](docs/developer-notes.md) - Design decisions
-
-## Next Steps
-
-The extension is feature-complete with:
-
-- Dynamic session duration calculation
-- Site blocking enforcement
-- State persistence across sessions
-- Comprehensive documentation
-
-Potential enhancements:
-
-1. Automatic daily reset at midnight
-2. Session history and analytics
-3. Customizable momentum/fatigue formulas
-4. Notification system for session transitions
-5. Strict mode for reward-only break access
 
 ## Troubleshooting
 

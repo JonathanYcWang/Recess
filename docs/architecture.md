@@ -1,38 +1,91 @@
 # Recess Architecture
 
+# Recess Architecture
+
 ## Overview
 
-Recess is a Chrome extension that helps users maintain focus by managing work/break cycles with dynamic session durations. Unlike traditional Pomodoro timers with fixed intervals, Recess adapts session lengths based on user performance, fatigue, and progress through the day.
+Recess is a Chrome extension that helps users maintain focus by managing work/break cycles with dynamic session durations. Unlike traditional Pomodoro timers, Recess adapts session lengths based on user performance, fatigue, and progress. It is built for Manifest V3 and uses modern Chrome APIs for reliability and performance.
 
 ## High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Chrome Extension                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  ┌─────────────┐    ┌──────────────┐    ┌───────────────┐  │
-│  │             │    │              │    │               │  │
-│  │  Background │◄───┤   Storage    │───►│   UI (Popup)  │  │
-│  │   Script    │    │ (Chrome API) │    │   React App   │  │
-│  │             │    │              │    │               │  │
-│  └─────────────┘    └──────────────┘    └───────────────┘  │
-│        │                                        │            │
-│        │ Manages blocking                       │ Displays   │
-│        │ rules via                              │ state &    │
-│        │ declarativeNetRequest                  │ controls   │
-│        │                                        │            │
-│        ▼                                        ▼            │
-│  ┌─────────────────┐                  ┌──────────────────┐ │
-│  │ Site Blocking   │                  │  Redux Store     │ │
-│  │ (Active during  │                  │  - timer         │ │
-│  │  focus sessions)│                  │  - workHours     │ │
-│  └─────────────────┘                  │  - blockedSites  │ │
-│                                        │  - routing       │ │
-│                                        └──────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+[Popup/Options UI] ←→ [Background Service Worker] ←→ [Content Scripts]
+        ↑                   ↑                           ↑
+    [React]           [Alarms, State]             [Site Blocking]
+        ↓                   ↓                           ↓
+    [chrome.storage] ←→ [All Parts]
 ```
 
+---
+
+## Core Subsystems
+
+### 1. Background Script (`background.ts`)
+
+**Responsibility:**
+
+- Manages session state, alarms, and site blocking
+- Listens to storage changes for `blockedSites` and `timerState`
+- When a focus session is active, creates `declarativeNetRequest` rules for each blocked site
+- Removes all blocking rules when session ends or user is on break
+
+**Why this approach:**
+
+- Chrome's `declarativeNetRequest` API is the modern, performant way to block content
+- Blocking happens at the network level, not content script injection
+- Minimal performance impact compared to older approaches
+
+### 2. Redux Store (`src/store/`)
+
+**Responsibility:**
+
+- Centralized state management with persistence
+- Uses Redux Toolkit for simplified reducer creation
+- Storage middleware automatically persists state changes to `chrome.storage.local`
+- Initialization happens in `main.tsx` - loads persisted state before first render
+- All components read from store, never maintain local timer state
+
+**Structure:**
+
+```
+store/
+├── index.ts              # Store configuration
+├── storageMiddleware.ts  # Auto-sync to chrome.storage.local
+└── slices/
+    ├── timerSlice.ts         # Session state, momentum, fatigue
+    ├── workHoursSlice.ts     # User's work schedule
+    ├── blockedSitesSlice.ts  # Sites to block during focus
+    └── routingSlice.ts       # Onboarding status
+```
+
+### 3. Business Logic Layer (`src/lib/`)
+
+**Responsibility:**
+
+- Pure calculation functions, no React dependencies
+- All magic numbers and formulas are grouped by domain
+- These modules are pure functions (same inputs always produce same outputs)
+
+**Files:**
+
+- `constants.ts` - Configuration constants
+- `session-duration-calculator.ts` - Momentum, fatigue, and duration formulas
+- `timer-utils.ts` - Time formatting and countdown calculations
+- `types.ts` - TypeScript interfaces for timer/session state
+
+### 4. React UI (`src/`)
+
+**Responsibility:**
+
+- Display state and handle user interactions
+- View-based routing within MainPage switches between views based on `sessionState`
+- Components use `useAppSelector` and `useAppDispatch` directly
+- Minimal local state (only UI-specific state lives in components)
+- One major hook: `useTimer` encapsulates all timer logic, countdown management, and transitions
+
+**Structure:**
+
+```
 ## Core Subsystems
 
 ### 1. Background Script (`background.ts`)
@@ -48,21 +101,92 @@ Recess is a Chrome extension that helps users maintain focus by managing work/br
 - When session ends or user is on break:
   - Removes all blocking rules
   - User regains access to blocked sites during breaks
+```
 
-**Why this approach:**
+---
 
-- Chrome's `declarativeNetRequest` API is the modern, performant way to block content
-- Blocking happens at the network level, not content script injection
-- Minimal performance impact compared to older approaches
+## Data Flow
 
-### 2. Redux Store (`src/store/`)
-
-**Responsibility:** Centralized state management with persistence
-
-**Structure:**
+### Starting a Focus Session
 
 ```
+User clicks "Start"
+    ↓
+MainPage → useTimer.startFocusSession()
+    ↓
+
+    ↓
+**Why this approach:**
+  - sessionState → 'ONGOING_FOCUS_SESSION'
+  - focusSessionEntryTimeStamp → Date.now()
+  - focusSessionDurationRemaining → nextFocusDuration
+    ↓
+
+    ↓
+- Chrome's `declarativeNetRequest` API is the modern, performant way to block content
+    ↓
+- Blocking happens at the network level, not content script injection
+    ↓
+- Minimal performance impact compared to older approaches
+    ↓
+
+```
+
+### Session Completion Flow
+
+```
+Timer countdown reaches 0
+    ↓
+### 2. Redux Store (`src/store/`)
+    ↓
+
+    ↓
+**Responsibility:** Centralized state management with persistence
+  - Updates momentum (CEWMA) based on completion
+  - Calculates new fatigue score
+  - Recalculates next session durations
+  - sessionState → 'REWARD_SELECTION' or 'WORK_SESSION_COMPLETE'
+    ↓
+
+    ↓
+**Structure:**
+    ↓
+
+    ↓
+```
+
+    ↓
+
 store/
+
+```
+
+---
+
+## Key Design Decisions
+
+- **Manifest V3**: Uses `declarativeNetRequest` for site blocking (required for MV3, more performant than legacy APIs)
+- **Redux for State**: Ensures all state is serializable and can be persisted/recovered across popup reloads and background suspensions
+- **Timestamp-based Timers**: Ensures timer accuracy even if the popup is closed or the computer sleeps
+- **Pure Functions for Calculations**: All formulas and business logic are pure for testability and reliability
+
+---
+
+## Extension Lifecycle
+
+- On install: Sets up default state and schedules alarms
+- On popup open: Loads state from storage, resumes timers
+- On session start: Blocks sites, starts timers
+- On session end: Unblocks sites, notifies user
+- On browser restart: Recovers state and alarms from storage
+
+---
+
+## Future Extensibility
+
+- New session types or break logic can be added by extending timerSlice and session-duration-calculator
+- Additional notification types can be added in background.ts
+- UI can be extended with new views/pages as needed
 ├── index.ts              # Store configuration
 ├── storageMiddleware.ts  # Auto-sync to chrome.storage.local
 └── slices/

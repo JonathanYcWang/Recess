@@ -6,43 +6,12 @@ This directory contains the shared design system modules for the Recess extensio
 
 ### Core Modules
 
-1. **`colors.module.css`** - Color tokens
-
-   - Defines all color variables used throughout the application
-   - Includes text colors, background colors, and border colors
-   - Uses CSS custom properties for easy theming
-
-2. **`typography.module.css`** - Typography tokens
-
-   - Font families (Patrick Hand, BenchNine)
-   - Font sizes (12px to 96px)
-   - Letter spacing utilities
-   - Text transforms and alignment
-
-3. **`spacing.module.css`** - Spacing tokens
-
-   - Padding and margin utilities
-   - Gap utilities for flexbox/grid
-   - Consistent spacing scale
-
-4. **`breakpoints.module.css`** - Breakpoint tokens
-
-   - Media query breakpoints
-   - Container widths
-   - Responsive design utilities
-   - See breakpoints section below for usage
-
-5. **`breakpoints.ts`** - Breakpoint constants for TypeScript/JavaScript
-
-   - TypeScript constants matching CSS breakpoints
-   - Media query helpers for window.matchMedia()
-   - Use in React hooks or responsive logic
-
-6. **`globals.css`** - Global styles
-   - Base resets
-   - Common utilities
-   - Shadow definitions
-   - Transform utilities
+1. **`colors.module.css`** — Color tokens (CSS custom properties for all colors)
+2. **`typography.module.css`** — Typography tokens (fonts, sizes, spacing)
+3. **`spacing.module.css`** — Spacing tokens (padding, margin, gap)
+4. **`breakpoints.module.css`** — Breakpoint tokens (media queries, container widths)
+5. **`breakpoints.ts`** — TypeScript constants for breakpoints and media queries
+6. **`globals.css`** — Global styles (resets, utilities, shadows)
 
 ## Usage
 
@@ -61,7 +30,6 @@ This directory contains the shared design system modules for the Recess extensio
 
 ```tsx
 import styles from './MyComponent.module.css';
-
 function MyComponent() {
   return <div className={styles.container}>Content</div>;
 }
@@ -88,33 +56,23 @@ function MyComponent() {
 
 ### Available Breakpoints
 
-- **xs**: 500px - Minimum supported width
-- **sm**: 640px - Small mobile
-- **cardHide**: 700px - Hide card descriptions
-- **tablet**: 767px - Below tablet threshold
-- **md**: 768px - Tablet and above
-- **lg**: 1024px - Desktop
-- **xl**: 1280px - Large desktop
-- **2xl**: 1536px - Extra large desktop
+- **xs**: 500px — Minimum supported width
+- **sm**: 640px — Small mobile
+- **cardHide**: 700px — Hide card descriptions
+- **tablet**: 767px — Below tablet threshold
+- **md**: 768px — Tablet and above
+- **lg**: 1024px — Desktop
+- **xl**: 1280px — Large desktop
+- **2xl**: 1536px — Extra large desktop
 
 ### Using Breakpoints in CSS
 
-**Important**: CSS custom properties cannot be used directly in `@media` queries. Use the pixel values directly.
-
 ```css
-/* In your component CSS module */
-.myComponent {
-  padding: 20px;
-}
-
-/* Mobile-first: max-width queries */
 @media (max-width: 640px) {
   .myComponent {
     padding: 12px;
   }
 }
-
-/* Desktop-first: min-width queries */
 @media (min-width: 1024px) {
   .myComponent {
     padding: 32px;
@@ -126,35 +84,19 @@ function MyComponent() {
 
 ```tsx
 import { BREAKPOINTS, mediaQueries } from '../styles/breakpoints';
-
-// Using constants
 const isMobile = window.innerWidth < BREAKPOINTS.sm;
-
-// Using matchMedia
 const mediaQuery = window.matchMedia(mediaQueries.max.sm);
 if (mediaQuery.matches) {
   // Mobile styles
 }
-
-// In React hooks
-useEffect(() => {
-  const mediaQuery = window.matchMedia(mediaQueries.max.md);
-  const handleChange = (e: MediaQueryListEvent) => {
-    if (e.matches) {
-      // Handle mobile view
-    }
-  };
-  mediaQuery.addEventListener('change', handleChange);
-  return () => mediaQuery.removeEventListener('change', handleChange);
-}, []);
 ```
 
 ## Best Practices
 
-1. Always use CSS custom properties from `colors.module.css` instead of hardcoded colors
-2. Use typography classes from `typography.module.css` for consistent text styling
-3. Use spacing utilities from `spacing.module.css` for consistent layout
-4. **Use breakpoint values from `breakpoints.module.css` comments** - copy the exact pixel values to ensure consistency
+1. Use CSS custom properties from `colors.module.css` for all colors
+2. Use typography classes from `typography.module.css` for consistent text
+3. Use spacing utilities from `spacing.module.css` for layout
+4. Use breakpoint values from `breakpoints.module.css` for media queries
 5. Create component-specific CSS modules for component styles
 6. Keep shared utilities in `globals.css`
-7. For TypeScript/JavaScript responsive logic, import from `breakpoints.ts`
+7. For responsive logic in TypeScript/JavaScript, import from `breakpoints.ts`

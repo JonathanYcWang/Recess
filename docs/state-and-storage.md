@@ -1,3 +1,11 @@
+# State, Storage, and Lifecycle
+
+## Overview
+
+Recess uses **Redux Toolkit** for state management and the **Chrome Storage API** for persistence. This document explains what state exists, where it lives, how it persists, and how the Manifest V3 service worker lifecycle affects state reliability.
+
+---
+
 # State and Storage
 
 ## Overview
@@ -8,7 +16,7 @@ Recess uses **Redux for state management** and **Chrome Storage API for persiste
 
 ## State Structure
 
-The Redux store has four slices:
+The Redux store has four main slices:
 
 ```typescript
 {
@@ -78,15 +86,26 @@ interface TimerState {
 
 **Storage key:** `'timerState'`
 
-**Persistence:** Entire state object is saved to chrome.storage.local after every action
+**Persistence:**
+
+- The entire timer state is saved to `chrome.storage.local` after every action that changes it.
+- This ensures that state is always recoverable after popup close, background suspension, or browser restart.
 
 **Why so many "duration" fields?**
+
+- `initial*`: Starting value when timer began (for calculating elapsed)
+- `*Remaining`: Current remaining time (for display)
+- `next*`: Pre-calculated value for next session (before it starts)
 
 - `initial*` = Starting value when timer began (for calculating elapsed)
 - `*Remaining` = Current remaining time (for display)
 - `next*` = Pre-calculated value for next session (before it starts)
 
 **Why timestamps?**
+
+- Used to calculate remaining time accurately: `remaining = initial - (now - timestamp)`
+- Survives popup close/reopen
+- Immune to missed intervals or sleep mode
 
 - Used to calculate remaining time accurately: `remaining = initial - (now - timestamp)`
 - Survives popup close/reopen
@@ -141,6 +160,10 @@ interface WorkHoursEntry {
 
 **Storage key:** `'workHours'`
 
+**Persistence:** Array of entries is saved after every add/update/delete/toggle.
+
+**Current usage:** Configured by user but not actively enforced (future feature for notifications/reminders).
+
 **Persistence:** Array of entries is saved after every add/update/delete/toggle
 
 **Current usage:** Configured by user but not actively enforced (future feature for notifications/reminders)
@@ -176,7 +199,53 @@ interface BlockedSitesState {
 }
 ```
 
-**Storage key:** `'blockedSites'`
+## **Storage key:** `'blockedSites'`
+
+## Manifest V3 Service Worker Lifecycle
+
+### What You Need to Know
+
+- **Background scripts (service workers) are suspended when idle.**
+- **All critical state must be persisted to `chrome.storage`** so it can be restored when the background wakes up.
+- **Timers and alarms:**
+  - Use `chrome.alarms` for all session/break timing. Alarms survive browser restarts and background suspension.
+  - In-memory timers (e.g., for UI updates) are ephemeral and must be re-initialized on popup open.
+- **State recovery:**
+  - On background wake or popup open, state is loaded from `chrome.storage` and timers/alarms are re-initialized as needed.
+- **Never rely on background memory for critical state.**
+
+### What is Persisted
+
+- **timerState**: All session, break, and countdown timing, momentum, fatigue, progress, and reward state
+- **workHours**: User's configured work schedule
+- **blockedSites**: List of sites to block during focus sessions
+- **routing**: Onboarding status
+
+### What is Ephemeral
+
+- In-memory countdown intervals in the popup (for UI updates)
+- Any local React state (input values, transient UI state)
+
+---
+
+## Debugging State & Storage
+
+- Use Redux DevTools to inspect current state and action history
+- Use Chrome DevTools to inspect `chrome.storage.local`:
+  ```js
+  chrome.storage.local.get(null, console.log);
+  ```
+- If timers or state seem out of sync, check for:
+  - Missed persistence (should not happen with storageMiddleware)
+  - Service worker suspension (state will be reloaded on wake)
+
+---
+
+## Daily Reset Behavior
+
+- By default, momentum and fatigue do **not** reset at midnight. This is intentional to avoid edge cases with time zones and user work patterns.
+- Manual reset occurs when the work session completes.
+- See [developer-notes.md](./developer-notes.md) for rationale and future considerations.
 
 **Persistence:** Array is saved after every add/remove
 

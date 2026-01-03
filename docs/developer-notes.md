@@ -2,7 +2,7 @@
 
 ## Non-Obvious Decisions & Tradeoffs
 
-This document covers things that might make you go "why did they do it that way?" when reading the code. These are intentional choices with reasoning behind them.
+This document covers intentional design decisions, tradeoffs, and rationale for patterns in the Recess codebase. All content is current as of the latest production release. Deprecated or removed features are not referenced here.
 
 ---
 
@@ -10,174 +10,54 @@ This document covers things that might make you go "why did they do it that way?
 
 ### 1. Redux Instead of React Context
 
-**What you might think:**
-"This is a small extension, why use Redux? React Context would be simpler."
+**Why Redux?**
 
-**Why we chose Redux:**
-
-**Persistence requirement:**
-
-- Timer state MUST persist across popup close/reopen
-- Redux middleware makes storage sync automatic
-- Context would require manual `useEffect` in every component that needs to persist
-- Would be error-prone and scattered
-
-**Temporal state:**
-
-- Timer state changes every second (countdown)
-- Redux allows "derived" reads without forcing re-renders
-- Can optimize with selectors and `shallowEqual` checks
-- Context would cause unnecessary re-renders
-
-**DevTools:**
-
-- Redux DevTools shows action history
-- Can time-travel debug session transitions
-- Can see exact state at moment of bug
-- Context doesn't have this
-
-**Tradeoff accepted:**
-
-- More boilerplate for initial setup
-- Need to learn Redux concepts
-- But worth it for complex stateful timer behavior
+- **Persistence:** Timer state must persist across popup close/reopen. Redux middleware makes storage sync automatic and reliable. Context would require manual `useEffect` in every component, which is error-prone.
+- **Temporal state:** Timer state changes every second. Redux allows "derived" reads without forcing re-renders, and selectors can optimize updates. Context would cause unnecessary re-renders.
+- **DevTools:** Redux DevTools enables time-travel debugging and action history. Context does not.
+- **Tradeoff:** More boilerplate and Redux concepts to learn, but worth it for complex, persistent timer behavior.
 
 ---
 
 ### 2. Timestamps Over Interval Counting
 
-**What you might think:**
-"Why not just decrement a counter every second? Simpler than timestamp math."
+**Why timestamps?**
 
-**Why we use timestamps:**
-
-**Accuracy:**
-
-```typescript
-// Interval approach (BAD)
-let remaining = 1500;
-setInterval(() => {
-  remaining -= 1; // Assumes exactly 1 second passed
-}, 1000);
-
-// Timestamp approach (GOOD)
-const start = Date.now();
-setInterval(() => {
-  const elapsed = Math.floor((Date.now() - start) / 1000);
-  const remaining = 1500 - elapsed; // Actual time passed
-}, 1000);
-```
-
-If browser throttles intervals (battery saver, background tab), the counter approach loses accuracy. Timestamps are always correct.
-
-**Persistence:**
-
-- Storing timestamp = one number
-- Can calculate remaining time after popup reopen
-- Counter approach would need to store both counter and last update time, then do math on load
-
-**Sleep mode:**
-
-- Computer goes to sleep mid-session
-- Interval approach: intervals pause, timer freezes
-- Timestamp approach: time still passes, timer continues correctly when computer wakes
-
-**Implementation choice:**
-
-- Slightly more complex calculation
-- But rock-solid reliability
+- **Accuracy:** Timestamps ensure timer accuracy even if the popup is closed, the computer sleeps, or the browser throttles intervals. Interval-based counters lose accuracy in these cases.
+- **Persistence:** Storing a timestamp allows the timer to recover after popup reopen or background suspension. Counter-based approaches require more complex recovery logic.
+- **Sleep mode:** Timestamps allow the timer to continue correctly after sleep; intervals would freeze.
+- **Tradeoff:** Slightly more complex math, but much more reliable and robust.
 
 ---
 
 ### 3. Chrome's declarativeNetRequest Instead of webRequest
 
-**What you might think:**
-"Why not use `chrome.webRequest` to block sites? It's more flexible."
+**Why declarativeNetRequest?**
 
-**Why we use declarativeNetRequest:**
-
-**Manifest V3 requirement:**
-
-- Chrome is deprecating `webRequest` blocking in MV3
-- `declarativeNetRequest` is the new standard
-- Extension needs to be future-proof
-
-**Performance:**
-
-- `declarativeNetRequest` rules are evaluated in C++, not JavaScript
-- Much faster than `webRequest` callbacks
-- Lower CPU and battery usage
-
-**Tradeoff:**
-
-- Less flexible (can't conditionally block based on complex logic)
-- Have to delete/recreate all rules to update blocking
-- But sufficient for our use case (simple URL pattern matching)
+- **Manifest V3 requirement:** Chrome deprecates `webRequest` blocking in MV3. `declarativeNetRequest` is required and more performant.
+- **Performance:** Rules are evaluated natively, not in JavaScript, for lower CPU and battery usage.
+- **Tradeoff:** Less flexible (can't block based on complex logic), but sufficient for our use case (simple URL pattern matching).
 
 ---
 
 ### 4. No Daily Auto-Reset
 
-**What you might think:**
-"Shouldn't momentum/fatigue reset at midnight? Why persist indefinitely?"
+**Why not reset at midnight?**
 
-**Why no automatic reset:**
-
-**Complexity:**
-
-- Would need background timer checking date
-- What timezone? System time or fixed timezone?
-- What if user changes system date?
-- What if extension updates at 11:59 PM?
-
-**Usage patterns vary:**
-
-- Some users use extension every day → Auto-reset makes sense
-- Some use it sporadically (Mondays only, project deadlines) → Auto-reset is annoying
-- Some work across midnight (night shifts) → Auto-reset would interrupt
-
-**Current approach:**
-
-- Manual reset when session completes
-- User has control
-- No edge cases with date handling
-
-**Future consideration:**
-
-- Could add opt-in daily reset with date checking
-- Document in settings: "Reset at midnight each day"
-- But default is "persist until manually reset"
+- **Complexity:** Handling time zones, system date changes, and edge cases is error-prone.
+- **Usage patterns:** Some users work across midnight or use the extension sporadically. Auto-reset could be disruptive.
+- **Current approach:** Manual reset when the work session completes. No edge cases with date handling.
+- **Future:** Could add opt-in daily reset, but default is "persist until manually reset."
 
 ---
 
-### 5. Reward Selection Doesn't Enforce Site Access
+### 5. Reward Selection is Gamification, Not Enforcement
 
-**What you might think:**
-"User selects YouTube as reward, why can they access ALL sites during break?"
+**Why not restrict break access to only the selected reward?**
 
-**Why we don't enforce reward-only access:**
-
-**Technical limitation:**
-
-- `declarativeNetRequest` is all-or-nothing per session state
-- Can't easily block "all except selected reward"
-- Would need complex rule updates mid-session
-
-**UX consideration:**
-
-- User might need to check email during break
-- Forcing only one site is overly restrictive
-- Break is for rest, not punishment
-
-**Actual purpose of reward selection:**
-
-- **Gamification:** Makes break feel earned
-- **Motivation:** Gives user something to look forward to
-- **Tracking:** Could add analytics later ("users prefer YouTube 60% of the time")
-
-**Not enforcement:**
-
-- Trust-based system
+- **Technical limitation:** `declarativeNetRequest` is all-or-nothing per session state. Can't easily block "all except selected reward."
+- **UX consideration:** Users may need to check email or do other tasks during breaks. Restricting to one site is overly punitive.
+- **Purpose:** Reward selection is for gamification and motivation, not enforcement. Breaks are trust-based.
 - User chose to use focus tool, assume they want to focus
 - Don't need to be draconian
 

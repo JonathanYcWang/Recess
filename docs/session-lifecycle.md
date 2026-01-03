@@ -2,20 +2,33 @@
 
 ## Overview
 
-A "session" in Recess refers to one complete work/break cycle. This document walks through what happens at each stage, where the logic lives, and what state changes occur.
+A "session" in Recess refers to one complete work/break cycle. This document walks through what happens at each stage, where the logic lives, and what state changes occur. All features (sessions, breaks, blockers, notifications) are described in terms of user intent, triggering events, execution flow, state changes, and failure modes.
 
 ## The Complete Cycle
 
 ```
-BEFORE_WORK_SESSION → ONGOING_FOCUS_SESSION → REWARD_SELECTION → ONGOING_BREAK_SESSION → FOCUS_SESSION_COUNTDOWN → [repeat]
-                                                   ↓
-                                        WORK_SESSION_COMPLETE
-                                        (when work target met)
+BEFORE_WORK_SESSION
+  ↓
+ONGOING_FOCUS_SESSION (e.g., 20 min)
+  ↓
+REWARD_SELECTION
+  ↓
+ONGOING_BREAK_SESSION (e.g., 10 min)
+  ↓
+FOCUS_SESSION_COUNTDOWN (10 sec)
+  ↓
+ONGOING_FOCUS_SESSION (next focus session)
+  ↓
+... repeat until work session target met ...
+  ↓
+WORK_SESSION_COMPLETE
 ```
 
 ---
 
 ## Stage 1: BEFORE_WORK_SESSION
+
+**User Intent:** Prepare to start a day’s work session.
 
 **What the user sees:**
 
@@ -23,13 +36,10 @@ BEFORE_WORK_SESSION → ONGOING_FOCUS_SESSION → REWARD_SELECTION → ONGOING_B
 - Duration of next focus session
 - "Start Focus Session" button
 
-**What's happening:**
+**Execution Flow:**
 
 - Timer is idle, waiting for user to begin
-- Session durations have been pre-calculated based on:
-  - Current momentum (CEWMA score)
-  - Current fatigue level
-  - Progress toward daily work target
+- Session durations are pre-calculated based on momentum, fatigue, and progress
 
 **State:**
 
@@ -41,12 +51,11 @@ BEFORE_WORK_SESSION → ONGOING_FOCUS_SESSION → REWARD_SELECTION → ONGOING_B
   workSessionDurationRemaining: <remaining daily target>,
   momentum: <from previous session or 0.5 for new day>,
   completedWorkMinutesToday: <accumulated work>,
-  lastCompletedSessionMinutes: <length of last session>
+  lastCompletedFocusSessionMinutes: <length of last session>
 }
 ```
 
-**Trigger to next state:**
-User clicks "Start Focus Session"
+**Trigger to next state:** User clicks "Start Focus Session"
 
 **Action dispatched:**
 
@@ -56,7 +65,7 @@ dispatch(startFocusSession());
 
 **Code location:**
 
-- View: `src/pages/views/BeforeSessionView.tsx`
+- View: `src/pages/views/BeforeWorkSessionView.tsx`
 - Action: `src/store/slices/timerSlice.ts` → `startFocusSession` reducer
 
 **State changes:**
@@ -72,7 +81,7 @@ isPaused: false;
 **Side effects:**
 
 - `background.ts` detects state change via storage listener
-- Creates blocking rules for all sites in `blockedSites` array
+- Creates blocking rules for all sites in `blockedSites` array using `declarativeNetRequest`
 - Blocked sites now redirect to extension popup
 
 ---
@@ -108,23 +117,18 @@ isPaused: false;
 
 **Optional: Pause/Resume**
 
-User can pause:
-
-```typescript
-dispatch(pauseSession());
-// Saves current remaining time
-// Clears timestamp
-isPaused: true;
-```
-
-User resumes:
-
-```typescript
-dispatch(resumeSession());
-// Restores timestamp to Date.now()
-// Uses saved remaining time as new initial duration
-isPaused: false;
-```
+- User can pause:
+  ```typescript
+  dispatch(pauseSession());
+  // Saves current remaining time, clears timestamp
+  isPaused: true;
+  ```
+- User resumes:
+  ```typescript
+  dispatch(resumeSession());
+  // Restores timestamp to Date.now(), uses saved remaining time as new initial duration
+  isPaused: false;
+  ```
 
 **Trigger to next state:**
 Either:
@@ -132,23 +136,28 @@ Either:
 1. Timer reaches 0 (normal completion)
 2. User clicks "End Session" early
 
+**Trigger to next state:**
+
+- Timer reaches 0 (normal completion)
+- User clicks "End Session" early
+
 **Normal completion:**
 
 ```typescript
 // useTimer detects remaining <= 0
-dispatch(transitionToRewardSelection());
+// Recalculate durations (will be shorter due to momentum penalty)
 ```
 
 **Early exit:**
 
 ```typescript
 // User clicks "End Session"
-dispatch(endSessionEarly());
+nextFocusDuration: <recalculated>
 ```
 
 **Code location:**
 
-- View: `src/pages/views/DuringSessionView.tsx`
+- View: `src/pages/views/OngoingFocusSessionView.tsx`
 - Actions: `src/store/slices/timerSlice.ts` → `transitionToRewardSelection`, `endSessionEarly`
 - Timer logic: `src/store/hooks/useTimer.ts`
 
@@ -157,18 +166,14 @@ dispatch(endSessionEarly());
 ```typescript
 // Update momentum - session was completed
 momentum: updateCEWMA(currentMomentum, true)
-
 // Track work completed (convert to minutes)
 completedWorkMinutesToday: += secondsToMinutes(initialFocusSessionDuration)
-lastCompletedSessionMinutes: secondsToMinutes(initialFocusSessionDuration)
-
+lastCompletedFocusSessionMinutes: secondsToMinutes(initialFocusSessionDuration)
 // Recalculate next session durations with updated momentum/fatigue
 nextFocusDuration: calculateFocusSessionDuration(newMomentum, newFatigue, newProgress)
 nextBreakDuration: calculateBreakDuration(newFatigue, newProgress, newMomentum)
-
 // Reduce daily work remaining
 workSessionDurationRemaining: -= initialFocusSessionDuration
-
 // Transition to reward selection or completion
 sessionState: workRemaining > 0 ? 'REWARD_SELECTION' : 'WORK_SESSION_COMPLETE'
 focusSessionEntryTimeStamp: undefined  // Clear timestamp
@@ -178,14 +183,6 @@ focusSessionEntryTimeStamp: undefined  // Clear timestamp
 
 ```typescript
 // Update momentum - session was abandoned
-momentum: updateCEWMA(currentMomentum, false)  // Penalizes momentum
-
-// Track partial work completed
-completedWorkMinutesToday: += secondsToMinutes(completedPortion)
-lastCompletedSessionMinutes: secondsToMinutes(completedPortion)
-
-// Recalculate durations (will be shorter due to momentum penalty)
-nextFocusDuration: <recalculated>
 nextBreakDuration: <recalculated>
 
 // Reduce daily work by partial amount
