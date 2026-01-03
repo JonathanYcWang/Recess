@@ -260,6 +260,7 @@ const timerSlice = createSlice({
       state.breakSessionEntryTimeStamp = Date.now();
       state.initialBreakSessionDuration = reward.durationSeconds;
       state.nextBreakDuration = reward.durationSeconds;
+      state.generatedRewards = [];
     },
 
     setGeneratedRewards: (state, action: PayloadAction<Reward[]>) => {
@@ -281,6 +282,7 @@ const timerSlice = createSlice({
       state.focusSessionCountdownEntryTimeStamp = undefined;
       state.focusSessionEntryTimeStamp = Date.now();
       state.initialFocusSessionDuration = state.nextFocusDuration;
+      state.generatedRewards = [];
     },
 
     transitionToRewardSelection: (state) => {
@@ -324,6 +326,7 @@ const timerSlice = createSlice({
       state.breakSessionEntryTimeStamp = undefined;
       state.initialBreakSessionDuration = state.nextBreakDuration;
       state.isPaused = false;
+      state.generatedRewards = [];
     },
 
     updateWeightMultipliers: (
@@ -353,6 +356,7 @@ const timerSlice = createSlice({
       state.breakSessionEntryTimeStamp = undefined;
       state.focusSessionCountdownEntryTimeStamp = undefined;
       state.isPaused = false;
+      state.generatedRewards = [];
     },
   },
 });

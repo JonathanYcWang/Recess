@@ -126,7 +126,7 @@ const MainPage: React.FC = () => {
 
   return (
     <div className={styles.mainPage}>
-      <NavBar />
+      {sessionState !== 'REWARD_SELECTION' && <NavBar />}
       {renderContent()}
     </div>
   );

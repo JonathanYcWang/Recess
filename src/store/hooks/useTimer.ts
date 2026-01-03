@@ -46,8 +46,13 @@ export const useTimer = () => {
   }, []);
 
   // Initialize rewards when sites are loaded
+  // Only generate rewards when entering REWARD_SELECTION state
   useEffect(() => {
-    if (blockedSites.length > 0 && timerState.generatedRewards.length === 0) {
+    if (
+      timerState.sessionState === 'REWARD_SELECTION' &&
+      blockedSites.length > 0 &&
+      timerState.generatedRewards.length === 0
+    ) {
       const newRewards: Reward[] = [];
       for (let i = 0; i < 3; i++) {
         const reward = generateReward(blockedSites);
@@ -55,7 +60,13 @@ export const useTimer = () => {
       }
       dispatch(setGeneratedRewards(newRewards));
     }
-  }, [blockedSites, timerState.generatedRewards.length, generateReward, dispatch]);
+  }, [
+    timerState.sessionState,
+    blockedSites,
+    timerState.generatedRewards.length,
+    generateReward,
+    dispatch,
+  ]);
 
   useEffect(() => {
     const activeStates = [
