@@ -16,8 +16,6 @@
 
 ---
 
-asdfasdfasdfas
-
 ## What this repo is
 
 This repository contains **Recess**, a Chrome Extension (Manifest V3) that helps users maintain focus and productivity through:
