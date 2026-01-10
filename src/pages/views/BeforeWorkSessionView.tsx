@@ -5,6 +5,7 @@ import PrimaryButton from '../../components/PrimaryButton';
 import DurationInputDialog from '../../components/DurationInputDialog';
 import PlayIcon from '../../assets/play.svg?url';
 import { formatWorkSessionTime } from '../../lib/timer-utils';
+import styles from '../MainPage.module.css';
 
 interface BeforeWorkSessionViewProps {
   workSessionDurationRemaining: number;
@@ -38,6 +39,12 @@ const BeforeWorkSessionView: React.FC<BeforeWorkSessionViewProps> = ({
       />
       <CountdownTimer time={formatTime(nextFocusDuration)} label="Next focus session length" />
       <PrimaryButton text="Start Focus Session" onClick={startFocusSession} iconSrc={PlayIcon} />
+
+      <div className={styles.illustration}>
+        <div className={styles.illustrationContainer}>
+          <img src="/assets/cow.png" alt="Cow illustration" className={styles.cowImage} />
+        </div>
+      </div>
 
       <DurationInputDialog
         isOpen={isDialogOpen}

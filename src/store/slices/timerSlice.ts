@@ -32,6 +32,7 @@ const initialState: TimerState = {
   initialFocusSessionCountdownDuration: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME,
   rerolls: DEFAULT_REROLLS,
   selectedReward: null,
+  shownRewardCombinations: [],
 
   // Will be calculated below based on initial momentum/fatigue/progress
   nextFocusDuration: 0, // Will be set below
@@ -221,6 +222,8 @@ const timerSlice = createSlice({
             lastCompletedFocusSessionMinutes: newLastSessionMinutes,
             nextFocusDuration: durations.nextFocusDuration,
             nextBreakDuration: durations.nextBreakDuration,
+            rerolls: DEFAULT_REROLLS,
+            shownRewardCombinations: [],
           };
         }
 
@@ -236,6 +239,8 @@ const timerSlice = createSlice({
           lastCompletedFocusSessionMinutes: newLastSessionMinutes,
           nextFocusDuration: durations.nextFocusDuration,
           nextBreakDuration: durations.nextBreakDuration,
+          rerolls: DEFAULT_REROLLS,
+          shownRewardCombinations: [],
         };
       };
 
@@ -278,10 +283,17 @@ const timerSlice = createSlice({
       state.initialBreakSessionDuration = reward.durationSeconds;
       state.nextBreakDuration = reward.durationSeconds;
       state.generatedRewards = [];
+      state.shownRewardCombinations = [];
     },
 
     setGeneratedRewards: (state, action: PayloadAction<Reward[]>) => {
       state.generatedRewards = action.payload;
+    },
+
+    addShownRewardCombination: (state, action: PayloadAction<string>) => {
+      if (!state.shownRewardCombinations.includes(action.payload)) {
+        state.shownRewardCombinations.push(action.payload);
+      }
     },
 
     rerollReward: (state, action: PayloadAction<{ index: number; newReward: Reward }>) => {
@@ -313,6 +325,10 @@ const timerSlice = createSlice({
       const completedMinutes = secondsToMinutes(completedInSegment);
       state.completedWorkMinutesToday += completedMinutes;
       state.lastCompletedFocusSessionMinutes = completedMinutes;
+
+      // Reset rerolls and clear shown combinations for new reward selection
+      state.rerolls = DEFAULT_REROLLS;
+      state.shownRewardCombinations = [];
 
       // Calculate next session durations based on updated state
       const durations = calculateNextSessionDurations(state);
@@ -374,6 +390,8 @@ const timerSlice = createSlice({
       state.focusSessionCountdownEntryTimeStamp = undefined;
       state.isPaused = false;
       state.generatedRewards = [];
+      state.rerolls = DEFAULT_REROLLS;
+      state.shownRewardCombinations = [];
     },
   },
 });
@@ -388,6 +406,7 @@ export const {
   endSessionEarly,
   selectReward,
   setGeneratedRewards,
+  addShownRewardCombination,
   rerollReward,
   transitionToFocusSession,
   transitionToRewardSelection,

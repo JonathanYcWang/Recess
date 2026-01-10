@@ -7,6 +7,7 @@ import {
   endSessionEarly,
   selectReward,
   setGeneratedRewards,
+  addShownRewardCombination,
   rerollReward,
   transitionToFocusSession,
   transitionToRewardSelection,
@@ -38,20 +39,52 @@ export const useTimer = () => {
   const blockedSites = useAppSelector((state) => state.blockedSites.sites);
   const [, setTick] = useState(0); // Force re-render for UI updates
 
-  const generateReward = useCallback((availableSites: string[]): Reward | null => {
-    if (availableSites.length === 0) return null;
+  const generateReward = useCallback(
+    (
+      availableSites: string[],
+      shownCombinations: string[]
+    ): { reward: Reward; combinationKey: string } | null => {
+      if (availableSites.length === 0) return null;
 
-    const randomSite = availableSites[Math.floor(Math.random() * availableSites.length)];
-    const numIntervals = Math.floor(MAX_REWARD_TIME / REWARD_TIME_INTERVAL);
-    const minutes = Math.floor(Math.random() * numIntervals + 1) * REWARD_TIME_INTERVAL;
+      // Helper to create combination key
+      const getCombinationKey = (site: string, minutes: number) => `${site}-${minutes}`;
 
-    return {
-      id: `${randomSite}-${Date.now()}-${Math.random()}`,
-      name: randomSite,
-      duration: `${minutes} min`,
-      durationSeconds: minutes * 60,
-    };
-  }, []);
+      const numIntervals = Math.floor(MAX_REWARD_TIME / REWARD_TIME_INTERVAL);
+
+      // Build list of all possible combinations
+      const allPossibleCombinations: { site: string; minutes: number }[] = [];
+      for (const site of availableSites) {
+        for (let i = 1; i <= numIntervals; i++) {
+          const minutes = i * REWARD_TIME_INTERVAL;
+          allPossibleCombinations.push({ site, minutes });
+        }
+      }
+
+      // Filter out already shown combinations
+      const availableCombinations = allPossibleCombinations.filter(
+        (combo) => !shownCombinations.includes(getCombinationKey(combo.site, combo.minutes))
+      );
+
+      // If all combinations have been shown, allow all again (no reset needed for array)
+      const combinationsToUse =
+        availableCombinations.length > 0 ? availableCombinations : allPossibleCombinations;
+
+      // Pick random combination from available ones
+      const randomCombo = combinationsToUse[Math.floor(Math.random() * combinationsToUse.length)];
+      const combinationKey = getCombinationKey(randomCombo.site, randomCombo.minutes);
+
+      const reward: Reward = {
+        id: `${randomCombo.site}-${Date.now()}-${Math.random()}`,
+        name: randomCombo.site,
+        duration: `${randomCombo.minutes} min`,
+        durationSeconds: randomCombo.minutes * 60,
+      };
+
+      // Return both the reward and the combination key so caller can track it
+      return { reward, combinationKey };
+    },
+    []
+  );
 
   useEffect(() => {
     if (
@@ -60,16 +93,26 @@ export const useTimer = () => {
       timerState.generatedRewards.length === 0
     ) {
       const newRewards: Reward[] = [];
+      const shownCombinations = [...timerState.shownRewardCombinations];
+
       for (let i = 0; i < 3; i++) {
-        const reward = generateReward(blockedSites);
-        if (reward) newRewards.push(reward);
+        const result = generateReward(blockedSites, shownCombinations);
+        if (result) {
+          newRewards.push(result.reward);
+          // Track locally to prevent duplicates in the same batch
+          shownCombinations.push(result.combinationKey);
+          // Dispatch to Redux state
+          dispatch(addShownRewardCombination(result.combinationKey));
+        }
       }
+
       dispatch(setGeneratedRewards(newRewards));
     }
   }, [
     timerState.sessionState,
     blockedSites,
     timerState.generatedRewards.length,
+    timerState.shownRewardCombinations,
     generateReward,
     dispatch,
   ]);
@@ -200,13 +243,15 @@ export const useTimer = () => {
   const handleReroll = useCallback(
     (index: number) => {
       if (timerState.rerolls > 0) {
-        const newReward = generateReward(blockedSites);
-        if (newReward) {
-          dispatch(rerollReward({ index, newReward }));
+        const shownCombinations = [...timerState.shownRewardCombinations];
+        const result = generateReward(blockedSites, shownCombinations);
+        if (result) {
+          dispatch(rerollReward({ index, newReward: result.reward }));
+          dispatch(addShownRewardCombination(result.combinationKey));
         }
       }
     },
-    [timerState.rerolls, blockedSites, generateReward, dispatch]
+    [timerState.rerolls, timerState.shownRewardCombinations, blockedSites, generateReward, dispatch]
   );
 
   const handleResetTimer = useCallback(() => {

@@ -37,11 +37,6 @@ const OngoingBreakSessionView: React.FC<OngoingBreakSessionViewProps> = ({
         )}
         <TertiaryButton text="Wrap up break early" onClick={endSessionEarly} />
       </div>
-      <div className={styles.illustration}>
-        <div className={styles.illustrationContainer}>
-          <img src="/assets/cow.png" alt="Cow illustration" className={styles.cowImage} />
-        </div>
-      </div>
     </>
   );
 };

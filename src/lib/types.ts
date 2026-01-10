@@ -49,6 +49,7 @@ export interface TimerState {
   rerolls: number;
   selectedReward: Reward | null;
   generatedRewards: Reward[];
+  shownRewardCombinations: string[]; // Track shown combinations to prevent duplicates
 
   // Next session durations (pre-calculated)
   nextFocusDuration: number;
