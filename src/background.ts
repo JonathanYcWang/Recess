@@ -27,21 +27,16 @@ async function scheduleWorkReminders() {
     const { hour, minute } = parseTimeString(entry.time);
     for (let day = 0; day < 7; day++) {
       if (!entry.days[day]) continue;
-      // Calculate next occurrence of this day/time
       const next = new Date(now);
       next.setHours(hour, minute, 0, 0);
       const dayDiff = (day - now.getDay() + 7) % 7;
-      if (
-        dayDiff > 0 ||
-        (dayDiff === 0 &&
-          (now.getHours() > hour || (now.getHours() === hour && now.getMinutes() >= minute)))
-      ) {
-        next.setDate(now.getDate() + dayDiff + (dayDiff === 0 ? 7 : 0));
-      } else {
-        next.setDate(now.getDate() + dayDiff);
-      }
-      const when = next.getTime();
-      chrome.alarms.create(WORK_REMINDER_ALARM_PREFIX + entry.id + '-' + day, { when });
+      const isPast =
+        dayDiff === 0 &&
+        (now.getHours() > hour || (now.getHours() === hour && now.getMinutes() >= minute));
+      next.setDate(now.getDate() + dayDiff + (isPast ? 7 : 0));
+      chrome.alarms.create(`${WORK_REMINDER_ALARM_PREFIX}${entry.id}-${day}`, {
+        when: next.getTime(),
+      });
     }
   }
 }
@@ -84,7 +79,6 @@ chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
 });
 // Listen for test notification message from popup or UI
 chrome.runtime.onMessage.addListener((message) => {
-  console.log('Background received message:', message);
   chrome.notifications.create({
     type: 'basic',
     iconUrl: 'assets/logo.png',
@@ -166,10 +160,6 @@ async function closeDistractingTabs() {
         await chrome.tabs.remove(tab.id);
       }
     }
-
-    if (tabsToClose.length > 0) {
-      console.log(`Closed ${tabsToClose.length} distracting tabs`);
-    }
   } catch (error) {
     console.error('Error closing distracting tabs:', error);
   }
@@ -205,7 +195,6 @@ async function checkAndCloseTab(tabId: number, url: string) {
 
     if (isDistractingSite(url, sites)) {
       await chrome.tabs.remove(tabId);
-      console.log(`Closed distracting tab: ${url}`);
     }
   } catch (error) {
     console.error('Error checking/closing tab:', error);
@@ -257,7 +246,6 @@ async function updateBlockingRules() {
         await chrome.declarativeNetRequest.updateDynamicRules({
           removeRuleIds: existingRuleIds,
         });
-        console.log('Removed all site blocking rules');
       }
     }
   } catch (error) {

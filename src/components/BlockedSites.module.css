@@ -125,3 +125,17 @@
   color: var(--recess-black);
   white-space: nowrap;
 }
+
+.toggleContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleLabel {
+  font-size: 14px;
+  font-weight: 500;
+}

@@ -19,7 +19,11 @@ const Card: React.FC<CardProps> = ({ title, description, footer, onClick, refres
         <p className={styles.title}>{title}</p>
         <p className={styles.description}>{description}</p>
         <div className={styles.placeholderImage}>
-          <Icon src={PlaceholderIcon} alt="Placeholder" size={24} />
+          <Icon
+            src={`https://www.google.com/s2/favicons?domain=${description}&sz=128`}
+            alt="Placeholder"
+            size={24}
+          />
         </div>
         {footer && <p className={styles.footer}>{footer}</p>}
       </div>

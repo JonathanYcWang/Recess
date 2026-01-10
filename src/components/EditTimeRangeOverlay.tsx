@@ -25,11 +25,10 @@ const parseTimeString = (timeStr: string): Time => {
 };
 const formatTimeToString = (time: Time): string => {
   let hours = time.hour;
-  const minutes = time.minute;
   const period = hours >= 12 ? 'PM' : 'AM';
   if (hours > 12) hours -= 12;
-  else if (hours === 0) hours = 12;
-  return `${hours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  if (hours === 0) hours = 12;
+  return `${hours}:${time.minute.toString().padStart(2, '0')} ${period}`;
 };
 
 const EditTimeRangeOverlay: React.FC<EditTimeRangeOverlayProps> = ({
@@ -43,11 +42,7 @@ const EditTimeRangeOverlay: React.FC<EditTimeRangeOverlayProps> = ({
   const [days, setDays] = useState(selectedDays);
 
   const toggleDay = (index: number) => {
-    setDays((prev) => {
-      const newDays = [...prev];
-      newDays[index] = !newDays[index];
-      return newDays;
-    });
+    setDays((prev) => prev.map((day, i) => (i === index ? !day : day)));
   };
 
   const handleSave = () => {

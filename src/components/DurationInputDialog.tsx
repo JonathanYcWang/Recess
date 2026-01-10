@@ -26,16 +26,12 @@ const DurationInputDialog: React.FC<DurationInputDialogProps> = ({
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    const hours = time.hour;
-    const minutes = time.minute;
-    onConfirm(hours, minutes);
+    onConfirm(time.hour, time.minute);
     onClose();
   };
 
   const handleTimeChange = (value: Time | null) => {
-    if (value) {
-      setTime(value);
-    }
+    if (value) setTime(value);
   };
 
   return (

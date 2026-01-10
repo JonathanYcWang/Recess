@@ -40,3 +40,8 @@
   background-color: var(--recess-black);
   color: var(--recess-white);
 }
+
+.resetContainer {
+  margin-top: 40px;
+  padding: 0 20px;
+}

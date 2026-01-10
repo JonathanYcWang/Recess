@@ -2,6 +2,7 @@ import React from 'react';
 import NavBar from '../components/NavBar';
 import { useTimer } from '../store/hooks/useTimer';
 import { useAppSelector } from '../store/hooks';
+import { selectHasOnboarded } from '../store/selectors';
 import WelcomeView from './views/WelcomeView';
 import BeforeWorkSessionView from './views/BeforeWorkSessionView';
 import OngoingFocusSessionView from './views/OngoingFocusSessionView';
@@ -12,7 +13,7 @@ import WorkSessionCompleteView from './views/WorkSessionCompleteView';
 import styles from './MainPage.module.css';
 
 const MainPage: React.FC = () => {
-  const hasOnboarded = useAppSelector((state) => state.routing.hasOnboarded);
+  const hasOnboarded = useAppSelector(selectHasOnboarded);
   const {
     timerState,
     startFocusSession,

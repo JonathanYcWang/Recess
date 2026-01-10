@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
+import { selectIsInWorkingSession } from '../store/selectors';
 import { useTimer } from '../store/hooks/useTimer';
 import MainLogoPng from './MainLogoPng';
 import Icon from './Icon';
@@ -13,7 +14,7 @@ interface NavBarProps {}
 const NavBar: React.FC<NavBarProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isInWorkingSession = useAppSelector((state) => state.blockedSites.isInWorkingSession);
+  const isInWorkingSession = useAppSelector(selectIsInWorkingSession);
   const { completeWorkSessionEarly } = useTimer();
 
   const isOnSettingsPage = location.pathname.startsWith('/settings');

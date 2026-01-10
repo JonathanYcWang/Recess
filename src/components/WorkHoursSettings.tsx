@@ -4,6 +4,7 @@ import PrimaryButton from './PrimaryButton';
 import WorkWindow from './WorkWindow';
 import EditTimeRangeOverlay from './EditTimeRangeOverlay';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { selectWorkHoursEntries } from '../store/selectors';
 import {
   addWorkHoursEntry,
   updateWorkHoursEntry,
@@ -13,9 +14,13 @@ import {
 
 import styles from './WorkHoursSettings.module.css';
 
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DEFAULT_TIME = '09:00 AM';
+const DEFAULT_DAYS = [false, true, true, true, true, true, false];
+
 const WorkHoursSettings: React.FC = () => {
   const dispatch = useAppDispatch();
-  const entries = useAppSelector((state) => state.workHours.entries);
+  const entries = useAppSelector(selectWorkHoursEntries);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,16 +29,9 @@ const WorkHoursSettings: React.FC = () => {
 
   const openDialog = (id: string | null = null) => {
     setEditingId(id);
-    if (id) {
-      const entry = entries.find((e) => e.id === id);
-      if (entry) {
-        setEditTime(entry.time);
-        setEditDays(entry.days);
-      }
-    } else {
-      setEditTime('09:00 AM');
-      setEditDays([false, true, true, true, true, true, false]);
-    }
+    const entry = id ? entries.find((e) => e.id === id) : null;
+    setEditTime(entry?.time || DEFAULT_TIME);
+    setEditDays(entry?.days || DEFAULT_DAYS);
     setDialogOpen(true);
   };
 
@@ -46,10 +44,9 @@ const WorkHoursSettings: React.FC = () => {
   };
 
   const formatDays = (selectedDays: boolean[]) => {
-    const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const selectedDayNames = selectedDays
-      .map((selected, index) => (selected ? dayLabels[index] : null))
-      .filter(Boolean) as string[];
+      .map((selected, index) => (selected ? DAY_LABELS[index] : null))
+      .filter(Boolean);
     return selectedDayNames.length > 0 ? selectedDayNames.join(', ') : 'No days selected';
   };
 

@@ -70,39 +70,37 @@ function calculateNextSessionDurations(state: TimerState): {
   nextBreakDuration: number;
 } {
   const progress = calculateProgress(state.completedWorkMinutesToday, state.targetWorkMinutesToday);
-
   const fatigue = calculateFatigue(
     state.completedWorkMinutesToday,
     state.targetWorkMinutesToday,
     state.lastCompletedFocusSessionMinutes
   );
 
-  // Round helper to nearest interval
-  const roundToNearest = (value: number, interval: number) => {
-    return Math.round(value / interval) * interval;
-  };
+  const FOCUS_INTERVAL = 5;
+  const BREAK_INTERVAL = 5;
+  const roundToInterval = (value: number, interval: number) =>
+    Math.round(value / interval) * interval;
 
-  const FOCUS_INTERVAL = 5; // minutes
-  const BREAK_INTERVAL = 5; // minutes
-
-  let focusDurationMinutes = calculateFocusSessionDuration(
-    state.momentum,
-    fatigue,
-    progress,
-    state.momentumWeightMultiplier,
-    state.fatigueWeightMultiplier
+  let focusDurationMinutes = roundToInterval(
+    calculateFocusSessionDuration(
+      state.momentum,
+      fatigue,
+      progress,
+      state.momentumWeightMultiplier,
+      state.fatigueWeightMultiplier
+    ),
+    FOCUS_INTERVAL
   );
-  let breakDurationMinutes = calculateBreakDuration(
-    fatigue,
-    progress,
-    state.momentum,
-    state.fatigueWeightMultiplier,
-    state.momentumWeightMultiplier
+  let breakDurationMinutes = roundToInterval(
+    calculateBreakDuration(
+      fatigue,
+      progress,
+      state.momentum,
+      state.fatigueWeightMultiplier,
+      state.momentumWeightMultiplier
+    ),
+    BREAK_INTERVAL
   );
-
-  // Round to nearest 5 min
-  focusDurationMinutes = roundToNearest(focusDurationMinutes, FOCUS_INTERVAL);
-  breakDurationMinutes = roundToNearest(breakDurationMinutes, BREAK_INTERVAL);
 
   // If less than 5 min left in work session, add it to focus
   const workSessionMinutesLeft = state.workSessionDurationRemaining / 60;
@@ -155,31 +153,22 @@ const timerSlice = createSlice({
     },
 
     pauseSession: (state) => {
-      if (state.isPaused) return;
+      if (state.isPaused || state.sessionState !== 'ONGOING_FOCUS_SESSION') return;
 
       state.isPaused = true;
-
-      // Save current remaining time when pausing
-      if (state.sessionState === 'ONGOING_FOCUS_SESSION') {
-        const currentRemaining = calculateRemaining(
-          state.initialFocusSessionDuration,
-          state.focusSessionEntryTimeStamp
-        );
-        state.focusSessionDurationRemaining = currentRemaining;
-        state.focusSessionEntryTimeStamp = undefined;
-      }
+      state.focusSessionDurationRemaining = calculateRemaining(
+        state.initialFocusSessionDuration,
+        state.focusSessionEntryTimeStamp
+      );
+      state.focusSessionEntryTimeStamp = undefined;
     },
 
     resumeSession: (state) => {
-      if (!state.isPaused) return; // Not paused
+      if (!state.isPaused || state.sessionState !== 'ONGOING_FOCUS_SESSION') return;
 
       state.isPaused = false;
-
-      // Restore timestamps when resuming
-      if (state.sessionState === 'ONGOING_FOCUS_SESSION') {
-        state.focusSessionEntryTimeStamp = Date.now();
-        state.initialFocusSessionDuration = state.focusSessionDurationRemaining;
-      }
+      state.focusSessionEntryTimeStamp = Date.now();
+      state.initialFocusSessionDuration = state.focusSessionDurationRemaining;
     },
 
     endSessionEarly: (state) => {

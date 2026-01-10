@@ -11,17 +11,18 @@ const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('workHours');
 
   const handleResetStorage = async () => {
-    if (confirm('Are you sure you want to reset all storage? This will clear all timers and settings.')) {
-      // Clear Chrome storage
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        await chrome.storage.local.clear();
-      }
-      // Clear localStorage fallback
-      localStorage.clear();
-      
-      // Reload the page to reinitialize with defaults
-      window.location.reload();
+    if (
+      !confirm(
+        'Are you sure you want to reset all storage? This will clear all timers and settings.'
+      )
+    ) {
+      return;
     }
+    if (chrome?.storage?.local) {
+      await chrome.storage.local.clear();
+    }
+    localStorage.clear();
+    window.location.reload();
   };
 
   return (
@@ -43,8 +44,8 @@ const Settings: React.FC = () => {
       </div>
       {activeTab === 'workHours' && <WorkHoursSettings />}
       {activeTab === 'blockedSites' && <BlockedSites />}
-      
-      <div style={{ marginTop: '40px', padding: '0 20px' }}>
+
+      <div className={styles.resetContainer}>
         <TertiaryButton text="Reset All Storage (Testing)" onClick={handleResetStorage} />
       </div>
     </div>
