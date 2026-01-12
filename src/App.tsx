@@ -2,12 +2,14 @@ import { MemoryRouter as Router, Routes, Route, Navigate } from 'react-router-do
 import MainPage from './pages/MainPage';
 import BlockedSitesPage from './pages/BlockedSitesPage';
 import WorkHoursPage from './pages/WorkHoursPage';
+import QuizPage from './pages/QuizPage';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<MainPage />} />
+        <Route path="/quiz" element={<QuizPage />} />
         <Route path="/settings" element={<Navigate to="/settings/work-hours" replace />} />
         <Route path="/settings/blocked-sites" element={<BlockedSitesPage />} />
         <Route path="/settings/work-hours" element={<WorkHoursPage />} />

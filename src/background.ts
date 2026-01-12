@@ -77,15 +77,7 @@ chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
     chrome.notifications.clear(notifId);
   }
 });
-// Listen for test notification message from popup or UI
-chrome.runtime.onMessage.addListener((message) => {
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'assets/logo.png',
-    title: message.title || 'Recess',
-    message: message.message || '',
-  });
-});
+
 // Background service worker for Chrome extension
 
 chrome.runtime.onInstalled.addListener(() => {

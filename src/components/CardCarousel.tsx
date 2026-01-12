@@ -16,7 +16,6 @@ interface CardCarouselProps {
 }
 
 const CardCarousel: React.FC<CardCarouselProps> = ({ cards }) => {
-  console.log('Rendering CardCarousel with cards:', cards);
   return (
     <div className={styles.carousel}>
       <div className={styles.carouselContainer}>
