@@ -4,7 +4,7 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
-async function buildScripts() {
+const buildScripts = async () => {
   try {
     console.log('Compiling background and content scripts...');
 
@@ -18,6 +18,6 @@ async function buildScripts() {
     console.error('Error compiling scripts:', error);
     process.exit(1);
   }
-}
+};
 
 buildScripts();

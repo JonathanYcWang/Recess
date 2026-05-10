@@ -2,16 +2,16 @@
 const WORK_REMINDER_ALARM_PREFIX = 'work-reminder-';
 
 // Helper: parse time string (e.g. '09:00 AM') to {hour, minute}
-function parseTimeString(timeStr: string) {
+const parseTimeString = (timeStr: string): { hour: number; minute: number } => {
   const [time, period] = timeStr.split(' ');
   let [hour, minute] = time.split(':').map(Number);
   if (period === 'PM' && hour !== 12) hour += 12;
   if (period === 'AM' && hour === 12) hour = 0;
   return { hour, minute };
-}
+};
 
 // Schedule alarms for all enabled work hour entries
-async function scheduleWorkReminders() {
+const scheduleWorkReminders = async () => {
   const { workHours } = await chrome.storage.local.get(['workHours']);
   // Clear all previous alarms
   const alarms = await chrome.alarms.getAll();
@@ -39,20 +39,13 @@ async function scheduleWorkReminders() {
       });
     }
   }
-}
-
-// Listen for changes to work hours and reschedule
-chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local' && changes.workHours) {
-    scheduleWorkReminders();
-  }
-});
+};
 
 // Schedule on startup
 scheduleWorkReminders();
 
 // Handle alarm firing
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener((alarm: chrome.alarms.Alarm) => {
   if (alarm.name.startsWith(WORK_REMINDER_ALARM_PREFIX)) {
     chrome.notifications.create(alarm.name, {
       type: 'basic',
@@ -66,7 +59,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 // Handle notification button click
-chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
+chrome.notifications.onButtonClicked.addListener((notifId: string, btnIdx: number) => {
   if (notifId.startsWith(WORK_REMINDER_ALARM_PREFIX) && btnIdx === 0) {
     chrome.windows.create({
       url: chrome.runtime.getURL('index.html'),
@@ -80,36 +73,32 @@ chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
 
 // Background service worker for Chrome extension
 
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('Recess extension installed');
-});
-
 // Handle extension icon clicks - always open in a new tab
 chrome.action.onClicked.addListener(() => {
   chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
 });
 
-// Listen for storage changes to update site blocking rules
-chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local') {
-    // If blocked sites or session state changed, update blocking rules
-    if (changes.blockedSites || changes.timerState) {
-      updateBlockingRules();
-
-      // Handle closeDistractingSites toggle changes
-      if (changes.blockedSites?.newValue?.closeDistractingSites !== undefined) {
-        const newToggleState = changes.blockedSites.newValue.closeDistractingSites;
-        if (newToggleState) {
-          // Toggle was turned ON - close all existing distracting tabs
-          closeDistractingTabs();
-        }
-      }
+type PersistedBlockedSites =
+  | string[]
+  | {
+      sites?: string[];
+      closeDistractingSites?: boolean;
     }
+  | undefined;
+
+const getBlockedSitesAndToggle = (persisted: PersistedBlockedSites) => {
+  if (Array.isArray(persisted)) {
+    return { sites: persisted, closeDistractingSites: false };
   }
-});
+
+  return {
+    sites: persisted?.sites ?? [],
+    closeDistractingSites: Boolean(persisted?.closeDistractingSites),
+  };
+};
 
 // Helper function to check if a URL matches any blocked site
-function isDistractingSite(url: string, blockedSites: string[]): boolean {
+const isDistractingSite = (url: string, blockedSites: string[]): boolean => {
   try {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname.toLowerCase();
@@ -121,19 +110,18 @@ function isDistractingSite(url: string, blockedSites: string[]): boolean {
   } catch {
     return false;
   }
-}
+};
 
 // Close all tabs that match the blocked sites list
-async function closeDistractingTabs() {
+const closeDistractingTabs = async () => {
   try {
     const data = await chrome.storage.local.get(['blockedSites']);
-    const blockedSitesState = data.blockedSites;
+    const { sites, closeDistractingSites } = getBlockedSitesAndToggle(data.blockedSites);
 
-    if (!blockedSitesState?.closeDistractingSites) {
+    if (!closeDistractingSites) {
       return;
     }
 
-    const sites: string[] = blockedSitesState.sites || [];
     if (sites.length === 0) {
       return;
     }
@@ -143,7 +131,7 @@ async function closeDistractingTabs() {
 
     // Find tabs that match blocked sites
     const tabsToClose = tabs.filter(
-      (tab) => tab.url && tab.id !== undefined && isDistractingSite(tab.url, sites)
+      (tab: chrome.tabs.Tab) => tab.url && tab.id !== undefined && isDistractingSite(tab.url, sites)
     );
 
     // Close matching tabs
@@ -155,35 +143,33 @@ async function closeDistractingTabs() {
   } catch (error) {
     console.error('Error closing distracting tabs:', error);
   }
-}
+};
 
 // Listen for new tabs being created or updated
-chrome.tabs.onCreated.addListener(async (tab) => {
+chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
   if (tab.pendingUrl || tab.url) {
     const url = tab.pendingUrl || tab.url;
-    if (url) {
-      await checkAndCloseTab(tab.id!, url);
+    if (url && tab.id !== undefined) {
+      await checkAndCloseTab(tab.id, url);
     }
   }
 });
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
   if (changeInfo.url) {
     await checkAndCloseTab(tabId, changeInfo.url);
   }
 });
 
 // Check if a tab should be closed and close it
-async function checkAndCloseTab(tabId: number, url: string) {
+const checkAndCloseTab = async (tabId: number, url: string) => {
   try {
     const data = await chrome.storage.local.get(['blockedSites']);
-    const blockedSitesState = data.blockedSites;
+    const { sites, closeDistractingSites } = getBlockedSitesAndToggle(data.blockedSites);
 
-    if (!blockedSitesState?.closeDistractingSites) {
+    if (!closeDistractingSites) {
       return;
     }
-
-    const sites: string[] = blockedSitesState.sites || [];
 
     if (isDistractingSite(url, sites)) {
       await chrome.tabs.remove(tabId);
@@ -191,21 +177,24 @@ async function checkAndCloseTab(tabId: number, url: string) {
   } catch (error) {
     console.error('Error checking/closing tab:', error);
   }
-}
+};
 
 // Update declarativeNetRequest rules based on current session state
-async function updateBlockingRules() {
+const updateBlockingRules = async () => {
   try {
     const data = await chrome.storage.local.get(['blockedSites', 'timerState']);
-    const blockedSites: string[] = data.blockedSites || [];
+    const { sites } = getBlockedSitesAndToggle(data.blockedSites);
     const timerState = data.timerState;
 
     // Only block sites during active focus sessions
     const shouldBlock = timerState?.sessionState === 'ONGOING_FOCUS_SESSION';
 
-    if (shouldBlock && blockedSites.length > 0) {
+    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const existingRuleIds = existingRules.map((rule: chrome.declarativeNetRequest.Rule) => rule.id);
+
+    if (shouldBlock && sites.length > 0) {
       // Create blocking rules for each site
-      const rules = blockedSites.map((site, index) => ({
+      const rules = sites.map((site, index) => ({
         id: index + 1,
         priority: 1,
         action: {
@@ -220,10 +209,6 @@ async function updateBlockingRules() {
         },
       }));
 
-      // Get existing rule IDs to remove
-      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-      const existingRuleIds = existingRules.map((rule) => rule.id);
-
       // Update rules
       await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: existingRuleIds,
@@ -231,9 +216,6 @@ async function updateBlockingRules() {
       });
     } else {
       // Remove all blocking rules
-      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-      const existingRuleIds = existingRules.map((rule) => rule.id);
-
       if (existingRuleIds.length > 0) {
         await chrome.declarativeNetRequest.updateDynamicRules({
           removeRuleIds: existingRuleIds,
@@ -243,7 +225,31 @@ async function updateBlockingRules() {
   } catch (error) {
     console.error('Error updating blocking rules:', error);
   }
-}
+};
+
+// Listen for storage changes
+chrome.storage.onChanged.addListener(
+  (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+    if (areaName !== 'local') return;
+
+    if (changes.workHours) {
+      scheduleWorkReminders();
+    }
+
+    if (changes.blockedSites || changes.timerState) {
+      updateBlockingRules();
+
+      // If the close-distracting-sites toggle was turned ON, close existing tabs.
+      const nextBlockedSites = changes.blockedSites?.newValue as PersistedBlockedSites;
+      if (nextBlockedSites) {
+        const { closeDistractingSites } = getBlockedSitesAndToggle(nextBlockedSites);
+        if (closeDistractingSites) {
+          closeDistractingTabs();
+        }
+      }
+    }
+  }
+);
 
 // Initialize rules on startup
 updateBlockingRules();

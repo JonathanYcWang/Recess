@@ -3,10 +3,6 @@
 @import './spacing.module.css';
 @import './breakpoints.module.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -27,7 +23,6 @@
     --destructive-foreground: 0 0% 100%;
   }
 }
-
 
 /* Global Styles */
 * {

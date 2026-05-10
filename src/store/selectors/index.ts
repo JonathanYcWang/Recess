@@ -3,3 +3,4 @@ export * from './timerSelectors';
 export * from './workHoursSelectors';
 export * from './blockedSitesSelectors';
 export * from './routingSelectors';
+export * from './quizSelectors';

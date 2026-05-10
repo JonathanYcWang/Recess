@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
-import { calculateRemaining } from '../../lib/timer-utils';
+import { calculateRemaining } from '../../services/timerService';
 
 // Base selector - use this when you need the entire timer state
 export const selectTimerState = (state: RootState) => state.timer;

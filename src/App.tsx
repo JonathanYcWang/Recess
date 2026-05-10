@@ -1,10 +1,10 @@
 import { MemoryRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import MainPage from './pages/MainPage';
-import BlockedSitesPage from './pages/BlockedSitesPage';
-import WorkHoursPage from './pages/WorkHoursPage';
-import QuizPage from './pages/QuizPage';
+import MainPage from './pages/MainPage/MainPage';
+import BlockedSitesPage from './pages/BlockedSitesPage/BlockedSitesPage';
+import WorkHoursPage from './pages/WorkHoursPage/WorkHoursPage';
+import QuizPage from './pages/QuizPage/QuizPage';
 
-function App() {
+const App = () => {
   return (
     <Router>
       <Routes>
@@ -16,6 +16,6 @@ function App() {
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;

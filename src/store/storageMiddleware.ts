@@ -1,11 +1,12 @@
 import { Middleware, AnyAction } from '@reduxjs/toolkit';
-import { startWorkingSession, endWorkingSession } from './slices/blockedSitesSlice';
+import { startWorkingSession, endWorkingSession } from './actions/blockedSitesActions';
 
 const STORAGE_KEYS = {
   timer: 'timerState',
   workHours: 'workHours',
   blockedSites: 'blockedSites',
   routing: 'hasOnboarded',
+  quiz: 'quizState',
 };
 
 const storageAPI = {
@@ -97,15 +98,21 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
     storageAPI.set(STORAGE_KEYS.routing, state.routing.hasOnboarded);
   }
 
+  if (typedAction.type && typedAction.type.startsWith('quiz/')) {
+    storageAPI.set(STORAGE_KEYS.quiz, state.quiz);
+  }
+
   return result;
 };
 
 export const loadStateFromStorage = async () => {
-  const [timerState, workHoursEntries, blockedSitesState, hasOnboarded] = await Promise.all([
+  const [timerState, workHoursEntries, blockedSitesState, hasOnboarded, quizState] =
+    await Promise.all([
     storageAPI.get(STORAGE_KEYS.timer),
     storageAPI.get<any[]>(STORAGE_KEYS.workHours),
     storageAPI.get<any>(STORAGE_KEYS.blockedSites),
     storageAPI.get<boolean>(STORAGE_KEYS.routing),
+    storageAPI.get<any>(STORAGE_KEYS.quiz),
   ]);
 
   return {
@@ -113,6 +120,7 @@ export const loadStateFromStorage = async () => {
     workHours: workHoursEntries ? workHoursEntries : undefined,
     blockedSites: blockedSitesState,
     routing: hasOnboarded !== undefined ? hasOnboarded : undefined,
+    quiz: quizState,
   };
 };
 

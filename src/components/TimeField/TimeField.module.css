@@ -1,0 +1,125 @@
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+.label[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.label[data-invalid] {
+  color: hsl(var(--destructive));
+}
+
+.formDescription {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.fieldError {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--destructive));
+}
+
+.fieldGroupDefault {
+  position: relative;
+  display: flex;
+  height: 2.5rem;
+  width: 100%;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  box-shadow: inset 0 0 0 0 hsl(var(--ring));
+  transition: all 150ms;
+}
+
+.fieldGroupDefault[data-focus-within] {
+  outline: none;
+  box-shadow: inset 0 0 0 2px hsl(var(--ring));
+}
+
+.fieldGroupDefault[data-disabled] {
+  opacity: 0.5;
+}
+
+.fieldGroupGhost {
+}
+
+.dateSegment {
+  display: inline;
+  border-radius: 0.375rem;
+  padding: 0.125rem;
+  caret-color: transparent;
+  outline-width: 0;
+  outline-style: solid;
+  outline-color: currentColor;
+}
+
+.dateSegment[data-placeholder] {
+  color: hsl(var(--muted-foreground));
+}
+
+.dateSegment[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.dateSegment[data-focused] {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.dateSegment[data-invalid][data-focused] {
+  background-color: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+}
+
+.dateSegment[data-invalid][data-focused][data-placeholder] {
+  color: hsl(var(--destructive-foreground));
+}
+
+.dateSegment[data-invalid][data-placeholder] {
+  color: hsl(var(--destructive));
+}
+
+.dateSegment[data-invalid] {
+  color: hsl(var(--destructive));
+}
+
+.dateInput {
+  position: relative;
+  display: flex;
+  height: 2.5rem;
+  width: 100%;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  box-shadow: inset 0 0 0 0 hsl(var(--ring));
+  transition: all 150ms;
+}
+
+.dateInput[data-focus-within] {
+  outline: none;
+  box-shadow: inset 0 0 0 2px hsl(var(--ring));
+}
+
+.dateInput[data-disabled] {
+  opacity: 0.5;
+}
+
+.dateFieldContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

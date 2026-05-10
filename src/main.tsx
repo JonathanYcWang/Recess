@@ -5,10 +5,11 @@ import App from './App';
 import './index.css';
 import { store } from './store';
 import { loadStateFromStorage } from './store/storageMiddleware';
-import { setWorkHours } from './store/slices/workHoursSlice';
-import { setBlockedSites } from './store/slices/blockedSitesSlice';
-import { setHasOnboarded } from './store/slices/routingSlice';
-import { updateTimerState } from './store/slices/timerSlice';
+import { setWorkHours } from './store/actions/workHoursActions';
+import { setBlockedSites } from './store/actions/blockedSitesActions';
+import { setHasOnboarded } from './store/actions/routingActions';
+import { updateTimerState } from './store/actions/timerActions';
+import { setQuizState } from './store/actions/quizActions';
 
 // Initialize store from storage
 loadStateFromStorage().then((savedState) => {
@@ -23,6 +24,10 @@ loadStateFromStorage().then((savedState) => {
   }
   if (savedState.routing !== undefined) {
     store.dispatch(setHasOnboarded(savedState.routing));
+  }
+
+  if (savedState.quiz) {
+    store.dispatch(setQuizState(savedState.quiz));
   }
 });
 

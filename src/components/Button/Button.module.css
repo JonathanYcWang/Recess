@@ -1,0 +1,80 @@
+.button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: fit-content;
+  box-sizing: border-box;
+  border-radius: 25px;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  font: inherit;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+.primary {
+  padding: 8px 18px;
+  background-color: var(--recess-black);
+  border: 3px solid transparent;
+}
+
+.primary img {
+  filter: brightness(0) invert(1);
+}
+
+.secondary {
+  padding: 8px 18px;
+  background-color: var(--recess-white);
+  border: 3px solid var(--recess-black);
+}
+
+.secondary img {
+  filter: brightness(0);
+}
+
+.tertiary {
+  justify-content: center;
+  padding: var(--spacing-1);
+  overflow: hidden;
+  border-radius: 0;
+  text-decoration: none;
+}
+
+.tertiary:hover {
+  opacity: 0.8;
+}
+
+.text {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 24px;
+  letter-spacing: 0.18px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.primary .text {
+  color: var(--recess-white);
+}
+
+.secondary .text {
+  color: var(--recess-black);
+}
+
+.tertiary .text {
+  color: var(--recess-gray-light);
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-underline-position: from-font;
+}

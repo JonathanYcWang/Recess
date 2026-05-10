@@ -1,10 +1,9 @@
 import React from 'react';
-import PlaceholderIcon from '../assets/placeholder.svg?url';
-import Icon from './Icon';
-import RefreshButton from './RefreshButton';
-import styles from './Card.module.css';
+import Icon from './Icon/Icon';
+import RefreshButton from './RefreshButton/RefreshButton';
+import styles from './CardCarousel.module.css';
 
-interface CardProps {
+export interface CardProps {
   title: string;
   description: string;
   footer?: string;

@@ -1,0 +1,84 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 20px;
+  background: var(--background-primary);
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.progressText {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.resultsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.resultsTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.resultsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.resultSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.resultLabel {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.resultValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  font-size: 18px;
+  color: var(--text-secondary);
+}
