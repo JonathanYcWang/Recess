@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import QuizQuestion from '../../components/QuizQuestion/QuizQuestion';
@@ -14,7 +13,7 @@ import {
 import { restartQuiz, selectOption } from '../../store/actions/quizActions';
 import styles from './QuizPage.module.css';
 
-const QuizPage: React.FC = () => {
+const QuizPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const currentQuestion = useSelector((state: RootState) => selectCurrentQuestion(state));
   const selectedChoices = useSelector((state: RootState) => selectSelectedChoices(state));

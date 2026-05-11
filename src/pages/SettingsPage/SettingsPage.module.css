@@ -1,0 +1,161 @@
+.settingsPage {
+  width: 100%;
+  min-height: 100vh;
+  padding: var(--spacing-8);
+  box-sizing: border-box;
+  background-color: var(--recess-gray-bg);
+}
+
+.topBar {
+  width: 100%;
+}
+
+.layout {
+  display: flex;
+  width: 100%;
+  gap: var(--spacing-8);
+  margin-top: var(--spacing-8);
+  min-height: 0;
+}
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  border: 1px solid var(--recess-gray-border);
+  border-radius: var(--radius);
+  background-color: var(--recess-white);
+}
+
+.sidebarHeader {
+  font-family: 'BenchNine', sans-serif;
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--recess-black);
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.navItem {
+  width: 100%;
+  text-align: left;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--recess-black);
+  background-color: transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.navItem:hover {
+  background-color: var(--recess-gray-light-bg);
+}
+
+.navItem:focus-visible {
+  outline: 2px solid var(--recess-black);
+  outline-offset: 2px;
+}
+
+.navItemActive {
+  background-color: var(--recess-gray-light-bg-alt);
+  border-color: var(--recess-gray-border);
+}
+
+.navItemLabel {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mobileTabs {
+  display: none;
+  gap: var(--spacing-3);
+  width: 100%;
+  margin-bottom: var(--spacing-6);
+}
+
+.mobileTab {
+  flex: 1;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: 16px;
+  line-height: 20px;
+  text-align: center;
+  color: var(--recess-black);
+  background-color: var(--recess-white);
+  border: 1px solid var(--recess-gray-border);
+  border-radius: 999px;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.mobileTab:hover {
+  opacity: 0.9;
+}
+
+.mobileTabActive {
+  background-color: var(--recess-black);
+  color: var(--recess-white);
+  border-color: var(--recess-black);
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-6);
+  border: 1px solid var(--recess-gray-border);
+  border-radius: var(--radius);
+  background-color: var(--recess-white);
+  animation: contentFade 160ms ease;
+}
+
+@keyframes contentFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .settingsPage {
+    padding: var(--spacing-6);
+  }
+
+  .layout {
+    flex-direction: column;
+    gap: var(--spacing-6);
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .mobileTabs {
+    display: flex;
+  }
+
+  .content {
+    padding: var(--spacing-5);
+  }
+}

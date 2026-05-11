@@ -1,4 +1,3 @@
-import React from 'react';
 import { QuizQuestion as QuizQuestionType, QuizOption } from '../../types/quiz';
 import Button from '../Button/Button';
 import styles from './QuizQuestion.module.css';
@@ -8,7 +7,7 @@ interface QuizQuestionProps {
   onSelectOption: (option: QuizOption) => void;
 }
 
-const QuizQuestion: React.FC<QuizQuestionProps> = ({ question, onSelectOption }) => {
+const QuizQuestion = ({ question, onSelectOption }: QuizQuestionProps) => {
   return (
     <div className={styles.container}>
       <div className={styles.questionText}>{question.text}</div>

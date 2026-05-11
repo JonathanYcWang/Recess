@@ -1,22 +1,16 @@
-import React, { useState } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
 import TimesIcon from '../../assets/times.svg?url';
-import Toggle from '../Toggle/Toggle';
 import styles from './BlockedSites.module.css';
-import { selectBlockedSites, selectCloseDistractingSites } from '../../store/selectors';
+import { selectBlockedSites } from '../../store/selectors';
 import type { AppDispatch, RootState } from '../../store';
-import {
-  addBlockedSite,
-  removeBlockedSite,
-  toggleCloseDistractingSites,
-} from '../../store/actions/blockedSitesActions';
+import { addBlockedSite, removeBlockedSite } from '../../store/actions/blockedSitesActions';
 
-const BlockedSites: React.FC = () => {
+const BlockedSites = () => {
   const dispatch = useDispatch<AppDispatch>();
   const sites = useSelector((state: RootState) => selectBlockedSites(state));
-  const closeDistractingSites = useSelector((state: RootState) => selectCloseDistractingSites(state));
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string>('');
 
@@ -74,7 +68,7 @@ const BlockedSites: React.FC = () => {
     setError('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleAdd();
     }
@@ -85,14 +79,6 @@ const BlockedSites: React.FC = () => {
       <div className={styles.headerContainer}>
         <p className={styles.header}>Blocked Sites</p>
         <p className={styles.caption}>Manage sites that should be blocked during focus time.</p>
-      </div>
-
-      <div
-        className={styles.toggleContainer}
-        onClick={() => dispatch(toggleCloseDistractingSites())}
-      >
-        <Toggle isOn={closeDistractingSites} />
-        <span className={styles.toggleLabel}>Close Distracting Sites</span>
       </div>
 
       <div className={styles.contentContainer}>

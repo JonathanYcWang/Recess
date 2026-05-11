@@ -22,11 +22,6 @@
   pointer-events: none;
 }
 
-.tertiaryButtonsContainer {
-  display: flex;
-  margin-left: auto;
-}
-
 .closeButton {
   margin-left: auto;
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import Icon from '../Icon/Icon';
 import RefreshButton from '../RefreshButton/RefreshButton';
 import styles from './CardCarousel.module.css';
@@ -18,13 +17,7 @@ interface CardCarouselProps {
 
 type CardProps = Omit<CardCarouselItem, 'id'>;
 
-const Card = ({
-  title,
-  description,
-  footer,
-  onClick,
-  refreshOnClick,
-}: CardProps) => {
+const Card = ({ title, description, footer, onClick, refreshOnClick }: CardProps) => {
   return (
     <div className={styles.cardWrapper}>
       <div className={styles.card} onClick={onClick}>
@@ -48,7 +41,7 @@ const Card = ({
   );
 };
 
-const CardCarousel: React.FC<CardCarouselProps> = ({ cards }: CardCarouselProps) => {
+const CardCarousel = ({ cards }: CardCarouselProps) => {
   return (
     <div className={styles.carousel}>
       <div className={styles.carouselContainer}>

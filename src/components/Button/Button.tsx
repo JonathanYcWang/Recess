@@ -1,4 +1,3 @@
-import React from 'react';
 import Icon from '../Icon/Icon';
 import styles from './Button.module.css';
 
@@ -11,7 +10,7 @@ interface ButtonProps {
   variant?: ButtonVariant;
 }
 
-const Button: React.FC<ButtonProps> = ({ text, onClick, iconSrc, variant = 'primary' }) => {
+const Button = ({ text, onClick, iconSrc, variant = 'primary' }: ButtonProps) => {
   return (
     <button className={`${styles.button} ${styles[variant]}`} type="button" onClick={onClick}>
       {iconSrc && variant !== 'tertiary' && <Icon src={iconSrc} alt="Icon" size={20} />}

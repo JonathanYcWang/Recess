@@ -1,4 +1,3 @@
-import React from 'react';
 import ExternalLinkIcon from '../../assets/external-link.svg?url';
 import PlaceholderIcon from '../../assets/placeholder.svg?url';
 import Icon from '../Icon/Icon';
@@ -11,7 +10,7 @@ interface RewardLinkProps {
   onClick?: () => void;
 }
 
-const RewardLink: React.FC<RewardLinkProps> = ({ siteName, status, siteUrl, onClick }) => {
+const RewardLink = ({ siteName, status, siteUrl, onClick }: RewardLinkProps) => {
   const handleClick = () => {
     if (siteUrl) {
       window.open(`https://${siteUrl}`, '_blank');

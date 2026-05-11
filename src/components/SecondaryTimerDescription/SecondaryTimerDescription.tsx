@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from './SecondaryTimerDescription.module.css';
 
 interface SecondaryTimerDescriptionProps {
@@ -6,7 +5,7 @@ interface SecondaryTimerDescriptionProps {
   onClick?: () => void;
 }
 
-const SecondaryTimerDescription: React.FC<SecondaryTimerDescriptionProps> = ({ text, onClick }) => {
+const SecondaryTimerDescription = ({ text, onClick }: SecondaryTimerDescriptionProps) => {
   return (
     <div
       className={`${styles.secondaryTimerDescription} ${onClick ? styles.clickable : ''}`}

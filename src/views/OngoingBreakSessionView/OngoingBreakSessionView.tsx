@@ -1,9 +1,8 @@
-import React from 'react';
 import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
 import RewardLink from '../../components/RewardLink/RewardLink';
 import Button from '../../components/Button/Button';
 import { Reward } from '../../types/reward';
-import styles from '../MainPage.module.css';
+import styles from './OngoingBreakSessionView.module.css';
 
 interface OngoingBreakSessionViewProps {
   breakSessionDurationRemaining: number;
@@ -12,12 +11,12 @@ interface OngoingBreakSessionViewProps {
   endSessionEarly: () => void;
 }
 
-const OngoingBreakSessionView: React.FC<OngoingBreakSessionViewProps> = ({
+const OngoingBreakSessionView = ({
   breakSessionDurationRemaining,
   selectedReward,
   formatTime,
   endSessionEarly,
-}) => {
+}: OngoingBreakSessionViewProps) => {
   return (
     <>
       <div className={styles.headerContainer}>

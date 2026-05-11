@@ -1,8 +1,7 @@
 import { MemoryRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainPage from './pages/MainPage/MainPage';
-import BlockedSitesPage from './pages/BlockedSitesPage/BlockedSitesPage';
-import WorkHoursPage from './pages/WorkHoursPage/WorkHoursPage';
 import QuizPage from './pages/QuizPage/QuizPage';
+import SettingsPage from './pages/SettingsPage/SettingsPage';
 
 const App = () => {
   return (
@@ -10,9 +9,15 @@ const App = () => {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/quiz" element={<QuizPage />} />
-        <Route path="/settings" element={<Navigate to="/settings/work-hours" replace />} />
-        <Route path="/settings/blocked-sites" element={<BlockedSitesPage />} />
-        <Route path="/settings/work-hours" element={<WorkHoursPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route
+          path="/settings/work-hours"
+          element={<Navigate to="/settings" replace state={{ section: 'work-hours' }} />}
+        />
+        <Route
+          path="/settings/blocked-sites"
+          element={<Navigate to="/settings" replace state={{ section: 'blocked-sites' }} />}
+        />
       </Routes>
     </Router>
   );

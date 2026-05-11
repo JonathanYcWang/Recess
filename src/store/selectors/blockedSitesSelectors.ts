@@ -15,11 +15,6 @@ export const selectIsBlockedSitesLoaded = createSelector(
   (blockedSites) => blockedSites.isLoaded
 );
 
-export const selectCloseDistractingSites = createSelector(
-  [selectBlockedSitesState],
-  (blockedSites) => blockedSites.closeDistractingSites
-);
-
 export const selectIsInWorkingSession = createSelector(
   [selectBlockedSitesState],
   (blockedSites) => blockedSites.isInWorkingSession

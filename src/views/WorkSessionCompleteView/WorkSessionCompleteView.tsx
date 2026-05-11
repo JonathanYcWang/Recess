@@ -1,13 +1,12 @@
-import React from 'react';
 import Button from '../../components/Button/Button';
 import PlayIcon from '../../assets/play.svg?url';
-import styles from '../MainPage.module.css';
+import styles from './WorkSessionCompleteView.module.css';
 
 interface WorkSessionCompleteViewProps {
   resetTimerState: () => void;
 }
 
-const WorkSessionCompleteView: React.FC<WorkSessionCompleteViewProps> = ({ resetTimerState }) => {
+const WorkSessionCompleteView = ({ resetTimerState }: WorkSessionCompleteViewProps) => {
   return (
     <>
       <div className={styles.headerContainer}>

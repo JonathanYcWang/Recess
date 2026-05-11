@@ -1,8 +1,7 @@
-import React from 'react';
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CardCarousel, { CardCarouselItem } from '../../components/CardCarousel/CardCarousel';
 import { Reward } from '../../types/reward';
-import styles from '../MainPage.module.css';
+import styles from './RewardSelectionView.module.css';
 
 interface RewardSelectionViewProps {
   rewards: Reward[];
@@ -11,12 +10,12 @@ interface RewardSelectionViewProps {
   handleReroll: (index: number) => void;
 }
 
-const RewardSelectionView: React.FC<RewardSelectionViewProps> = ({
+const RewardSelectionView = ({
   rewards,
   rerolls,
   selectReward,
   handleReroll,
-}) => {
+}: RewardSelectionViewProps) => {
   const rewardCards: CardCarouselItem[] = rewards.map((reward: Reward, index: number) => ({
     id: reward.id,
     title: reward.duration,

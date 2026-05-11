@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from './CountdownTimer.module.css';
 
 interface CountdownTimerProps {
@@ -6,7 +5,7 @@ interface CountdownTimerProps {
   label: string;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ time, label }) => {
+const CountdownTimer = ({ time, label }: CountdownTimerProps) => {
   return (
     <div className={styles.countdownTimer}>
       <div className={styles.innerBorderShadow}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Time } from '@internationalized/date';
 import { TimeField, DateInput } from '../TimeField/TimeField';
 import Button from '../Button/Button';
@@ -11,12 +11,12 @@ interface DurationInputDialogProps {
   currentDurationMinutes?: number;
 }
 
-const DurationInputDialog: React.FC<DurationInputDialogProps> = ({
+const DurationInputDialog = ({
   isOpen,
   onClose,
   onConfirm,
   currentDurationMinutes = 60,
-}) => {
+}: DurationInputDialogProps) => {
   const initialHours = Math.floor(currentDurationMinutes / 60);
   const initialMinutes = currentDurationMinutes % 60;
 

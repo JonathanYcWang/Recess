@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
 import Button from '../../components/Button/Button';
 import EnergyCheckDialog from '../../components/EnergyCheckDialog/EnergyCheckDialog';
 import PlayIcon from '../../assets/play.svg?url';
 import { formatWorkSessionTime } from '../../services/timerService';
-import styles from '../MainPage.module.css';
+import styles from './FocusSessionCountdownView.module.css';
 
 interface FocusSessionCountdownViewProps {
   workSessionDurationRemaining: number;
@@ -18,13 +18,13 @@ interface FocusSessionCountdownViewProps {
   }) => void;
 }
 
-const FocusSessionCountdownView: React.FC<FocusSessionCountdownViewProps> = ({
+const FocusSessionCountdownView = ({
   workSessionDurationRemaining,
   focusSessionCountdownTimeRemaining,
   formatTime,
   startFocusSession,
   updateWeightMultipliers,
-}) => {
+}: FocusSessionCountdownViewProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Dialog } from '@mui/material';
 import Icon from '../Icon/Icon';
 import InPainIcon from '../../assets/emoji-in-pain.svg?url';
@@ -13,7 +12,7 @@ interface EnergyCheckDialogProps {
   onEmojiSelect: (emoji: 'pain' | 'meh' | 'smile') => void;
 }
 
-const EnergyCheckDialog: React.FC<EnergyCheckDialogProps> = ({ open, onClose, onEmojiSelect }) => {
+const EnergyCheckDialog = ({ open, onClose, onEmojiSelect }: EnergyCheckDialogProps) => {
   const handleEmojiClick = (emoji: 'pain' | 'meh' | 'smile') => {
     onEmojiSelect(emoji);
     onClose();

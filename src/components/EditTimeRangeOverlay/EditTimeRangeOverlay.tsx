@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Time } from '@internationalized/date';
 import { TimeField, DateInput } from '../TimeField/TimeField';
 import Button from '../Button/Button';
@@ -29,13 +29,13 @@ const formatTimeToString = (time: Time): string => {
   return `${hours}:${time.minute.toString().padStart(2, '0')} ${period}`;
 };
 
-const EditTimeRangeOverlay: React.FC<EditTimeRangeOverlayProps> = ({
+const EditTimeRangeOverlay = ({
   time = '09:00 AM',
   selectedDays = [false, true, true, true, true, true, false],
   onSave,
   onCancel,
   onDelete,
-}) => {
+}: EditTimeRangeOverlayProps) => {
   const [reminderTime, setReminderTime] = useState<Time>(() => parseTimeString(time));
   const [days, setDays] = useState(selectedDays);
 

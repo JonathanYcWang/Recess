@@ -1,10 +1,9 @@
-import React from 'react';
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
 import Button from '../../components/Button/Button';
 import PauseIcon from '../../assets/pause.svg?url';
 import PlayIcon from '../../assets/play.svg?url';
-import styles from '../MainPage.module.css';
+import styles from './OngoingFocusSessionView.module.css';
 
 interface OngoingFocusSessionViewProps {
   focusSessionDurationRemaining: number;
@@ -15,14 +14,14 @@ interface OngoingFocusSessionViewProps {
   endSessionEarly: () => void;
 }
 
-const OngoingFocusSessionView: React.FC<OngoingFocusSessionViewProps> = ({
+const OngoingFocusSessionView = ({
   focusSessionDurationRemaining,
   isPaused,
   formatTime,
   pauseSession,
   resumeSession,
   endSessionEarly,
-}) => {
+}: OngoingFocusSessionViewProps) => {
   return (
     <>
       <SecondaryTimerDescription
@@ -37,11 +36,7 @@ const OngoingFocusSessionView: React.FC<OngoingFocusSessionViewProps> = ({
             iconSrc={PlayIcon}
             variant="primary"
           />
-          <Button
-            text="Wrap up focus session early"
-            onClick={endSessionEarly}
-            variant="tertiary"
-          />
+          <Button text="Wrap up focus session early" onClick={endSessionEarly} variant="tertiary" />
         </div>
       ) : (
         <Button

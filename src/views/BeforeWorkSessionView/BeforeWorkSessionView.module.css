@@ -1,0 +1,22 @@
+/* .illustration {
+  position: absolute;
+  top: auto;
+  right: calc((100% - 1440px) / 2 + 21px);
+  bottom: 8px;
+  display: block;
+  width: 314px;
+  max-width: calc(50% - 250px);
+  height: 415px;
+}
+
+@media (max-width: 1440px) {
+  .illustration {
+    right: 21px;
+  }
+}
+
+@media (max-width: 767px) {
+  .illustration {
+    display: none;
+  }
+} */

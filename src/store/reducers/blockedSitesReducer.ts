@@ -6,9 +6,7 @@ import {
   markBlockedSitesLoaded,
   removeBlockedSite,
   setBlockedSites,
-  setCloseDistractingSites,
   startWorkingSession,
-  toggleCloseDistractingSites,
 } from '../actions/blockedSitesActions';
 
 const DEFAULT_SITES = [
@@ -28,7 +26,6 @@ const DEFAULT_SITES = [
 const initialState: BlockedSitesState = {
   sites: DEFAULT_SITES,
   isLoaded: false,
-  closeDistractingSites: false,
   isInWorkingSession: false,
 };
 
@@ -42,7 +39,6 @@ const blockedSitesReducer = createReducer(initialState, (builder) => {
       } else {
         state.sites = action.payload.sites || state.sites;
         state.isLoaded = action.payload.isLoaded !== undefined ? action.payload.isLoaded : true;
-        state.closeDistractingSites = action.payload.closeDistractingSites || false;
         state.isInWorkingSession = action.payload.isInWorkingSession || false;
       }
     })
@@ -57,19 +53,11 @@ const blockedSitesReducer = createReducer(initialState, (builder) => {
     .addCase(markBlockedSitesLoaded, (state) => {
       state.isLoaded = true;
     })
-    .addCase(toggleCloseDistractingSites, (state) => {
-      state.closeDistractingSites = !state.closeDistractingSites;
-    })
-    .addCase(setCloseDistractingSites, (state, action) => {
-      state.closeDistractingSites = action.payload;
-    })
     .addCase(startWorkingSession, (state) => {
       state.isInWorkingSession = true;
-      state.closeDistractingSites = true;
     })
     .addCase(endWorkingSession, (state) => {
       state.isInWorkingSession = false;
-      state.closeDistractingSites = false;
     });
 });
 

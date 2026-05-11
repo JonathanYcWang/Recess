@@ -1,4 +1,4 @@
-import React from 'react';
+import type { MouseEvent } from 'react';
 import Toggle from '../Toggle/Toggle';
 import styles from './WorkWindow.module.css';
 
@@ -10,8 +10,8 @@ interface WorkWindowProps {
   onEdit?: () => void;
 }
 
-const WorkWindow: React.FC<WorkWindowProps> = ({ timeRange, days, enabled, onToggle, onEdit }) => {
-  const handleToggleClick = (e: React.MouseEvent) => {
+const WorkWindow = ({ timeRange, days, enabled, onToggle, onEdit }: WorkWindowProps) => {
+  const handleToggleClick = (e: MouseEvent) => {
     e.stopPropagation();
     onToggle?.();
   };

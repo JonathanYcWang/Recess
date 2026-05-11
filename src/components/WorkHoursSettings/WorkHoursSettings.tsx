@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dialog } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import Button from '../Button/Button';
@@ -19,7 +19,7 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DEFAULT_TIME = '09:00 AM';
 const DEFAULT_DAYS = [false, true, true, true, true, true, false];
 
-const WorkHoursSettings: React.FC = () => {
+const WorkHoursSettings = () => {
   const dispatch = useDispatch<AppDispatch>();
   const entries = useSelector((state: RootState) => selectWorkHoursEntries(state));
 

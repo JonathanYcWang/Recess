@@ -82,18 +82,16 @@ type PersistedBlockedSites =
   | string[]
   | {
       sites?: string[];
-      closeDistractingSites?: boolean;
     }
   | undefined;
 
-const getBlockedSitesAndToggle = (persisted: PersistedBlockedSites) => {
+const getBlockedSites = (persisted: PersistedBlockedSites) => {
   if (Array.isArray(persisted)) {
-    return { sites: persisted, closeDistractingSites: false };
+    return { sites: persisted };
   }
 
   return {
     sites: persisted?.sites ?? [],
-    closeDistractingSites: Boolean(persisted?.closeDistractingSites),
   };
 };
 
@@ -112,78 +110,11 @@ const isDistractingSite = (url: string, blockedSites: string[]): boolean => {
   }
 };
 
-// Close all tabs that match the blocked sites list
-const closeDistractingTabs = async () => {
-  try {
-    const data = await chrome.storage.local.get(['blockedSites']);
-    const { sites, closeDistractingSites } = getBlockedSitesAndToggle(data.blockedSites);
-
-    if (!closeDistractingSites) {
-      return;
-    }
-
-    if (sites.length === 0) {
-      return;
-    }
-
-    // Query all tabs
-    const tabs = await chrome.tabs.query({});
-
-    // Find tabs that match blocked sites
-    const tabsToClose = tabs.filter(
-      (tab: chrome.tabs.Tab) => tab.url && tab.id !== undefined && isDistractingSite(tab.url, sites)
-    );
-
-    // Close matching tabs
-    for (const tab of tabsToClose) {
-      if (tab.id !== undefined) {
-        await chrome.tabs.remove(tab.id);
-      }
-    }
-  } catch (error) {
-    console.error('Error closing distracting tabs:', error);
-  }
-};
-
-// Listen for new tabs being created or updated
-chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
-  if (tab.pendingUrl || tab.url) {
-    const url = tab.pendingUrl || tab.url;
-    if (url && tab.id !== undefined) {
-      await checkAndCloseTab(tab.id, url);
-    }
-  }
-});
-
-chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
-  if (changeInfo.url) {
-    await checkAndCloseTab(tabId, changeInfo.url);
-  }
-});
-
-// Check if a tab should be closed and close it
-const checkAndCloseTab = async (tabId: number, url: string) => {
-  try {
-    const data = await chrome.storage.local.get(['blockedSites']);
-    const { sites, closeDistractingSites } = getBlockedSitesAndToggle(data.blockedSites);
-
-    if (!closeDistractingSites) {
-      return;
-    }
-
-    if (isDistractingSite(url, sites)) {
-      await chrome.tabs.remove(tabId);
-    }
-  } catch (error) {
-    console.error('Error checking/closing tab:', error);
-  }
-};
-
 // Update declarativeNetRequest rules based on current session state
 const updateBlockingRules = async () => {
   try {
     const data = await chrome.storage.local.get(['blockedSites', 'timerState']);
-    const { sites } = getBlockedSitesAndToggle(data.blockedSites);
+    const { sites } = getBlockedSites(data.blockedSites);
     const timerState = data.timerState;
 
     // Only block sites during active focus sessions
@@ -238,15 +169,6 @@ chrome.storage.onChanged.addListener(
 
     if (changes.blockedSites || changes.timerState) {
       updateBlockingRules();
-
-      // If the close-distracting-sites toggle was turned ON, close existing tabs.
-      const nextBlockedSites = changes.blockedSites?.newValue as PersistedBlockedSites;
-      if (nextBlockedSites) {
-        const { closeDistractingSites } = getBlockedSitesAndToggle(nextBlockedSites);
-        if (closeDistractingSites) {
-          closeDistractingTabs();
-        }
-      }
     }
   }
 );

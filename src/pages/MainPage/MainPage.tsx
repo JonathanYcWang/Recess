@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSelector } from 'react-redux';
 import NavBar from '../../components/NavBar/NavBar';
 import { useTimer } from '../../hooks/useTimer';
@@ -13,7 +12,7 @@ import FocusSessionCountdownView from '../../views/FocusSessionCountdownView/Foc
 import WorkSessionCompleteView from '../../views/WorkSessionCompleteView/WorkSessionCompleteView';
 import styles from './MainPage.module.css';
 
-const MainPage: React.FC = () => {
+const MainPage = () => {
   const hasOnboarded = useSelector((state: RootState) => selectHasOnboarded(state));
   const {
     timerState,

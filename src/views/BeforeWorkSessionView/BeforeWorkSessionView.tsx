@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
 import Button from '../../components/Button/Button';
 import DurationInputDialog from '../../components/DurationInputDialog/DurationInputDialog';
 import PlayIcon from '../../assets/play.svg?url';
 import { formatWorkSessionTime } from '../../services/timerService';
-import styles from '../MainPage.module.css';
 
 interface BeforeWorkSessionViewProps {
   workSessionDurationRemaining: number;
@@ -15,13 +14,13 @@ interface BeforeWorkSessionViewProps {
   onDurationChange?: (durationInMinutes: number) => void;
 }
 
-const BeforeWorkSessionView: React.FC<BeforeWorkSessionViewProps> = ({
+const BeforeWorkSessionView = ({
   workSessionDurationRemaining,
   nextFocusDuration,
   formatTime,
   startFocusSession,
   onDurationChange,
-}) => {
+}: BeforeWorkSessionViewProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleDurationConfirm = (hours: number, minutes: number) => {
@@ -45,11 +44,9 @@ const BeforeWorkSessionView: React.FC<BeforeWorkSessionViewProps> = ({
         variant="primary"
       />
 
-      <div className={styles.illustration}>
-        <div className={styles.illustrationContainer}>
-          <img src="/assets/cow.png" alt="Cow illustration" className={styles.cowImage} />
-        </div>
-      </div>
+      {/* <div className={styles.illustration}>
+        <img src="/assets/cow.png" alt="pet-illustration" />
+      </div> */}
 
       <DurationInputDialog
         isOpen={isDialogOpen}

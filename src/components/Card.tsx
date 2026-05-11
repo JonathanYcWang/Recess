@@ -1,4 +1,3 @@
-import React from 'react';
 import Icon from './Icon/Icon';
 import RefreshButton from './RefreshButton/RefreshButton';
 import styles from './CardCarousel.module.css';
@@ -11,7 +10,7 @@ export interface CardProps {
   refreshOnClick?: () => void;
 }
 
-const Card: React.FC<CardProps> = ({ title, description, footer, onClick, refreshOnClick }) => {
+const Card = ({ title, description, footer, onClick, refreshOnClick }: CardProps) => {
   return (
     <div className={styles.cardWrapper}>
       <div className={styles.card} onClick={onClick}>
