@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Time } from '@internationalized/date';
-import { TimeField, DateInput } from '../TimeField/TimeField';
+import { TimeField } from '../TimeField/TimeField';
 import Button from '../Button/Button';
 import styles from './EditTimeRangeOverlay.module.css';
 
@@ -36,7 +36,7 @@ const EditTimeRangeOverlay = ({
   onCancel,
   onDelete,
 }: EditTimeRangeOverlayProps) => {
-  const [reminderTime, setReminderTime] = useState<Time>(() => parseTimeString(time));
+  const [reminderTime, setReminderTime] = useState(() => parseTimeString(time));
   const [days, setDays] = useState(selectedDays);
 
   const toggleDay = (index: number) => {
@@ -46,9 +46,6 @@ const EditTimeRangeOverlay = ({
   const handleSave = () => {
     onSave(formatTimeToString(reminderTime), days);
   };
-  const handleTimeChange = (time: Time | null) => {
-    if (time) setReminderTime(time);
-  };
 
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -56,9 +53,12 @@ const EditTimeRangeOverlay = ({
     <div className={styles.editTimeRangeOverlay}>
       <div className={styles.contentContainer}>
         <div className={styles.timeInput}>
-          <TimeField value={reminderTime} onChange={handleTimeChange} aria-label="Reminder time">
-            <DateInput className={styles.dateInput} />
-          </TimeField>
+          <TimeField
+            aria-label="Time"
+            value={reminderTime}
+            onChange={(value) => value && setReminderTime(value)}
+            hourCycle={12}
+          />
         </div>
         <div className={styles.repeatContainer}>
           <p className={styles.repeatLabel}>Repeat:</p>

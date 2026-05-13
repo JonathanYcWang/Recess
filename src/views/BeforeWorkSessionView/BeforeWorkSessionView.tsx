@@ -11,7 +11,7 @@ interface BeforeWorkSessionViewProps {
   nextFocusDuration: number;
   formatTime: (seconds: number) => string;
   startFocusSession: () => void;
-  onDurationChange?: (durationInMinutes: number) => void;
+  onDurationChange: (duration: number) => void;
 }
 
 const BeforeWorkSessionView = ({
@@ -22,13 +22,6 @@ const BeforeWorkSessionView = ({
   onDurationChange,
 }: BeforeWorkSessionViewProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleDurationConfirm = (hours: number, minutes: number) => {
-    const totalMinutes = hours * 60 + minutes;
-    if (onDurationChange && totalMinutes > 0) {
-      onDurationChange(totalMinutes);
-    }
-  };
 
   return (
     <>
@@ -51,8 +44,8 @@ const BeforeWorkSessionView = ({
       <DurationInputDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        onConfirm={handleDurationConfirm}
-        duration={Math.floor(totalRemaining / 60)}
+        onConfirm={onDurationChange}
+        duration={totalRemaining}
       />
     </>
   );

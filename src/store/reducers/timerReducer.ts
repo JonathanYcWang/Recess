@@ -171,9 +171,8 @@ const timerReducer = createReducer(initialState, (builder) => {
     })
     .addCase(resetTimer, () => createInitialTimerState())
     .addCase(setTotalTimer, (state, action) => {
-      const durationInSeconds = action.payload * 60;
-      state.totalTimer = durationInSeconds;
-      state.totalRemaining = durationInSeconds;
+      state.totalTimer = action.payload;
+      state.totalRemaining = action.payload;
 
       if (state.sessionState === 'BEFORE_WORK_SESSION') {
         const durations = calculateNextSessionDurations(state);

@@ -182,7 +182,7 @@ export const useTimer = () => {
     handleReroll,
     resetTimerState: () => dispatch(resetTimer()),
     updateTimerState: (updates: Partial<typeof timerState>) => dispatch(updateTimerState(updates)),
-    setTotalTimer: (durationInMinutes: number) => dispatch(setTotalTimer(durationInMinutes)),
+    setTotalTimer: (duration: number) => dispatch(setTotalTimer(duration)),
     updateWeightMultipliers: (multipliers: {
       fatigueMultiplier?: number;
       momentumMultiplier?: number;
