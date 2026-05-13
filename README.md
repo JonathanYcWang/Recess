@@ -74,6 +74,124 @@ It is designed for users who want to maintain productivity by controlling access
 
 ---
 
+## Timer Logic Walkthrough
+
+This is the timer model used in the Redux store and the UI.
+
+### The Three Key Timer Values
+
+- `currentTimer`: The original duration of the current stage. This stays the same while the stage is running.
+- `currentTimerRemaining`: The remaining time left in the current stage. This is the value we snapshot on pause.
+- `currentStartTime`: The timestamp used to calculate live countdown values while the timer is running.
+
+### How the Timer Works At Each Stage
+
+#### 1. Before Work Session
+
+- The app is waiting for the user to start working.
+- `totalTimer` is the full work goal for the day.
+- `totalRemaining` matches the full work goal at the start.
+- `currentTimer` is set to the next focus session length.
+- `currentTimerRemaining` matches `currentTimer`.
+
+#### 2. Focus Session Starts
+
+- The user clicks start.
+- `sessionState` becomes `ONGOING_FOCUS_SESSION`.
+- `currentTimer` stays fixed as the original focus duration.
+- `currentTimerRemaining` starts at the same value.
+- `currentStartTime` is set to `Date.now()`.
+- The UI counts down by calculating:
+
+```text
+remaining = currentTimerRemaining - elapsedSeconds
+```
+
+#### 3. Timer Runs Live
+
+- The hook recalculates the visible countdown every second.
+- Redux does not need to rewrite the timer every second.
+- The screen shows the live remaining time using `currentStartTime`.
+
+#### 4. Pause Session
+
+- When the user pauses, the reducer snapshots the visible remaining time into `currentTimerRemaining`.
+- `currentStartTime` is cleared.
+- `currentTimer` still keeps the original stage duration.
+- This is why the paused time shows the exact value the user saw.
+
+#### 5. Resume Session
+
+- When the user resumes, `currentStartTime` is set to `Date.now()` again.
+- `currentTimerRemaining` stays frozen at the paused value.
+- The countdown continues from that remaining value.
+
+#### 6. Focus Session Ends
+
+- When the timer reaches 0, the app transitions to reward selection.
+- `totalRemaining` is reduced by the amount of work completed.
+- `currentTimer` and `currentTimerRemaining` are cleared for the next stage.
+- `sessionState` becomes either `REWARD_SELECTION` or `WORK_SESSION_COMPLETE`.
+
+#### 7. Break Session
+
+- After the user selects a reward, `sessionState` becomes `ONGOING_BREAK_SESSION`.
+- `currentTimer` and `currentTimerRemaining` are set to the break duration.
+- The same live countdown logic applies.
+
+#### 8. Countdown Back to Focus
+
+- When the break ends, the app enters `FOCUS_SESSION_COUNTDOWN`.
+- This is the short countdown before the next focus session starts.
+- Once it reaches 0, the next focus session begins.
+
+### Walkthrough Example
+
+Example: a 60-second focus session.
+
+#### Start
+
+- `currentTimer = 60`
+- `currentTimerRemaining = 60`
+- `currentStartTime = now`
+
+#### After 20 seconds
+
+- The UI shows `40` seconds remaining.
+- `currentTimer` is still `60`.
+- `currentTimerRemaining` is still the last snapshot value unless paused.
+- The hook calculates the live countdown from `currentStartTime`.
+
+#### Pause
+
+- The reducer snapshots the visible time.
+- `currentTimer = 60`
+- `currentTimerRemaining = 40`
+- `currentStartTime = undefined`
+
+#### Resume
+
+- `currentTimer = 60`
+- `currentTimerRemaining = 40`
+- `currentStartTime = now`
+- The timer continues from 40 seconds.
+
+#### Finish
+
+- When the countdown reaches 0, the session completes.
+- `totalRemaining` is reduced by the completed focus time.
+- The app moves to reward selection or work session complete.
+
+### Short Version
+
+- `currentTimer` = original stage duration
+- `currentTimerRemaining` = paused snapshot of remaining time
+- `currentStartTime` = anchor for live countdown math
+- Pause stores the visible countdown value
+- Resume starts counting again from that stored remaining value
+
+---
+
 ## Local Development Setup
 
 ### Prerequisites

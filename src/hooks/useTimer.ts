@@ -175,7 +175,7 @@ export const useTimer = () => {
     timerState,
     currentRemaining,
     startFocusSession: () => dispatch(startFocusSession()),
-    pauseSession: () => dispatch(pauseSession()),
+    pauseSession: () => dispatch(pauseSession(currentRemaining)),
     resumeSession: () => dispatch(resumeSession()),
     endSessionEarly: () => dispatch(endSessionEarly()),
     selectReward: (reward: Reward) => dispatch(selectReward(reward)),

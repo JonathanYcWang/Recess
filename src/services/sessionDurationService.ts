@@ -1,10 +1,3 @@
-/**
- * Pure calculation service for dynamic focus session and break duration logic.
- *
- * All formulas are implemented exactly as specified in dynamic-session-duration-calculations.md
- * No React, no side effects - just math with explicit inputs and outputs.
- */
-
 import {
   CEWMA_ALPHA,
   SESSION_STRAIN_WEIGHT,

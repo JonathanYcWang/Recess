@@ -8,11 +8,12 @@ interface ButtonProps {
   onClick?: () => void;
   iconSrc?: string;
   variant?: ButtonVariant;
+  type?: 'button' | 'submit';
 }
 
-const Button = ({ text, onClick, iconSrc, variant = 'primary' }: ButtonProps) => {
+const Button = ({ text, onClick, iconSrc, variant = 'primary', type = 'button' }: ButtonProps) => {
   return (
-    <button className={`${styles.button} ${styles[variant]}`} type="button" onClick={onClick}>
+    <button className={`${styles.button} ${styles[variant]}`} type={type} onClick={onClick}>
       {iconSrc && variant !== 'tertiary' && <Icon src={iconSrc} alt="Icon" size={20} />}
       <span className={styles.text}>{text}</span>
     </button>

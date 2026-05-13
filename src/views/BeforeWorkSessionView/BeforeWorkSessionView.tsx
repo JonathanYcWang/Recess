@@ -52,7 +52,7 @@ const BeforeWorkSessionView = ({
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onConfirm={handleDurationConfirm}
-        currentDurationMinutes={Math.floor(totalRemaining / 60)}
+        duration={Math.floor(totalRemaining / 60)}
       />
     </>
   );

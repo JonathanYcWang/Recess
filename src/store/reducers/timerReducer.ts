@@ -6,7 +6,6 @@ import {
   DEFAULT_REROLLS,
   DEFAULT_WORK_SESSION_DURATION,
 } from '../../constants/constants';
-import { calculateRemaining } from '../../services/timerService';
 import {
   calculateBreakDuration,
   calculateFatigue,
@@ -149,6 +148,20 @@ const enterRewardSelectionOrComplete = (state: TimerState) => {
   state.isPaused = false;
 };
 
+// const enterBeforeWorkSession = (state: TimerState) => {
+//   if (state.totalRemaining <= 0) {
+//     enterRewardSelectionOrComplete(state);
+//     return;
+//   } else {
+//     state.sessionState = 'BEFORE_WORK_SESSION';
+//     const durations = calculateNextSessionDurations(state);
+//     setCurrentSessionDuration(state, durations.nextFocusDuration);
+//     state.currentStartTime = undefined;
+//     state.isPaused = false;
+//     clearSessionRewards(state);
+//   }
+// };
+
 const initialState = createInitialTimerState();
 
 const timerReducer = createReducer(initialState, (builder) => {
@@ -170,11 +183,11 @@ const timerReducer = createReducer(initialState, (builder) => {
     .addCase(startFocusSession, (state) => {
       enterFocusSession(state);
     })
-    .addCase(pauseSession, (state) => {
+    .addCase(pauseSession, (state, action) => {
       if (state.isPaused || state.sessionState !== 'ONGOING_FOCUS_SESSION') return;
 
       state.isPaused = true;
-      state.currentTimerRemaining = calculateRemaining(state.currentTimer, state.currentStartTime);
+      state.currentTimerRemaining = action.payload;
       state.currentStartTime = undefined;
     })
     .addCase(resumeSession, (state) => {
@@ -193,8 +206,8 @@ const timerReducer = createReducer(initialState, (builder) => {
         return;
       }
 
-      state.momentum = updateCEWMA(state.momentum, false);
       state.lastFocusSessionCompleted = false;
+      state.momentum = updateCEWMA(state.momentum, state.lastFocusSessionCompleted);
 
       state.lastCompletedFocusSessionSeconds = state.currentTimer - state.currentTimerRemaining;
       state.totalRemaining = Math.max(
@@ -208,6 +221,7 @@ const timerReducer = createReducer(initialState, (builder) => {
 
       resetRewards(state);
       enterRewardSelectionOrComplete(state);
+      // enterBeforeWorkSession(state);
     })
     .addCase(selectReward, (state, action) => {
       const reward: Reward = action.payload;
