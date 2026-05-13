@@ -1,6 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 import { calculateRemaining } from '../../services/timerService';
+import { secondsToMinutes } from '../../services/sessionDurationService';
 
 // Base selector - use this when you need the entire timer state
 export const selectTimerState = (state: RootState) => state.timer;
@@ -28,102 +29,57 @@ export const selectShownRewardCombinations = createSelector(
 );
 
 // Work session selectors
-export const selectWorkSessionDurationRemaining = createSelector(
+export const selectWorkRemaining = createSelector(
   [selectTimerState],
-  (timer) => timer.workSessionDurationRemaining
+  (timer) => timer.totalRemaining
 );
 
-export const selectInitialWorkSessionDuration = createSelector(
+export const selectWorkSessionDuration = createSelector(
   [selectTimerState],
-  (timer) => timer.initialWorkSessionDuration
+  (timer) => timer.totalTimer
 );
 
-export const selectTargetWorkMinutesToday = createSelector(
+export const selectTargetWorkSecondsToday = createSelector(
   [selectTimerState],
-  (timer) => timer.targetWorkMinutesToday
+  (timer) => timer.totalTimer
 );
 
-export const selectCompletedWorkMinutesToday = createSelector(
-  [selectTimerState],
-  (timer) => timer.completedWorkMinutesToday
+export const selectTargetWorkMinutesToday = createSelector([selectTimerState], (timer) =>
+  secondsToMinutes(timer.totalTimer)
 );
 
-// Focus session selectors
-export const selectNextFocusDuration = createSelector(
-  [selectTimerState],
-  (timer) => timer.nextFocusDuration
-);
+// Current stage (focus/break/countdown) timer selectors
+export const selectCurrentTimerRemaining = createSelector([selectTimerState], (timer) => {
+  const isTimedState =
+    timer.sessionState === 'ONGOING_FOCUS_SESSION' ||
+    timer.sessionState === 'ONGOING_BREAK_SESSION' ||
+    timer.sessionState === 'FOCUS_SESSION_COUNTDOWN';
 
-export const selectFocusSessionDurationRemaining = createSelector([selectTimerState], (timer) => {
-  if (timer.sessionState === 'ONGOING_FOCUS_SESSION' && !timer.isPaused) {
-    return calculateRemaining(timer.initialFocusSessionDuration, timer.focusSessionEntryTimeStamp);
+  if (isTimedState && !timer.isPaused && timer.currentStartTime !== undefined) {
+    return calculateRemaining(timer.currentTimerRemaining, timer.currentStartTime);
   }
-  return timer.focusSessionDurationRemaining;
+
+  return timer.currentTimerRemaining;
 });
 
-export const selectInitialFocusSessionDuration = createSelector(
+export const selectCurrentTimer = createSelector([selectTimerState], (timer) => timer.currentTimer);
+
+export const selectCurrentStartTime = createSelector(
   [selectTimerState],
-  (timer) => timer.initialFocusSessionDuration
+  (timer) => timer.currentStartTime
 );
 
-export const selectFocusSessionEntryTimeStamp = createSelector(
-  [selectTimerState],
-  (timer) => timer.focusSessionEntryTimeStamp
-);
-
-// Break session selectors
-export const selectNextBreakDuration = createSelector(
-  [selectTimerState],
-  (timer) => timer.nextBreakDuration
-);
-
-export const selectBreakSessionDurationRemaining = createSelector([selectTimerState], (timer) => {
-  if (timer.sessionState === 'ONGOING_BREAK_SESSION') {
-    return calculateRemaining(timer.initialBreakSessionDuration, timer.breakSessionEntryTimeStamp);
-  }
-  return timer.breakSessionDurationRemaining;
-});
-
-export const selectInitialBreakSessionDuration = createSelector(
-  [selectTimerState],
-  (timer) => timer.initialBreakSessionDuration
-);
-
-export const selectBreakSessionEntryTimeStamp = createSelector(
-  [selectTimerState],
-  (timer) => timer.breakSessionEntryTimeStamp
-);
-
-// Countdown selectors
-export const selectFocusSessionCountdownTimeRemaining = createSelector(
-  [selectTimerState],
-  (timer) => {
-    if (timer.sessionState === 'FOCUS_SESSION_COUNTDOWN' && !timer.isPaused) {
-      return calculateRemaining(
-        timer.initialFocusSessionCountdownDuration,
-        timer.focusSessionCountdownEntryTimeStamp
-      );
-    }
-    return timer.focusSessionCountdownTimeRemaining;
-  }
-);
+// Backwards compatibility aliases
+export const selectStageDurationRemaining = selectCurrentTimerRemaining;
+export const selectStageDuration = selectCurrentTimer;
+export const selectStageStartTime = selectCurrentStartTime;
 
 // Dynamic session tracking selectors
 export const selectMomentum = createSelector([selectTimerState], (timer) => timer.momentum);
 
-export const selectLastCompletedFocusSessionMinutes = createSelector(
+export const selectLastCompletedFocusSessionSeconds = createSelector(
   [selectTimerState],
-  (timer) => timer.lastCompletedFocusSessionMinutes
-);
-
-export const selectFatigueWeightMultiplier = createSelector(
-  [selectTimerState],
-  (timer) => timer.fatigueWeightMultiplier
-);
-
-export const selectMomentumWeightMultiplier = createSelector(
-  [selectTimerState],
-  (timer) => timer.momentumWeightMultiplier
+  (timer) => timer.lastCompletedFocusSessionSeconds
 );
 
 // Derived state selectors
@@ -157,6 +113,6 @@ export const selectCanGenerateRewards = createSelector(
 );
 
 export const selectWorkProgress = createSelector(
-  [selectCompletedWorkMinutesToday, selectTargetWorkMinutesToday],
-  (completed, target) => (target > 0 ? completed / target : 0)
+  [selectWorkRemaining, selectTargetWorkSecondsToday],
+  (remaining, target) => (target > 0 ? (target - remaining) / target : 0)
 );

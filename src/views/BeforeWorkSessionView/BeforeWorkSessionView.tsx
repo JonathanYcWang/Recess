@@ -7,7 +7,7 @@ import PlayIcon from '../../assets/play.svg?url';
 import { formatWorkSessionTime } from '../../services/timerService';
 
 interface BeforeWorkSessionViewProps {
-  workSessionDurationRemaining: number;
+  totalRemaining: number;
   nextFocusDuration: number;
   formatTime: (seconds: number) => string;
   startFocusSession: () => void;
@@ -15,7 +15,7 @@ interface BeforeWorkSessionViewProps {
 }
 
 const BeforeWorkSessionView = ({
-  workSessionDurationRemaining,
+  totalRemaining,
   nextFocusDuration,
   formatTime,
   startFocusSession,
@@ -33,7 +33,7 @@ const BeforeWorkSessionView = ({
   return (
     <>
       <SecondaryTimerDescription
-        text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`}
+        text={`${formatWorkSessionTime(totalRemaining)} To Go`}
         onClick={() => setIsDialogOpen(true)}
       />
       <CountdownTimer time={formatTime(nextFocusDuration)} label="Next focus session length" />
@@ -52,7 +52,7 @@ const BeforeWorkSessionView = ({
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onConfirm={handleDurationConfirm}
-        currentDurationMinutes={Math.floor(workSessionDurationRemaining / 60)}
+        currentDurationMinutes={Math.floor(totalRemaining / 60)}
       />
     </>
   );

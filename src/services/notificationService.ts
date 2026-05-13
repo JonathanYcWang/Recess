@@ -2,10 +2,31 @@
  * Send a notification via Chrome runtime messaging
  */
 const send = (title: string, message: string): void => {
-  chrome?.runtime?.sendMessage({
-    type: 'SESSION_NOTIFICATION',
-    title,
-    message,
+  if (!chrome?.runtime?.sendMessage) return;
+
+  // Ping first to avoid noisy "Receiving end does not exist" errors in cases
+  // where the background listener isn't registered (e.g., during development).
+  chrome.runtime.sendMessage({ type: 'PING' }, (_pong) => {
+    const pingErr = chrome.runtime.lastError;
+    if (pingErr) {
+      // No receiver; nothing to do.
+      return;
+    }
+
+    chrome.runtime.sendMessage(
+      {
+        type: 'SESSION_NOTIFICATION',
+        title,
+        message,
+      },
+      () => {
+        const err = chrome.runtime.lastError;
+        if (err) {
+          // Swallow to prevent uncaught promise errors; log for debugging.
+          console.debug('Notification message not delivered:', err.message);
+        }
+      }
+    );
   });
 };
 

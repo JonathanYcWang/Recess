@@ -9,7 +9,7 @@ import styles from './FocusSessionCountdownView.module.css';
 
 interface FocusSessionCountdownViewProps {
   workSessionDurationRemaining: number;
-  focusSessionCountdownTimeRemaining: number;
+  sessionDurationRemaining: number;
   formatTime: (seconds: number) => string;
   startFocusSession: () => void;
   updateWeightMultipliers: (multipliers: {
@@ -20,7 +20,7 @@ interface FocusSessionCountdownViewProps {
 
 const FocusSessionCountdownView = ({
   workSessionDurationRemaining,
-  focusSessionCountdownTimeRemaining,
+  sessionDurationRemaining,
   formatTime,
   startFocusSession,
   updateWeightMultipliers,
@@ -61,7 +61,7 @@ const FocusSessionCountdownView = ({
       <SecondaryTimerDescription
         text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`}
       />
-      <CountdownTimer time={formatTime(focusSessionCountdownTimeRemaining)} label="starting in" />
+      <CountdownTimer time={formatTime(sessionDurationRemaining)} label="starting in" />
       <div className={styles.contentContainer}>
         <Button
           text="Start Focus Session Now"

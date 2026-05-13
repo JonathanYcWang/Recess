@@ -6,7 +6,7 @@ import PlayIcon from '../../assets/play.svg?url';
 import styles from './OngoingFocusSessionView.module.css';
 
 interface OngoingFocusSessionViewProps {
-  focusSessionDurationRemaining: number;
+  sessionDurationRemaining: number;
   isPaused: boolean;
   formatTime: (seconds: number) => string;
   pauseSession: () => void;
@@ -15,7 +15,7 @@ interface OngoingFocusSessionViewProps {
 }
 
 const OngoingFocusSessionView = ({
-  focusSessionDurationRemaining,
+  sessionDurationRemaining,
   isPaused,
   formatTime,
   pauseSession,
@@ -27,7 +27,7 @@ const OngoingFocusSessionView = ({
       <SecondaryTimerDescription
         text={isPaused ? 'Paused Focus Session' : 'Active Focus Session'}
       />
-      <CountdownTimer time={formatTime(focusSessionDurationRemaining)} label="Remaining" />
+      <CountdownTimer time={formatTime(sessionDurationRemaining)} label="Remaining" />
       {isPaused ? (
         <div className={styles.contentContainer}>
           <Button

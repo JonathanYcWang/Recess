@@ -77,10 +77,10 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
       store.dispatch(startWorkingSession());
     }
 
-    // End working session: When workSessionDurationRemaining becomes 0
+    // End working session: When totalRemaining becomes 0
     if (
-      currentTimer.workSessionDurationRemaining === 0 &&
-      prevTimer.workSessionDurationRemaining > 0 &&
+      currentTimer.totalRemaining === 0 &&
+      prevTimer.totalRemaining > 0 &&
       prevBlockedSites.isInWorkingSession
     ) {
       store.dispatch(endWorkingSession());
@@ -108,12 +108,12 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
 export const loadStateFromStorage = async () => {
   const [timerState, workHoursEntries, blockedSitesState, hasOnboarded, quizState] =
     await Promise.all([
-    storageAPI.get(STORAGE_KEYS.timer),
-    storageAPI.get<any[]>(STORAGE_KEYS.workHours),
-    storageAPI.get<any>(STORAGE_KEYS.blockedSites),
-    storageAPI.get<boolean>(STORAGE_KEYS.routing),
-    storageAPI.get<any>(STORAGE_KEYS.quiz),
-  ]);
+      storageAPI.get(STORAGE_KEYS.timer),
+      storageAPI.get<any[]>(STORAGE_KEYS.workHours),
+      storageAPI.get<any>(STORAGE_KEYS.blockedSites),
+      storageAPI.get<boolean>(STORAGE_KEYS.routing),
+      storageAPI.get<any>(STORAGE_KEYS.quiz),
+    ]);
 
   return {
     timer: timerState,

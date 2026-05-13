@@ -16,6 +16,7 @@ const MainPage = () => {
   const hasOnboarded = useSelector((state: RootState) => selectHasOnboarded(state));
   const {
     timerState,
+    currentRemaining,
     startFocusSession,
     pauseSession,
     resumeSession,
@@ -23,24 +24,17 @@ const MainPage = () => {
     handleReroll,
     endSessionEarly,
     resetTimerState,
-    setWorkSessionDuration,
+    setTotalTimer,
     updateWeightMultipliers,
     rewards,
     formatTime,
     isLoaded,
   } = useTimer();
 
-  const {
-    sessionState,
-    isPaused,
-    focusSessionDurationRemaining,
-    breakSessionDurationRemaining,
-    focusSessionCountdownTimeRemaining,
-    rerolls,
-    selectedReward,
-    workSessionDurationRemaining,
-    nextFocusDuration,
-  } = timerState;
+  const currentTimer = timerState.currentTimer;
+  const totalRemaining = timerState.totalRemaining;
+
+  const { sessionState, isPaused, rerolls, selectedReward } = timerState;
 
   // Show loading state until timer state is loaded
   if (!isLoaded) {
@@ -66,18 +60,18 @@ const MainPage = () => {
       case 'BEFORE_WORK_SESSION':
         return (
           <BeforeWorkSessionView
-            workSessionDurationRemaining={workSessionDurationRemaining}
-            nextFocusDuration={nextFocusDuration}
+            totalRemaining={totalRemaining}
+            nextFocusDuration={currentTimer}
             formatTime={formatTime}
             startFocusSession={startFocusSession}
-            onDurationChange={setWorkSessionDuration}
+            onDurationChange={setTotalTimer}
           />
         );
 
       case 'ONGOING_FOCUS_SESSION':
         return (
           <OngoingFocusSessionView
-            focusSessionDurationRemaining={focusSessionDurationRemaining}
+            sessionDurationRemaining={currentRemaining}
             isPaused={isPaused}
             formatTime={formatTime}
             pauseSession={pauseSession}
@@ -99,7 +93,7 @@ const MainPage = () => {
       case 'ONGOING_BREAK_SESSION':
         return (
           <OngoingBreakSessionView
-            breakSessionDurationRemaining={breakSessionDurationRemaining}
+            sessionDurationRemaining={currentRemaining}
             selectedReward={selectedReward}
             formatTime={formatTime}
             endSessionEarly={endSessionEarly}
@@ -109,8 +103,8 @@ const MainPage = () => {
       case 'FOCUS_SESSION_COUNTDOWN':
         return (
           <FocusSessionCountdownView
-            workSessionDurationRemaining={workSessionDurationRemaining}
-            focusSessionCountdownTimeRemaining={focusSessionCountdownTimeRemaining}
+            workSessionDurationRemaining={totalRemaining}
+            sessionDurationRemaining={currentRemaining}
             formatTime={formatTime}
             startFocusSession={startFocusSession}
             updateWeightMultipliers={updateWeightMultipliers}

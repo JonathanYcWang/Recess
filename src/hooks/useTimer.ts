@@ -11,9 +11,8 @@ import {
   transitionToFocusSessionCountdown,
   resetTimer,
   updateTimerState,
-  setWorkSessionDuration,
+  setTotalTimer,
   updateWeightMultipliers,
-  completeWorkSessionEarly,
   setGeneratedRewards,
   addShownRewardCombination,
   rerollReward as rerollRewardAction,
@@ -22,7 +21,12 @@ import type { AppDispatch, RootState } from '../store';
 import { Reward } from '../types/reward';
 import { NOTIFY_TIME_LEFT_SECONDS } from '../constants/constants';
 import { formatTime as formatTimeUtil, calculateRemaining } from '../services/timerService';
-import { notifyFocusEnding, notifyFocusComplete, notifyBreakEnding, notifyBreakComplete } from '../services/notificationService';
+import {
+  notifyFocusEnding,
+  notifyFocusComplete,
+  notifyBreakEnding,
+  notifyBreakComplete,
+} from '../services/notificationService';
 import { generateRewards, generateReward } from '../services/rewardService';
 import {
   selectTimerState,
@@ -50,6 +54,30 @@ export const useTimer = () => {
   const shownCombinations = useSelector((state: RootState) => selectShownRewardCombinations(state));
   const rerolls = useSelector((state: RootState) => selectRerolls(state));
   const [, setTick] = useState(0);
+
+  const getActiveRemainingSeconds = useCallback((): number => {
+    if (sessionState === 'ONGOING_FOCUS_SESSION') {
+      if (isPaused || timerState.currentStartTime === undefined) {
+        return timerState.currentTimerRemaining;
+      }
+      return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
+    }
+
+    if (sessionState === 'ONGOING_BREAK_SESSION') {
+      if (timerState.currentStartTime === undefined) {
+        return timerState.currentTimerRemaining;
+      }
+      return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
+    }
+
+    if (sessionState === 'FOCUS_SESSION_COUNTDOWN') {
+      if (isPaused || timerState.currentStartTime === undefined)
+        return timerState.currentTimerRemaining;
+      return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
+    }
+
+    return timerState.currentTimerRemaining;
+  }, [sessionState, isPaused, timerState.currentTimer, timerState.currentStartTime]);
 
   // Generate initial rewards when entering reward selection
   useEffect(() => {
@@ -83,13 +111,9 @@ export const useTimer = () => {
 
     if (activeStates.includes(sessionState) && !isPaused) {
       const intervalId = setInterval(() => {
-        let shouldTransition = false;
+        const remaining = getActiveRemainingSeconds();
 
         if (sessionState === 'ONGOING_FOCUS_SESSION') {
-          const remaining = calculateRemaining(
-            timerState.initialFocusSessionDuration,
-            timerState.focusSessionEntryTimeStamp
-          );
           if (remaining <= NOTIFY_TIME_LEFT_SECONDS && remaining > 0 && !notified.focusEnding) {
             const mins = Math.ceil(NOTIFY_TIME_LEFT_SECONDS / 60);
             notifyFocusEnding(mins);
@@ -98,14 +122,12 @@ export const useTimer = () => {
           if (remaining <= 0 && !notified.focusEnd) {
             notifyFocusComplete();
             notified.focusEnd = true;
-            shouldTransition = true;
             dispatch(transitionToRewardSelection());
+            return;
           }
-        } else if (sessionState === 'ONGOING_BREAK_SESSION') {
-          const remaining = calculateRemaining(
-            timerState.initialBreakSessionDuration,
-            timerState.breakSessionEntryTimeStamp
-          );
+        }
+
+        if (sessionState === 'ONGOING_BREAK_SESSION') {
           if (remaining <= NOTIFY_TIME_LEFT_SECONDS && remaining > 0 && !notified.breakEnding) {
             const mins = Math.ceil(NOTIFY_TIME_LEFT_SECONDS / 60);
             notifyBreakEnding(mins);
@@ -114,62 +136,26 @@ export const useTimer = () => {
           if (remaining <= 0 && !notified.breakEnd) {
             notifyBreakComplete();
             notified.breakEnd = true;
-            shouldTransition = true;
             dispatch(transitionToFocusSessionCountdown());
-          }
-        } else if (sessionState === 'FOCUS_SESSION_COUNTDOWN') {
-          const remaining = calculateRemaining(
-            timerState.initialFocusSessionCountdownDuration,
-            timerState.focusSessionCountdownEntryTimeStamp
-          );
-          if (remaining <= 0) {
-            shouldTransition = true;
-            dispatch(transitionToFocusSession());
+            return;
           }
         }
 
-        if (!shouldTransition) {
-          setTick((t) => t + 1);
+        if (sessionState === 'FOCUS_SESSION_COUNTDOWN') {
+          if (remaining <= 0) {
+            dispatch(transitionToFocusSession());
+            return;
+          }
         }
+
+        setTick((t) => t + 1);
       }, 1000);
 
       return () => clearInterval(intervalId);
     }
-  }, [
-    sessionState,
-    isPaused,
-    timerState.initialFocusSessionDuration,
-    timerState.focusSessionEntryTimeStamp,
-    timerState.initialBreakSessionDuration,
-    timerState.breakSessionEntryTimeStamp,
-    timerState.initialFocusSessionCountdownDuration,
-    timerState.focusSessionCountdownEntryTimeStamp,
-    dispatch,
-  ]);
+  }, [sessionState, isPaused, getActiveRemainingSeconds, dispatch]);
 
-  // Derived state for UI (with live countdown calculations)
-  const getDerivedTimerState = useCallback(() => {
-    let derived = { ...timerState };
-
-    if (sessionState === 'ONGOING_FOCUS_SESSION' && !isPaused) {
-      derived.focusSessionDurationRemaining = calculateRemaining(
-        timerState.initialFocusSessionDuration,
-        timerState.focusSessionEntryTimeStamp
-      );
-    } else if (sessionState === 'ONGOING_BREAK_SESSION') {
-      derived.breakSessionDurationRemaining = calculateRemaining(
-        timerState.initialBreakSessionDuration,
-        timerState.breakSessionEntryTimeStamp
-      );
-    } else if (sessionState === 'FOCUS_SESSION_COUNTDOWN' && !isPaused) {
-      derived.focusSessionCountdownTimeRemaining = calculateRemaining(
-        timerState.initialFocusSessionCountdownDuration,
-        timerState.focusSessionCountdownEntryTimeStamp
-      );
-    }
-
-    return derived;
-  }, [timerState, sessionState, isPaused]);
+  const currentRemaining = getActiveRemainingSeconds();
 
   // Action wrappers
   const handleReroll = useCallback(
@@ -186,7 +172,8 @@ export const useTimer = () => {
   );
 
   return {
-    timerState: getDerivedTimerState(),
+    timerState,
+    currentRemaining,
     startFocusSession: () => dispatch(startFocusSession()),
     pauseSession: () => dispatch(pauseSession()),
     resumeSession: () => dispatch(resumeSession()),
@@ -194,15 +181,12 @@ export const useTimer = () => {
     selectReward: (reward: Reward) => dispatch(selectReward(reward)),
     handleReroll,
     resetTimerState: () => dispatch(resetTimer()),
-    updateTimerState: (updates: Partial<typeof timerState>) =>
-      dispatch(updateTimerState(updates)),
-    setWorkSessionDuration: (durationInMinutes: number) =>
-      dispatch(setWorkSessionDuration(durationInMinutes)),
+    updateTimerState: (updates: Partial<typeof timerState>) => dispatch(updateTimerState(updates)),
+    setTotalTimer: (durationInMinutes: number) => dispatch(setTotalTimer(durationInMinutes)),
     updateWeightMultipliers: (multipliers: {
       fatigueMultiplier?: number;
       momentumMultiplier?: number;
     }) => dispatch(updateWeightMultipliers(multipliers)),
-    completeWorkSessionEarly: () => dispatch(completeWorkSessionEarly()),
     rewards,
     formatTime: formatTimeUtil,
     isLoaded: true,

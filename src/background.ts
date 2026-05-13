@@ -73,6 +73,53 @@ chrome.notifications.onButtonClicked.addListener((notifId: string, btnIdx: numbe
 
 // Background service worker for Chrome extension
 
+type SessionNotificationMessage = {
+  type: 'SESSION_NOTIFICATION';
+  title: string;
+  message: string;
+};
+
+type PingMessage = {
+  type: 'PING';
+};
+
+type BackgroundMessage = SessionNotificationMessage | PingMessage;
+
+chrome.runtime.onMessage.addListener(
+  (message: BackgroundMessage, _sender: chrome.runtime.MessageSender, sendResponse) => {
+    if (!message || typeof message !== 'object' || !('type' in message)) {
+      return;
+    }
+
+    if (message.type === 'PING') {
+      sendResponse({ type: 'PONG' });
+      return;
+    }
+
+    if (message.type === 'SESSION_NOTIFICATION') {
+      const notificationId = `session-notification-${Date.now()}`;
+      chrome.notifications.create(
+        notificationId,
+        {
+          type: 'basic',
+          iconUrl: 'assets/logo.png',
+          title: message.title,
+          message: message.message,
+        },
+        () => {
+          const err = chrome.runtime.lastError;
+          if (err) {
+            console.warn('Failed to create notification:', err.message);
+          }
+        }
+      );
+
+      sendResponse({ ok: true });
+      return;
+    }
+  }
+);
+
 // Handle extension icon clicks - always open in a new tab
 chrome.action.onClicked.addListener(() => {
   chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
@@ -111,7 +158,24 @@ const isDistractingSite = (url: string, blockedSites: string[]): boolean => {
 };
 
 // Update declarativeNetRequest rules based on current session state
-const updateBlockingRules = async () => {
+let updateBlockingRulesInFlight: Promise<void> = Promise.resolve();
+
+const BLOCKING_RULE_ID_BASE = 1000;
+const BLOCKING_RULE_ID_LIMIT = 1000; // max sites handled = 1000
+
+const updateBlockingRules = () => {
+  updateBlockingRulesInFlight = updateBlockingRulesInFlight
+    .catch(() => {
+      // swallow to keep the queue moving
+    })
+    .then(async () => {
+      await updateBlockingRulesImpl();
+    });
+
+  return updateBlockingRulesInFlight;
+};
+
+const updateBlockingRulesImpl = async () => {
   try {
     const data = await chrome.storage.local.get(['blockedSites', 'timerState']);
     const { sites } = getBlockedSites(data.blockedSites);
@@ -121,12 +185,16 @@ const updateBlockingRules = async () => {
     const shouldBlock = timerState?.sessionState === 'ONGOING_FOCUS_SESSION';
 
     const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-    const existingRuleIds = existingRules.map((rule: chrome.declarativeNetRequest.Rule) => rule.id);
+    const existingRuleIds = existingRules
+      .map((rule: chrome.declarativeNetRequest.Rule) => rule.id)
+      .filter(
+        (id) => id >= BLOCKING_RULE_ID_BASE && id < BLOCKING_RULE_ID_BASE + BLOCKING_RULE_ID_LIMIT
+      );
 
     if (shouldBlock && sites.length > 0) {
       // Create blocking rules for each site
       const rules = sites.map((site, index) => ({
-        id: index + 1,
+        id: BLOCKING_RULE_ID_BASE + index,
         priority: 1,
         action: {
           type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
@@ -140,9 +208,14 @@ const updateBlockingRules = async () => {
         },
       }));
 
+      // Ensure we remove any potentially conflicting IDs even if the current
+      // snapshot of existing rules is stale (e.g., due to rapid successive updates).
+      const desiredRuleIds = rules.map((rule) => rule.id);
+      const ruleIdsToRemove = Array.from(new Set([...existingRuleIds, ...desiredRuleIds]));
+
       // Update rules
       await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: existingRuleIds,
+        removeRuleIds: ruleIdsToRemove,
         addRules: rules as chrome.declarativeNetRequest.Rule[],
       });
     } else {

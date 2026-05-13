@@ -5,14 +5,14 @@ import { Reward } from '../../types/reward';
 import styles from './OngoingBreakSessionView.module.css';
 
 interface OngoingBreakSessionViewProps {
-  breakSessionDurationRemaining: number;
+  sessionDurationRemaining: number;
   selectedReward: Reward | null;
   formatTime: (seconds: number) => string;
   endSessionEarly: () => void;
 }
 
 const OngoingBreakSessionView = ({
-  breakSessionDurationRemaining,
+  sessionDurationRemaining,
   selectedReward,
   formatTime,
   endSessionEarly,
@@ -25,7 +25,7 @@ const OngoingBreakSessionView = ({
           Give your brain a pause, and you'll crush the next focus session.
         </p>
       </div>
-      <CountdownTimer time={formatTime(breakSessionDurationRemaining)} label="Remaining" />
+      <CountdownTimer time={formatTime(sessionDurationRemaining)} label="Remaining" />
       <div className={styles.contentContainer}>
         {selectedReward && (
           <RewardLink

@@ -21,6 +21,8 @@ export const store = configureStore({
         ignoredActions: ['timer/updateTimerState'],
       },
     }).concat(storageMiddleware),
+  // Enable Redux DevTools explicitly so the extension window/tab is discoverable
+  devTools: { name: 'Recess', trace: true },
 });
 
 export type RootState = ReturnType<typeof store.getState>;

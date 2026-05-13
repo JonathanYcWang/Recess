@@ -2,7 +2,7 @@ import { createReducer } from '@reduxjs/toolkit';
 import { TimerState } from '../../types/timer';
 import { Reward } from '../../types/reward';
 import {
-  DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME,
+  CEWMA_STARTING_VALUE,
   DEFAULT_REROLLS,
   DEFAULT_WORK_SESSION_DURATION,
 } from '../../constants/constants';
@@ -12,14 +12,10 @@ import {
   calculateFatigue,
   calculateFocusSessionDuration,
   calculateProgress,
-  getInitialCEWMA,
-  minutesToSeconds,
-  secondsToMinutes,
   updateCEWMA,
 } from '../../services/sessionDurationService';
 import {
   addShownRewardCombination,
-  completeWorkSessionEarly,
   endSessionEarly,
   pauseSession,
   rerollReward,
@@ -27,7 +23,7 @@ import {
   resumeSession,
   selectReward,
   setGeneratedRewards,
-  setWorkSessionDuration,
+  setTotalTimer,
   startFocusSession,
   transitionToFocusSession,
   transitionToFocusSessionCountdown,
@@ -36,233 +32,190 @@ import {
   updateWeightMultipliers,
 } from '../actions/timerActions';
 
-const initialState: TimerState = {
-  sessionState: 'BEFORE_WORK_SESSION',
-  isPaused: false,
-  initialWorkSessionDuration: DEFAULT_WORK_SESSION_DURATION,
-  workSessionDurationRemaining: DEFAULT_WORK_SESSION_DURATION,
-  initialFocusSessionDuration: 0,
-  initialBreakSessionDuration: 0,
-  focusSessionDurationRemaining: 0,
-  breakSessionDurationRemaining: 0,
-
-  focusSessionCountdownTimeRemaining: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME,
-  initialFocusSessionCountdownDuration: DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME,
-  rerolls: DEFAULT_REROLLS,
-  selectedReward: null,
-  shownRewardCombinations: [],
-
-  nextFocusDuration: 0,
-  nextBreakDuration: 0,
-  lastFocusSessionCompleted: false,
-  generatedRewards: [],
-
-  momentum: getInitialCEWMA(),
-  completedWorkMinutesToday: 0,
-  targetWorkMinutesToday: secondsToMinutes(DEFAULT_WORK_SESSION_DURATION),
-  lastCompletedFocusSessionMinutes: 0,
-
-  fatigueWeightMultiplier: 1.0,
-  momentumWeightMultiplier: 1.0,
-};
-
-const calculateNextSessionDurations = (state: TimerState): {
+const FOCUS_COUNTDOWN_DURATION = 10; // seconds
+const calculateNextSessionDurations = (
+  state: TimerState
+): {
   nextFocusDuration: number;
   nextBreakDuration: number;
 } => {
-  const progress = calculateProgress(state.completedWorkMinutesToday, state.targetWorkMinutesToday);
+  const progress = calculateProgress(state.totalTimer, state.totalRemaining);
   const fatigue = calculateFatigue(
-    state.completedWorkMinutesToday,
-    state.targetWorkMinutesToday,
-    state.lastCompletedFocusSessionMinutes
+    state.totalTimer,
+    state.totalRemaining,
+    state.lastCompletedFocusSessionSeconds
   );
 
-  const FOCUS_INTERVAL = 5;
-  const BREAK_INTERVAL = 5;
-  const roundToInterval = (value: number, interval: number) =>
-    Math.round(value / interval) * interval;
-
-  let focusDurationMinutes = roundToInterval(
-    calculateFocusSessionDuration(
-      state.momentum,
-      fatigue,
-      progress,
-      state.momentumWeightMultiplier,
-      state.fatigueWeightMultiplier
-    ),
-    FOCUS_INTERVAL
+  let focusDuration = calculateFocusSessionDuration(
+    state.momentum,
+    fatigue,
+    progress,
+    state.momentumWeightMultiplier,
+    state.fatigueWeightMultiplier
   );
-  let breakDurationMinutes = roundToInterval(
-    calculateBreakDuration(
-      fatigue,
-      progress,
-      state.momentum,
-      state.fatigueWeightMultiplier,
-      state.momentumWeightMultiplier
-    ),
-    BREAK_INTERVAL
-  );
-
-  const workSessionMinutesLeft = state.workSessionDurationRemaining / 60;
-  if (workSessionMinutesLeft < FOCUS_INTERVAL) {
-    focusDurationMinutes += workSessionMinutesLeft;
+  if (focusDuration > state.totalRemaining) {
+    focusDuration = state.totalRemaining;
   }
 
-  let focusDurationSeconds = minutesToSeconds(focusDurationMinutes);
-  if (focusDurationSeconds > state.workSessionDurationRemaining) {
-    focusDurationSeconds = state.workSessionDurationRemaining;
-  }
+  const breakDuration = calculateBreakDuration(
+    fatigue,
+    progress,
+    state.momentum,
+    state.fatigueWeightMultiplier,
+    state.momentumWeightMultiplier
+  );
 
   return {
-    nextFocusDuration: focusDurationSeconds,
-    nextBreakDuration: minutesToSeconds(breakDurationMinutes),
+    nextFocusDuration: focusDuration,
+    nextBreakDuration: breakDuration,
   };
 };
 
-const initialDurations = calculateNextSessionDurations(initialState);
-initialState.nextFocusDuration = initialDurations.nextFocusDuration;
-initialState.nextBreakDuration = initialDurations.nextBreakDuration;
-initialState.initialFocusSessionDuration = initialDurations.nextFocusDuration;
-initialState.initialBreakSessionDuration = initialDurations.nextBreakDuration;
-initialState.focusSessionDurationRemaining = initialDurations.nextFocusDuration;
-initialState.breakSessionDurationRemaining = initialDurations.nextBreakDuration;
+const createInitialTimerState = (): TimerState => {
+  const base: TimerState = {
+    sessionState: 'BEFORE_WORK_SESSION',
+    isPaused: false,
+
+    totalTimer: DEFAULT_WORK_SESSION_DURATION,
+    totalRemaining: DEFAULT_WORK_SESSION_DURATION,
+
+    currentTimer: 0,
+    currentTimerRemaining: 0,
+    rerolls: DEFAULT_REROLLS,
+    selectedReward: null,
+    shownRewardCombinations: [],
+
+    lastFocusSessionCompleted: false,
+    generatedRewards: [],
+
+    momentum: CEWMA_STARTING_VALUE,
+    lastCompletedFocusSessionSeconds: 0,
+
+    fatigueWeightMultiplier: 1.0,
+    momentumWeightMultiplier: 1.0,
+  };
+
+  const durations = calculateNextSessionDurations(base);
+  base.currentTimer = durations.nextFocusDuration;
+  base.currentTimerRemaining = durations.nextFocusDuration;
+
+  return base;
+};
+
+const setCurrentSessionDuration = (state: TimerState, duration: number) => {
+  state.currentTimer = duration;
+  state.currentTimerRemaining = duration;
+};
+
+const clearSessionRewards = (state: TimerState) => {
+  state.generatedRewards = [];
+  state.shownRewardCombinations = [];
+};
+
+const resetRewards = (state: TimerState) => {
+  state.rerolls = DEFAULT_REROLLS;
+  clearSessionRewards(state);
+};
+
+const enterFocusSession = (state: TimerState) => {
+  const durations = calculateNextSessionDurations(state);
+  state.sessionState = 'ONGOING_FOCUS_SESSION';
+  setCurrentSessionDuration(state, durations.nextFocusDuration);
+  state.currentStartTime = Date.now();
+  state.isPaused = false;
+  clearSessionRewards(state);
+};
+
+const enterFocusCountdown = (state: TimerState) => {
+  state.sessionState = 'FOCUS_SESSION_COUNTDOWN';
+  setCurrentSessionDuration(state, FOCUS_COUNTDOWN_DURATION);
+  state.currentStartTime = Date.now();
+  state.isPaused = false;
+  clearSessionRewards(state);
+};
+
+const enterRewardSelectionOrComplete = (state: TimerState) => {
+  if (state.totalRemaining <= 0) {
+    state.sessionState = 'WORK_SESSION_COMPLETE';
+    state.totalRemaining = 0;
+  } else {
+    state.sessionState = 'REWARD_SELECTION';
+  }
+
+  state.currentStartTime = undefined;
+  state.currentTimer = 0;
+  state.currentTimerRemaining = 0;
+  state.lastFocusSessionCompleted = true;
+  state.isPaused = false;
+};
+
+const initialState = createInitialTimerState();
 
 const timerReducer = createReducer(initialState, (builder) => {
   builder
-    .addCase(updateTimerState, (state, action) => ({ ...state, ...action.payload }))
-    .addCase(resetTimer, () => initialState)
-    .addCase(setWorkSessionDuration, (state, action) => {
+    .addCase(updateTimerState, (state, action) => {
+      Object.assign(state, action.payload);
+    })
+    .addCase(resetTimer, () => createInitialTimerState())
+    .addCase(setTotalTimer, (state, action) => {
       const durationInSeconds = action.payload * 60;
-      state.initialWorkSessionDuration = durationInSeconds;
-      state.workSessionDurationRemaining = durationInSeconds;
-      state.targetWorkMinutesToday = action.payload;
+      state.totalTimer = durationInSeconds;
+      state.totalRemaining = durationInSeconds;
 
-      const durations = calculateNextSessionDurations(state);
-      state.nextFocusDuration = durations.nextFocusDuration;
-      state.nextBreakDuration = durations.nextBreakDuration;
-      state.initialFocusSessionDuration = durations.nextFocusDuration;
-      state.focusSessionDurationRemaining = durations.nextFocusDuration;
+      if (state.sessionState === 'BEFORE_WORK_SESSION') {
+        const durations = calculateNextSessionDurations(state);
+        setCurrentSessionDuration(state, durations.nextFocusDuration);
+      }
     })
     .addCase(startFocusSession, (state) => {
-      state.sessionState = 'ONGOING_FOCUS_SESSION';
-      state.focusSessionDurationRemaining = state.nextFocusDuration;
-      state.focusSessionEntryTimeStamp = Date.now();
-      state.initialFocusSessionDuration = state.nextFocusDuration;
-      state.isPaused = false;
+      enterFocusSession(state);
     })
     .addCase(pauseSession, (state) => {
       if (state.isPaused || state.sessionState !== 'ONGOING_FOCUS_SESSION') return;
 
       state.isPaused = true;
-      state.focusSessionDurationRemaining = calculateRemaining(
-        state.initialFocusSessionDuration,
-        state.focusSessionEntryTimeStamp
-      );
-      state.focusSessionEntryTimeStamp = undefined;
+      state.currentTimerRemaining = calculateRemaining(state.currentTimer, state.currentStartTime);
+      state.currentStartTime = undefined;
     })
     .addCase(resumeSession, (state) => {
       if (!state.isPaused || state.sessionState !== 'ONGOING_FOCUS_SESSION') return;
 
       state.isPaused = false;
-      state.focusSessionEntryTimeStamp = Date.now();
-      state.initialFocusSessionDuration = state.focusSessionDurationRemaining;
+      state.currentStartTime = Date.now();
     })
     .addCase(endSessionEarly, (state) => {
-      const getNextFocusState = (
-        currentWorkRemaining: number,
-        initialFocusDuration: number,
-        actualFocusRemaining: number,
-        lastCompleted: boolean
-      ): Partial<TimerState> => {
-        const completedInSegment = Math.max(0, initialFocusDuration - actualFocusRemaining);
-        const newWorkRemaining = Math.max(0, currentWorkRemaining - completedInSegment);
-
-        const newMomentum = updateCEWMA(state.momentum, false);
-
-        const completedMinutes = secondsToMinutes(completedInSegment);
-        const newCompletedWork = state.completedWorkMinutesToday + completedMinutes;
-        const newLastSessionMinutes = completedMinutes;
-
-        const tempState = {
-          ...state,
-          momentum: newMomentum,
-          completedWorkMinutesToday: newCompletedWork,
-          lastCompletedFocusSessionMinutes: newLastSessionMinutes,
-        };
-        const durations = calculateNextSessionDurations(tempState);
-
-        if (newWorkRemaining <= 0) {
-          return {
-            sessionState: 'WORK_SESSION_COMPLETE',
-            focusSessionDurationRemaining: durations.nextFocusDuration,
-            workSessionDurationRemaining: 0,
-            focusSessionEntryTimeStamp: undefined,
-            initialFocusSessionDuration: durations.nextFocusDuration,
-            lastFocusSessionCompleted: lastCompleted,
-            momentum: newMomentum,
-            completedWorkMinutesToday: newCompletedWork,
-            lastCompletedFocusSessionMinutes: newLastSessionMinutes,
-            nextFocusDuration: durations.nextFocusDuration,
-            nextBreakDuration: durations.nextBreakDuration,
-            rerolls: DEFAULT_REROLLS,
-            shownRewardCombinations: [],
-          };
-        }
-
-        return {
-          sessionState: 'REWARD_SELECTION',
-          focusSessionDurationRemaining: durations.nextFocusDuration,
-          workSessionDurationRemaining: newWorkRemaining,
-          focusSessionEntryTimeStamp: undefined,
-          initialFocusSessionDuration: durations.nextFocusDuration,
-          lastFocusSessionCompleted: lastCompleted,
-          momentum: newMomentum,
-          completedWorkMinutesToday: newCompletedWork,
-          lastCompletedFocusSessionMinutes: newLastSessionMinutes,
-          nextFocusDuration: durations.nextFocusDuration,
-          nextBreakDuration: durations.nextBreakDuration,
-          rerolls: DEFAULT_REROLLS,
-          shownRewardCombinations: [],
-        };
-      };
-
       if (state.sessionState === 'ONGOING_BREAK_SESSION') {
-        state.sessionState = 'FOCUS_SESSION_COUNTDOWN';
-        state.breakSessionEntryTimeStamp = undefined;
-        state.focusSessionCountdownTimeRemaining = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
-        state.initialFocusSessionCountdownDuration = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
-        state.focusSessionCountdownEntryTimeStamp = Date.now();
-        state.isPaused = false;
+        enterFocusCountdown(state);
         return;
       }
 
-      let actualRemaining = state.focusSessionDurationRemaining;
-      if (state.sessionState === 'ONGOING_FOCUS_SESSION') {
-        actualRemaining = calculateRemaining(
-          state.initialFocusSessionDuration,
-          state.focusSessionEntryTimeStamp
-        );
+      if (state.sessionState !== 'ONGOING_FOCUS_SESSION') {
+        return;
       }
 
-      const nextState = getNextFocusState(
-        state.workSessionDurationRemaining,
-        state.initialFocusSessionDuration,
-        actualRemaining,
-        false
+      state.momentum = updateCEWMA(state.momentum, false);
+      state.lastFocusSessionCompleted = false;
+
+      state.lastCompletedFocusSessionSeconds = state.currentTimer - state.currentTimerRemaining;
+      state.totalRemaining = Math.max(
+        0,
+        state.totalRemaining - state.lastCompletedFocusSessionSeconds
       );
 
-      Object.assign(state, nextState);
+      const durations = calculateNextSessionDurations(state);
+      setCurrentSessionDuration(state, durations.nextFocusDuration);
+      state.currentStartTime = undefined;
+
+      resetRewards(state);
+      enterRewardSelectionOrComplete(state);
     })
     .addCase(selectReward, (state, action) => {
       const reward: Reward = action.payload;
       state.selectedReward = reward;
-      state.breakSessionDurationRemaining = reward.durationSeconds;
       state.sessionState = 'ONGOING_BREAK_SESSION';
-      state.breakSessionEntryTimeStamp = Date.now();
-      state.initialBreakSessionDuration = reward.durationSeconds;
-      state.nextBreakDuration = reward.durationSeconds;
-      state.generatedRewards = [];
-      state.shownRewardCombinations = [];
+      setCurrentSessionDuration(state, reward.durationSeconds);
+      state.currentStartTime = Date.now();
+      clearSessionRewards(state);
     })
     .addCase(setGeneratedRewards, (state, action) => {
       state.generatedRewards = action.payload;
@@ -279,56 +232,25 @@ const timerReducer = createReducer(initialState, (builder) => {
       }
     })
     .addCase(transitionToFocusSession, (state) => {
-      state.sessionState = 'ONGOING_FOCUS_SESSION';
-      state.focusSessionDurationRemaining = state.nextFocusDuration;
-      state.focusSessionCountdownTimeRemaining = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
-      state.initialFocusSessionCountdownDuration = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
-      state.focusSessionCountdownEntryTimeStamp = undefined;
-      state.focusSessionEntryTimeStamp = Date.now();
-      state.initialFocusSessionDuration = state.nextFocusDuration;
-      state.generatedRewards = [];
+      enterFocusSession(state);
     })
     .addCase(transitionToRewardSelection, (state) => {
-      const completedInSegment = state.initialFocusSessionDuration;
-      const newWorkRemaining = Math.max(0, state.workSessionDurationRemaining - completedInSegment);
-
       state.momentum = updateCEWMA(state.momentum, true);
 
-      const completedMinutes = secondsToMinutes(completedInSegment);
-      state.completedWorkMinutesToday += completedMinutes;
-      state.lastCompletedFocusSessionMinutes = completedMinutes;
-
-      state.rerolls = DEFAULT_REROLLS;
-      state.shownRewardCombinations = [];
+      state.lastCompletedFocusSessionSeconds = state.currentTimer;
+      state.totalRemaining = Math.max(
+        0,
+        state.totalRemaining - state.lastCompletedFocusSessionSeconds
+      );
 
       const durations = calculateNextSessionDurations(state);
-      state.nextFocusDuration = durations.nextFocusDuration;
-      state.nextBreakDuration = durations.nextBreakDuration;
+      setCurrentSessionDuration(state, durations.nextFocusDuration);
 
-      if (newWorkRemaining <= 0) {
-        state.sessionState = 'WORK_SESSION_COMPLETE';
-        state.workSessionDurationRemaining = 0;
-      } else {
-        state.sessionState = 'REWARD_SELECTION';
-        state.workSessionDurationRemaining = newWorkRemaining;
-      }
-
-      state.focusSessionDurationRemaining = state.nextFocusDuration;
-      state.focusSessionEntryTimeStamp = undefined;
-      state.initialFocusSessionDuration = state.nextFocusDuration;
-      state.lastFocusSessionCompleted = true;
-      state.isPaused = false;
+      resetRewards(state);
+      enterRewardSelectionOrComplete(state);
     })
     .addCase(transitionToFocusSessionCountdown, (state) => {
-      state.sessionState = 'FOCUS_SESSION_COUNTDOWN';
-      state.breakSessionDurationRemaining = state.nextBreakDuration;
-      state.focusSessionCountdownTimeRemaining = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
-      state.initialFocusSessionCountdownDuration = DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME;
-      state.focusSessionCountdownEntryTimeStamp = Date.now();
-      state.breakSessionEntryTimeStamp = undefined;
-      state.initialBreakSessionDuration = state.nextBreakDuration;
-      state.isPaused = false;
-      state.generatedRewards = [];
+      enterFocusCountdown(state);
     })
     .addCase(updateWeightMultipliers, (state, action) => {
       if (action.payload.fatigueMultiplier !== undefined) {
@@ -338,22 +260,11 @@ const timerReducer = createReducer(initialState, (builder) => {
         state.momentumWeightMultiplier = action.payload.momentumMultiplier;
       }
 
+      // Recalculate next durations for upcoming stages
       const durations = calculateNextSessionDurations(state);
-      state.nextFocusDuration = durations.nextFocusDuration;
-      state.nextBreakDuration = durations.nextBreakDuration;
-    })
-    .addCase(completeWorkSessionEarly, (state) => {
-      state.sessionState = 'WORK_SESSION_COMPLETE';
-      state.workSessionDurationRemaining = 0;
-      state.focusSessionDurationRemaining = 0;
-      state.breakSessionDurationRemaining = 0;
-      state.focusSessionEntryTimeStamp = undefined;
-      state.breakSessionEntryTimeStamp = undefined;
-      state.focusSessionCountdownEntryTimeStamp = undefined;
-      state.isPaused = false;
-      state.generatedRewards = [];
-      state.rerolls = DEFAULT_REROLLS;
-      state.shownRewardCombinations = [];
+      if (state.sessionState === 'BEFORE_WORK_SESSION') {
+        state.currentTimer = durations.nextFocusDuration;
+      }
     });
 });
 
