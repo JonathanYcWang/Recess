@@ -20,20 +20,20 @@
 .header {
   flex-shrink: 0;
   margin: 0;
-  font-family: 'BenchNine', sans-serif;
-  font-size: 48px;
+  font-family: var(--font-bench-nine);
+  font-size: var(--text-size-48);
   font-style: normal;
-  line-height: 1.2;
+  line-height: var(--line-height-48);
   text-align: center;
   color: var(--recess-black);
 }
 
 .caption {
   margin: 0;
-  font-family: 'Patrick Hand', cursive;
-  font-size: 20px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-20);
   font-style: normal;
-  line-height: normal;
+  line-height: var(--line-height-20);
   text-align: center;
   color: var(--recess-black);
 }
@@ -57,10 +57,10 @@
 .input {
   flex: 1;
   padding: var(--spacing-2) var(--spacing-4);
-  font-family: 'Patrick Hand', cursive;
-  font-size: 18px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-18);
   font-style: normal;
-  line-height: 24px;
+  line-height: var(--line-height-18);
   color: var(--recess-black);
   background-color: var(--recess-white);
   border: 3px solid var(--recess-black);
@@ -81,10 +81,10 @@
 .errorMessage {
   margin: 0;
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
-  font-size: 16px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-16);
   font-style: normal;
-  line-height: 24px;
+  line-height: var(--line-height-16);
   text-align: center;
   color: #d32f2f;
 }

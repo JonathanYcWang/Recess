@@ -13,8 +13,8 @@
 }
 
 .progressText {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--text-size-14);
+  font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
 }
 
@@ -29,8 +29,8 @@
 }
 
 .resultsTitle {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: var(--text-size-32);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin: 0;
 }
@@ -52,8 +52,8 @@
 }
 
 .resultLabel {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-size-14);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin: 0;
@@ -61,8 +61,8 @@
 }
 
 .resultValue {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--text-size-24);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
 }
 
@@ -79,6 +79,6 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  font-size: 18px;
+  font-size: var(--text-size-18);
   color: var(--text-secondary);
 }

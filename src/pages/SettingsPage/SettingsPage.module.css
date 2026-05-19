@@ -31,9 +31,9 @@
 }
 
 .sidebarHeader {
-  font-family: 'BenchNine', sans-serif;
-  font-size: 28px;
-  line-height: 1.2;
+  font-family: var(--font-bench-nine);
+  font-size: var(--text-size-28);
+  line-height: var(--line-height-28);
   color: var(--recess-black);
 }
 
@@ -71,8 +71,8 @@
 }
 
 .navItemLabel {
-  font-size: 18px;
-  line-height: 24px;
+  font-size: var(--text-size-18);
+  line-height: var(--line-height-18);
 }
 
 .main {

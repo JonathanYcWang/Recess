@@ -21,15 +21,15 @@
 }
 
 .title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--text-size-20);
+  font-weight: var(--font-weight-semibold);
   margin: 0 0 8px 0;
   color: #1a1a1a;
 }
 
 .description {
   text-align: center;
-  font-size: 32px;
+  font-size: var(--text-size-32);
   color: #666;
   margin: 20px;
 }

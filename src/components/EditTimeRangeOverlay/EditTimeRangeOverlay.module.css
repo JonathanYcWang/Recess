@@ -33,7 +33,7 @@
 .timeText {
   margin: 0;
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
+  font-family: var(--font-patrick);
   font-size: 36px;
   font-style: normal;
   line-height: 24px;
@@ -45,7 +45,7 @@
 .dash {
   margin: 0;
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
+  font-family: var(--font-patrick);
   font-size: 36px;
   font-style: normal;
   line-height: 24px;
@@ -63,11 +63,11 @@
 .repeatLabel {
   margin: 0;
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
-  font-size: 16px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-16);
   font-style: normal;
   line-height: normal;
-  letter-spacing: 0.32px;
+  letter-spacing: var(--letter-spacing-tiny);
   text-align: center;
   white-space: nowrap;
   color: var(--recess-black);
@@ -90,11 +90,11 @@
   margin: 0;
   border: none;
   border-radius: 25px;
-  font-family: 'Patrick Hand', cursive;
-  font-size: 18px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-18);
   font-style: normal;
-  line-height: 24px;
-  letter-spacing: 0.18px;
+  line-height: var(--line-height-18);
+  letter-spacing: var(--letter-spacing-micro);
   text-align: center;
   color: var(--recess-white);
   transition: transform 0.2s;

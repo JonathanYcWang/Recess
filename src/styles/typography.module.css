@@ -1,113 +1,52 @@
-/* Typography Design Tokens */
+/* Typography Design Tokens - CSS Variables */
 
-/* Font Families */
-.fontPatrick {
-  font-family: 'Patrick Hand', cursive;
+:root {
+  /* Font Families */
+  --font-patrick: 'Patrick Hand', cursive;
+  --font-bench-nine: 'BenchNine', sans-serif;
+
+  /* Font Sizes */
+  --text-size-96: 96px;
+  --text-size-64: 64px;
+  --text-size-48: 48px;
+  --text-size-41: 41px;
+  --text-size-32: 32px;
+  --text-size-28: 28px;
+  --text-size-26: 26px;
+  --text-size-24: 24px;
+  --text-size-22: 22px;
+  --text-size-20: 20px;
+  --text-size-18: 18px;
+  --text-size-16: 16px;
+  --text-size-14: 14px;
+  --text-size-12: 12px;
+
+  /* Line Heights */
+  --line-height-96: 96px;
+  --line-height-64: 1.2;
+  --line-height-48: 1.2;
+  --line-height-41: normal;
+  --line-height-32: 1.2;
+  --line-height-28: 1.2;
+  --line-height-26: normal;
+  --line-height-24: normal;
+  --line-height-22: 28px;
+  --line-height-20: normal;
+  --line-height-18: 24px;
+  --line-height-16: 20px;
+  --line-height-14: 18px;
+  --line-height-12: 16px;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Letter Spacing */
+  --letter-spacing-wide: 9.6px;
+  --letter-spacing-medium: 3.6px;
+  --letter-spacing-small: 1.2px;
+  --letter-spacing-tiny: 0.32px;
+  --letter-spacing-micro: 0.18px;
 }
-
-.fontBenchNine {
-  font-family: 'BenchNine', sans-serif;
-}
-
-/* Font Sizes */
-.text96 {
-  font-size: 96px;
-  line-height: 96px;
-}
-
-.text64 {
-  font-size: 64px;
-  line-height: 1.2;
-}
-
-.text41 {
-  font-size: 41px;
-  line-height: normal;
-}
-
-.text28 {
-  font-size: 28px;
-  line-height: 1.2;
-}
-
-.text26 {
-  font-size: 26px;
-  line-height: normal;
-}
-
-.text22 {
-  font-size: 22px;
-  line-height: 28px;
-}
-
-.text18 {
-  font-size: 18px;
-  line-height: 24px;
-}
-
-.text16 {
-  font-size: 16px;
-  line-height: 20px;
-}
-
-.text14 {
-  font-size: 14px;
-  line-height: 18px;
-}
-
-.text12 {
-  font-size: 12px;
-  line-height: 16px;
-}
-
-/* Font Weights */
-.fontRegular {
-  font-weight: 400;
-}
-
-/* Text Transforms */
-.uppercase {
-  text-transform: uppercase;
-}
-
-/* Letter Spacing */
-.trackingWide {
-  letter-spacing: 9.6px;
-}
-
-.trackingMedium {
-  letter-spacing: 3.6px;
-}
-
-.trackingSmall {
-  letter-spacing: 1.2px;
-}
-
-.trackingTiny {
-  letter-spacing: 0.32px;
-}
-
-.trackingMicro {
-  letter-spacing: 0.18px;
-}
-
-/* Text Alignment */
-.textCenter {
-  text-align: center;
-}
-
-.textRight {
-  text-align: right;
-}
-
-/* Text Decoration */
-.underline {
-  text-decoration: underline;
-  text-underline-position: from-font;
-}
-
-/* Whitespace */
-.whitespaceNowrap {
-  white-space: nowrap;
-}
-

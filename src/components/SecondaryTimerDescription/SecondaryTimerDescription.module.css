@@ -35,10 +35,10 @@
 }
 
 .text {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 1.2px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-12);
+  line-height: var(--line-height-12);
+  letter-spacing: var(--letter-spacing-small);
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--recess-black);

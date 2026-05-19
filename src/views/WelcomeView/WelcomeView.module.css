@@ -38,20 +38,20 @@
 .header {
   flex-shrink: 0;
   margin: 0;
-  font-family: 'BenchNine', sans-serif;
-  font-size: 48px;
+  font-family: var(--font-bench-nine);
+  font-size: var(--text-size-48);
   font-style: normal;
-  line-height: 1.2;
+  line-height: var(--line-height-48);
   text-align: center;
   color: var(--recess-black);
 }
 
 .caption {
   margin: 0;
-  font-family: 'Patrick Hand', cursive;
-  font-size: 20px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-20);
   font-style: normal;
-  line-height: normal;
+  line-height: var(--line-height-20);
   text-align: center;
   color: var(--recess-black);
 }

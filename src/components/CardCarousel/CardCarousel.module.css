@@ -20,7 +20,9 @@
   border: 3px solid var(--recess-black);
   border-radius: 20px;
   box-shadow: 10px 10px 4px 0px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   cursor: pointer;
 }
 
@@ -34,11 +36,11 @@
   margin-top: auto;
   padding: 0;
   padding-top: var(--spacing-1);
-  font-family: 'Patrick Hand', cursive;
+  font-family: var(--font-patrick);
   font-size: clamp(12px, 1.6vw, 16px);
   font-style: normal;
   line-height: normal;
-  letter-spacing: 0.32px;
+  letter-spacing: var(--letter-spacing-tiny);
   text-align: center;
   color: var(--recess-black);
 }
@@ -47,11 +49,11 @@
   margin: 0;
   margin-top: var(--spacing-1);
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
+  font-family: var(--font-patrick);
   font-size: clamp(12px, 1.6vw, 16px);
   font-style: normal;
   line-height: normal;
-  letter-spacing: 0.32px;
+  letter-spacing: var(--letter-spacing-tiny);
   color: var(--recess-black);
 }
 
@@ -59,7 +61,7 @@
   width: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
+  font-family: var(--font-patrick);
   font-size: clamp(18px, 2.6vw, 26px);
   font-style: normal;
   line-height: normal;

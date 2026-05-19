@@ -57,11 +57,13 @@
   flex-shrink: 0;
   margin: 0;
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
-  font-size: 18px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-18);
   font-style: normal;
-  line-height: 24px;
-  letter-spacing: 0.18px;
+  line-height: var(--line-height-18);
+  letter-spacing: var(--letter-spacing-micro);
+  text-align: center;
+  white-space: nowrap;
 }
 
 .primary .text {
