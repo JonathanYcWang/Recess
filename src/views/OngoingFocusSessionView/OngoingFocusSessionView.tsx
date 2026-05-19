@@ -36,7 +36,7 @@ const OngoingFocusSessionView = ({
             iconSrc={PlayIcon}
             variant="primary"
           />
-          <Button text="Wrap up focus session early" onClick={endSessionEarly} variant="tertiary" />
+          <Button text="End Focus Session Early" onClick={endSessionEarly} variant="tertiary" />
         </div>
       ) : (
         <Button

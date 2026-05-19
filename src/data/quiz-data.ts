@@ -1,6 +1,6 @@
 import { QuizQuestion } from '../types/quiz';
 
-export const quizQuestions: QuizQuestion[] = [
+const quizQuestions: QuizQuestion[] = [
   {
     id: 'Q1',
     text: "You're hesitant to start the first quest.",

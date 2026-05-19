@@ -3,12 +3,14 @@ import type { QuizReduxState } from '../actions/quizActions';
 import { restartQuiz, selectOption, setQuizState, updateQuizState } from '../actions/quizActions';
 import { calculateQuizResults } from '../../data/quiz-scoring';
 
-const initialState: QuizReduxState = {
+const createInitialState = (): QuizReduxState => ({
   currentQuestionId: 'Q1',
   selectedChoices: [],
   isComplete: false,
   results: null,
-};
+});
+
+const initialState = createInitialState();
 
 const quizReducer = createReducer(initialState, (builder) => {
   builder
@@ -27,7 +29,7 @@ const quizReducer = createReducer(initialState, (builder) => {
 
       state.currentQuestionId = action.payload.next;
     })
-    .addCase(restartQuiz, () => initialState);
+    .addCase(restartQuiz, () => createInitialState());
 });
 
 export default quizReducer;

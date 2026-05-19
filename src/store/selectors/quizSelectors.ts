@@ -2,12 +2,11 @@ import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 import { getQuestionById } from '../../data/quiz-data';
 
-export const selectQuizState = (state: RootState) => state.quiz;
+const selectQuizState = (state: RootState) => state.quiz;
 
-export const selectCurrentQuestionId = createSelector(
-  [selectQuizState],
-  (quiz) => quiz.currentQuestionId
-);
+const selectCurrentQuestionId = createSelector([
+  selectQuizState,
+], (quiz) => quiz.currentQuestionId);
 
 export const selectSelectedChoices = createSelector(
   [selectQuizState],

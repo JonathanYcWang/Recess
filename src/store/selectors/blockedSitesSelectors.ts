@@ -2,7 +2,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 
 // Base selector
-export const selectBlockedSitesState = (state: RootState) => state.blockedSites;
+const selectBlockedSitesState = (state: RootState) => state.blockedSites;
 
 // Memoized selectors
 export const selectBlockedSites = createSelector(
@@ -10,17 +10,9 @@ export const selectBlockedSites = createSelector(
   (blockedSites) => blockedSites.sites
 );
 
-export const selectIsBlockedSitesLoaded = createSelector(
-  [selectBlockedSitesState],
-  (blockedSites) => blockedSites.isLoaded
-);
 
 export const selectIsInWorkingSession = createSelector(
   [selectBlockedSitesState],
   (blockedSites) => blockedSites.isInWorkingSession
 );
 
-export const selectShouldBlockSites = createSelector(
-  [selectIsInWorkingSession, selectBlockedSites],
-  (isInSession, sites) => isInSession && sites.length > 0
-);

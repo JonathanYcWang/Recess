@@ -9,9 +9,7 @@ const getCombinationKey = (site: string, minutes: number): string => `${site}-${
 /**
  * Generate all possible reward combinations for given sites
  */
-export const getAllPossibleCombinations = (
-  sites: string[]
-): Array<{ site: string; minutes: number }> => {
+const getAllPossibleCombinations = (sites: string[]): Array<{ site: string; minutes: number }> => {
   const numIntervals = Math.floor(MAX_REWARD_TIME / REWARD_TIME_INTERVAL);
   return sites.flatMap((site) =>
     Array.from({ length: numIntervals }, (_, i) => ({

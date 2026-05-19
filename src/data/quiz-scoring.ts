@@ -3,7 +3,7 @@ import { QuizOption, QuizResults, MBTIAxis, FrictionSignal } from '../types/quiz
 /**
  * Calculate MBTI type from user's quiz choices
  */
-export const calculateMBTI = (choices: QuizOption[]): string => {
+const calculateMBTI = (choices: QuizOption[]): string => {
   const axes: Record<MBTIAxis, number> = {
     E: 0,
     I: 0,
@@ -35,7 +35,7 @@ export const calculateMBTI = (choices: QuizOption[]): string => {
 /**
  * Determine dominant friction signal(s) from user's choices
  */
-export const calculateDominantFriction = (choices: QuizOption[]): FrictionSignal[] => {
+const calculateDominantFriction = (choices: QuizOption[]): FrictionSignal[] => {
   const counts: Record<string, number> = {};
 
   // Count friction signals

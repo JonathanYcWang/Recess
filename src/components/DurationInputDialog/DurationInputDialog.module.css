@@ -14,9 +14,9 @@
 .dialog {
   background: white;
   border-radius: 12px;
+  border: 2px solid var(--recess-black);
   padding: 24px;
-  width: 90%;
-  max-width: 400px;
+  min-width: 500px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -28,25 +28,22 @@
 }
 
 .description {
-  font-size: 14px;
+  text-align: center;
+  font-size: 32px;
   color: #666;
-  margin: 0 0 4px 0;
+  margin: 20px;
 }
 
-.inputContainer {
-  margin-bottom: 24px;
-}
-
-.label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.buttonContainer {
+.presetTimes {
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  margin-top: 20px;
+  > button {
+    flex: 1 1 0;
+  }
+}
+
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
 }

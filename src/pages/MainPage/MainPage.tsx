@@ -23,7 +23,8 @@ const MainPage = () => {
     selectReward,
     handleReroll,
     endSessionEarly,
-    resetTimerState,
+    endWorkSessionEarly,
+    transitionToBeforeWorkSession,
     setTotalTimer,
     updateWeightMultipliers,
     rewards,
@@ -108,11 +109,14 @@ const MainPage = () => {
             formatTime={formatTime}
             startFocusSession={startFocusSession}
             updateWeightMultipliers={updateWeightMultipliers}
+            endWorkSessionEarly={endWorkSessionEarly}
           />
         );
 
       case 'WORK_SESSION_COMPLETE':
-        return <WorkSessionCompleteView resetTimerState={resetTimerState} />;
+        return (
+          <WorkSessionCompleteView transitionToBeforeWorkSession={transitionToBeforeWorkSession} />
+        );
 
       default:
         return null;

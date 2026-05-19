@@ -123,5 +123,3 @@ export const loadStateFromStorage = async () => {
     quiz: quizState,
   };
 };
-
-export { storageAPI };

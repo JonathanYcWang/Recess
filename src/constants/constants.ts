@@ -4,7 +4,6 @@
 
 // Focus session countdown transition period (in seconds)
 // Time given to user to prepare before re-entering focus session
-export const DEFAULT_FOCUS_SESSION_COUNTDOWN_TIME = 10;
 
 // Daily work session target (in seconds)
 // Total duration user aims to work during the day
@@ -71,7 +70,6 @@ export const BASE_WORK_MINUTES = 10; // Minimum baseline session length
 export const MOMENTUM_WORK_WEIGHT = 30; // Reward for high completion rate
 export const FATIGUE_WORK_WEIGHT = 25; // Primary limiter based on tiredness
 export const PROGRESS_WORK_WEIGHT = 10; // Slight reduction as day progresses
-export const MIN_WORK_SESSION_MINUTES = 5; // Hard floor for session length
 
 /**
  * BREAK DURATION FORMULA

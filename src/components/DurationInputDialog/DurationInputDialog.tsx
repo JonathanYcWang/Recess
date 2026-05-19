@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Time } from '@internationalized/date';
+import { useState, useEffect } from 'react';
 
 import Button from '../Button/Button';
-import { TimeField } from '../TimeField/TimeField';
+import Icon from '../Icon/Icon';
+import TimesIcon from '../../assets/times.svg?url';
+import Slider from '@mui/material/Slider';
 
 import styles from './DurationInputDialog.module.css';
 
@@ -13,63 +14,79 @@ interface DurationInputDialogProps {
   duration?: number;
 }
 
-export const secondsToTime = (seconds: number): Time => {
-  const clamped = Math.min(seconds, 23 * 3600 + 59 * 60);
+const minutesToDisplay = (minutes: number) => {
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
 
-  const hours = Math.floor(clamped / 3600);
-  const minutes = Math.floor((clamped % 3600) / 60);
+  if (remainingMinutes == 0) {
+    return `${hours}h`;
+  }
 
-  return new Time(hours, minutes);
+  return `${hours}h:${remainingMinutes}m`;
 };
 
-export const timeToSeconds = (time: Time): number => {
-  return time.hour * 3600 + time.minute * 60 + time.second;
+const minutesToSeconds = (minutes: number): number => {
+  return minutes * 60;
 };
 
+const secondsToMinutes = (seconds: number): number => {
+  return Math.round(seconds / 60);
+};
+
+const PRESET_TIMES_MINUTES = [30, 60, 90, 120, 180];
 const DurationInputDialog = ({
   isOpen,
   onClose,
   onConfirm,
   duration = 60,
 }: DurationInputDialogProps) => {
-  const [time, setTime] = useState(() => secondsToTime(duration));
+  const [time, setTime] = useState(() => secondsToMinutes(duration));
 
+  useEffect(() => {
+    onConfirm(minutesToSeconds(time));
+  }, [time, onConfirm]);
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onConfirm(timeToSeconds(time));
-    onClose();
-  };
-
   return (
-    <div className={styles.overlay}>
-      <div className={styles.dialog}>
-        <h2 className={styles.title}>Set Work Session Duration</h2>
-        <p className={styles.description}>Duration (Hours:Minutes)</p>
-        <form
-          onSubmit={handleSubmit}
-          onKeyDownCapture={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
-        >
-          <div className={styles.inputContainer}>
-            <TimeField
-              aria-label="Duration (Hours:Minutes)"
-              value={time}
-              onChange={(value) => value && setTime(value)}
-              hourCycle={24}
-            />
-          </div>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.headerContainer}>
+          <h2 className={styles.title}>Set Work Duration</h2>
+          <Icon src={TimesIcon} alt="Close" size={16} onClick={onClose} />
+        </div>
+        <p className={styles.description}>{minutesToDisplay(time)}</p>
+        <Slider
+          sx={{
+            color: 'var(--recess-black)',
+            height: 8,
 
-          <div className={styles.buttonContainer}>
-            <Button text="Cancel" onClick={onClose} variant="secondary" type="button" />
-            <Button text="Confirm" variant="primary" type="submit" />
-          </div>
-        </form>
+            '& .MuiSlider-thumb': {
+              height: 20,
+              width: 20,
+              backgroundColor: 'var(--recess-white)',
+              border: '2px solid currentColor',
+            },
+          }}
+          aria-label="Work Session Duration"
+          value={time}
+          step={15}
+          min={15}
+          max={480}
+          onChange={(_e: Event, value: number) => setTime(value)}
+        />
+        <div className={styles.presetTimes}>
+          {PRESET_TIMES_MINUTES.map((minutes) => (
+            <Button
+              key={minutes}
+              text={minutesToDisplay(minutes)}
+              onClick={() => setTime(minutes)}
+              variant="secondary"
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

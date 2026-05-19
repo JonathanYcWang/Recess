@@ -16,14 +16,15 @@ import {
 import {
   addShownRewardCombination,
   endSessionEarly,
+  endWorkSessionEarly,
   pauseSession,
   rerollReward,
-  resetTimer,
   resumeSession,
   selectReward,
   setGeneratedRewards,
   setTotalTimer,
   startFocusSession,
+  transitionToBeforeWorkSession,
   transitionToFocusSession,
   transitionToFocusSessionCountdown,
   transitionToRewardSelection,
@@ -133,6 +134,17 @@ const enterFocusCountdown = (state: TimerState) => {
   clearSessionRewards(state);
 };
 
+const enterBeforeWorkSession = (state: TimerState) => {
+  state.sessionState = 'BEFORE_WORK_SESSION';
+  const durations = calculateNextSessionDurations(state);
+  setCurrentSessionDuration(state, durations.nextFocusDuration);
+  state.currentStartTime = undefined;
+  state.isPaused = false;
+  state.selectedReward = null;
+  state.lastFocusSessionCompleted = false;
+  clearSessionRewards(state);
+};
+
 const enterRewardSelectionOrComplete = (state: TimerState) => {
   if (state.totalRemaining <= 0) {
     state.sessionState = 'WORK_SESSION_COMPLETE';
@@ -169,7 +181,6 @@ const timerReducer = createReducer(initialState, (builder) => {
     .addCase(updateTimerState, (state, action) => {
       Object.assign(state, action.payload);
     })
-    .addCase(resetTimer, () => createInitialTimerState())
     .addCase(setTotalTimer, (state, action) => {
       state.totalTimer = action.payload;
       state.totalRemaining = action.payload;
@@ -222,6 +233,31 @@ const timerReducer = createReducer(initialState, (builder) => {
       enterRewardSelectionOrComplete(state);
       // enterBeforeWorkSession(state);
     })
+    .addCase(endWorkSessionEarly, (state) => {
+      if (
+        state.sessionState !== 'ONGOING_FOCUS_SESSION' &&
+        state.sessionState !== 'FOCUS_SESSION_COUNTDOWN'
+      ) {
+        return;
+      }
+
+      if (state.sessionState === 'ONGOING_FOCUS_SESSION') {
+        state.lastFocusSessionCompleted = false;
+        state.momentum = updateCEWMA(state.momentum, false);
+        state.lastCompletedFocusSessionSeconds = state.currentTimer - state.currentTimerRemaining;
+      }
+
+      state.totalRemaining = 0;
+      state.currentStartTime = undefined;
+      state.isPaused = false;
+      state.currentTimer = 0;
+      state.currentTimerRemaining = 0;
+      state.selectedReward = null;
+      state.lastFocusSessionCompleted = false;
+      resetRewards(state);
+      clearSessionRewards(state);
+      state.sessionState = 'WORK_SESSION_COMPLETE';
+    })
     .addCase(selectReward, (state, action) => {
       const reward: Reward = action.payload;
       state.selectedReward = reward;
@@ -246,6 +282,9 @@ const timerReducer = createReducer(initialState, (builder) => {
     })
     .addCase(transitionToFocusSession, (state) => {
       enterFocusSession(state);
+    })
+    .addCase(transitionToBeforeWorkSession, (state) => {
+      enterBeforeWorkSession(state);
     })
     .addCase(transitionToRewardSelection, (state) => {
       state.momentum = updateCEWMA(state.momentum, true);

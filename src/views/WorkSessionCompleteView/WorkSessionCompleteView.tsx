@@ -1,23 +1,24 @@
+import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import Button from '../../components/Button/Button';
-import PlayIcon from '../../assets/play.svg?url';
 import styles from './WorkSessionCompleteView.module.css';
-
 interface WorkSessionCompleteViewProps {
-  resetTimerState: () => void;
+  transitionToBeforeWorkSession: () => void;
 }
 
-const WorkSessionCompleteView = ({ resetTimerState }: WorkSessionCompleteViewProps) => {
+const WorkSessionCompleteView = ({
+  transitionToBeforeWorkSession,
+}: WorkSessionCompleteViewProps) => {
   return (
     <>
+      <SecondaryTimerDescription text="Work Session Complete" />
       <div className={styles.headerContainer}>
         <p className={styles.header}>Congrats!</p>
         <p className={styles.caption}>You've completed your work session for today.</p>
       </div>
       <div className={styles.contentContainer}>
         <Button
-          text="Reset & Start Fresh"
-          onClick={resetTimerState}
-          iconSrc={PlayIcon}
+          text="Start Next Work Session"
+          onClick={transitionToBeforeWorkSession}
           variant="primary"
         />
       </div>

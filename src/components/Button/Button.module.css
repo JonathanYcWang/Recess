@@ -1,7 +1,9 @@
 .button {
   position: relative;
   display: flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   height: fit-content;
   box-sizing: border-box;
@@ -15,7 +17,7 @@
 }
 
 .button:hover {
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 .primary {
@@ -60,8 +62,6 @@
   font-style: normal;
   line-height: 24px;
   letter-spacing: 0.18px;
-  text-align: center;
-  white-space: nowrap;
 }
 
 .primary .text {

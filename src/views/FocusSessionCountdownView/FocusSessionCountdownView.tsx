@@ -16,6 +16,7 @@ interface FocusSessionCountdownViewProps {
     fatigueMultiplier?: number;
     momentumMultiplier?: number;
   }) => void;
+  endWorkSessionEarly: () => void;
 }
 
 const FocusSessionCountdownView = ({
@@ -24,6 +25,7 @@ const FocusSessionCountdownView = ({
   formatTime,
   startFocusSession,
   updateWeightMultipliers,
+  endWorkSessionEarly,
 }: FocusSessionCountdownViewProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -69,6 +71,7 @@ const FocusSessionCountdownView = ({
           iconSrc={PlayIcon}
           variant="primary"
         />
+        <Button text="End Work Session Early" onClick={endWorkSessionEarly} variant="tertiary" />
       </div>
       <EnergyCheckDialog
         open={dialogOpen}
