@@ -43,7 +43,8 @@ const calculateNextSessionDurations = (
   const fatigue = calculateFatigue(
     state.totalTimer,
     state.totalRemaining,
-    state.lastCompletedFocusSessionSeconds
+    state.lastCompletedFocusSessionSeconds,
+    state.lastFocusSessionCompleted
   );
 
   let focusDuration = calculateFocusSessionDuration(
@@ -160,20 +161,6 @@ const enterRewardSelectionOrComplete = (state: TimerState) => {
   state.isPaused = false;
 };
 
-// const enterBeforeWorkSession = (state: TimerState) => {
-//   if (state.totalRemaining <= 0) {
-//     enterRewardSelectionOrComplete(state);
-//     return;
-//   } else {
-//     state.sessionState = 'BEFORE_WORK_SESSION';
-//     const durations = calculateNextSessionDurations(state);
-//     setCurrentSessionDuration(state, durations.nextFocusDuration);
-//     state.currentStartTime = undefined;
-//     state.isPaused = false;
-//     clearSessionRewards(state);
-//   }
-// };
-
 const initialState = createInitialTimerState();
 
 const timerReducer = createReducer(initialState, (builder) => {
@@ -231,7 +218,6 @@ const timerReducer = createReducer(initialState, (builder) => {
 
       resetRewards(state);
       enterRewardSelectionOrComplete(state);
-      // enterBeforeWorkSession(state);
     })
     .addCase(endWorkSessionEarly, (state) => {
       if (

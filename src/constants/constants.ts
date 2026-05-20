@@ -66,7 +66,7 @@ export const FATIGUE_SESSION_SIZE_THRESHOLD = 0.5; // 50% of daily target
  * - P = progress toward daily goal (0 to 1+)
  */
 
-export const BASE_WORK_MINUTES = 10; // Minimum baseline session length
+export const BASE_WORK = 10 * 60; // Minimum baseline session length
 export const MOMENTUM_WORK_WEIGHT = 30; // Reward for high completion rate
 export const FATIGUE_WORK_WEIGHT = 25; // Primary limiter based on tiredness
 export const PROGRESS_WORK_WEIGHT = 10; // Slight reduction as day progresses
@@ -80,7 +80,7 @@ export const PROGRESS_WORK_WEIGHT = 10; // Slight reduction as day progresses
  * High momentum allows longer breaks (user has "earned" more recovery time).
  */
 
-export const BASE_BREAK_MINUTES = 5; // Minimum baseline break length
+export const BASE_BREAK = 5 * 60; // Minimum baseline break length
 export const FATIGUE_BREAK_WEIGHT = 10; // Primary driver of break length
 export const PROGRESS_BREAK_WEIGHT = 2; // Longer breaks later in day
 export const MOMENTUM_BREAK_WEIGHT = 4; // High momentum = can afford longer recovery

@@ -2,11 +2,11 @@ import {
   CEWMA_ALPHA,
   SESSION_STRAIN_WEIGHT,
   FATIGUE_SESSION_SIZE_THRESHOLD,
-  BASE_WORK_MINUTES,
+  BASE_WORK,
   MOMENTUM_WORK_WEIGHT,
   FATIGUE_WORK_WEIGHT,
   PROGRESS_WORK_WEIGHT,
-  BASE_BREAK_MINUTES,
+  BASE_BREAK,
   FATIGUE_BREAK_WEIGHT,
   PROGRESS_BREAK_WEIGHT,
   MOMENTUM_BREAK_WEIGHT,
@@ -17,37 +17,50 @@ export const calculateProgress = (totalTimer: number, totalRemainingTime: number
   return (totalTimer - totalRemainingTime) / totalTimer;
 };
 
-/**
- * Update CEWMA (Completion Exponentially Weighted Moving Average) after a session
- * Formula: C_ewma ← α*c + (1-α)*C_ewma
- *
- * @param currentCEWMA - Current momentum score (0.0 to 1.0)
- * @param sessionCompleted - Whether the session was completed (true) or abandoned (false)
- * @returns Updated CEWMA value (0.0 to 1.0)
- */
 export const updateCEWMA = (currentCEWMA: number, sessionCompleted: boolean): number => {
   const c = sessionCompleted ? 1 : 0;
   return CEWMA_ALPHA * c + (1 - CEWMA_ALPHA) * currentCEWMA;
 };
 
+// export const calculateFatigue = (
+//   totalTimer: number,
+//   lastCompletedSessionSeconds: number,
+//   progress: number
+// ): number => {
+//   if (totalTimer <= 0) return 0;
+
+//   // Base fatigue from total work accumulation (unitless ratio)
+//   const fatigueBase = Math.pow(progress, 2);
+
+//   // Recent session strain
+//   const sessionSizeThreshold = FATIGUE_SESSION_SIZE_THRESHOLD * totalTimer;
+//   const sessionStrainRatio = lastCompletedSessionSeconds / sessionSizeThreshold;
+//   const sessionStrain = Math.pow(sessionStrainRatio, 2);
+
+//   // Combine base fatigue with weighted session strain
+//   return fatigueBase + SESSION_STRAIN_WEIGHT * sessionStrain;
+// };
+
 export const calculateFatigue = (
   totalTimer: number,
-  totalRemainingTime: number,
-  lastCompletedSessionSeconds: number
+  totalTimerRemaining: number,
+  lastCompletedFocusSessionSeconds: number,
+  lastFocusSessionCompleted: boolean
 ): number => {
-  if (totalTimer <= 0) return 0;
+  const workStarted = lastFocusSessionCompleted || lastCompletedFocusSessionSeconds > 0;
+  if (!workStarted) return 0;
 
-  // Base fatigue from total work accumulation (unitless ratio)
-  const progressRatio = (totalTimer - totalRemainingTime) / totalTimer;
-  const fatigueBase = Math.pow(progressRatio, 2);
+  const durationFactor = Math.min(totalTimer / 480, 1) * 100;
+  const dayProgressFactor = totalTimer > 0 ? (1 - totalTimerRemaining / totalTimer) * 100 : 0;
+  const incompletionPenalty = lastFocusSessionCompleted ? 0 : 100;
+  const sessionEffortFactor = Math.min(lastCompletedFocusSessionSeconds / 90, 1) * 100;
 
-  // Recent session strain (sessions longer than half the daily target are "big")
-  const sessionSizeThreshold = FATIGUE_SESSION_SIZE_THRESHOLD * totalTimer;
-  const sessionStrainRatio = lastCompletedSessionSeconds / sessionSizeThreshold;
-  const sessionStrain = Math.pow(sessionStrainRatio, 2);
-
-  // Combine base fatigue with weighted session strain
-  return fatigueBase + SESSION_STRAIN_WEIGHT * sessionStrain;
+  return Math.round(
+    0.4 * durationFactor +
+      0.25 * dayProgressFactor +
+      0.2 * incompletionPenalty +
+      0.15 * sessionEffortFactor
+  );
 };
 
 export const calculateFocusSessionDuration = (
@@ -58,7 +71,7 @@ export const calculateFocusSessionDuration = (
   fatigueWeightMultiplier: number = 1.0
 ): number => {
   const duration =
-    BASE_WORK_MINUTES * 60 +
+    BASE_WORK +
     MOMENTUM_WORK_WEIGHT * momentumWeightMultiplier * momentum -
     FATIGUE_WORK_WEIGHT * fatigueWeightMultiplier * fatigue -
     PROGRESS_WORK_WEIGHT * progress;
@@ -74,14 +87,10 @@ export const calculateBreakDuration = (
   momentumWeightMultiplier: number = 1.0
 ): number => {
   const duration =
-    BASE_BREAK_MINUTES * 60 +
+    BASE_BREAK +
     FATIGUE_BREAK_WEIGHT * fatigueWeightMultiplier * fatigue +
     PROGRESS_BREAK_WEIGHT * progress +
     MOMENTUM_BREAK_WEIGHT * momentumWeightMultiplier * momentum;
 
   return duration;
-};
-
-export const secondsToMinutes = (seconds: number): number => {
-  return Math.round(seconds / 60);
 };
