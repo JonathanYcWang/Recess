@@ -65,8 +65,6 @@ export const useTimer = () => {
   const momentumScore = useSelector((state: RootState) => selectMomentumScore(state));
   const [, setTick] = useState(0);
 
-  const seenRewardCombinations = [...shownCombinations];
-
   const handleExpiredSession = useCallback(
     (remaining: number) => {
       if (remaining > 0 || isPaused) {
@@ -117,14 +115,15 @@ export const useTimer = () => {
   const currentRemaining = getActiveRemainingSeconds();
 
   useEffect(() => {
-    if (sessionState === SESSION_STATES.REWARD_SELECTION && blockedSites.size > 0) {
+    if (sessionState === SESSION_STATES.REWARD_SELECTION && blockedSites.length > 0) {
+      const seenRewardCombinations = [...shownCombinations];
       const rewards = Array.from({ length: 3 }, () =>
         generateReward(blockedSites, seenRewardCombinations, fatigueScore, momentumScore)
       );
       dispatch(setGeneratedRewards(rewards));
       dispatch(setShownRewardCombinations(seenRewardCombinations));
     }
-  }, [sessionState, dispatch, blockedSites, seenRewardCombinations, fatigueScore, momentumScore]);
+  }, [sessionState, dispatch]);
 
   // Timer tick and notification effect
   useEffect(() => {
@@ -190,7 +189,8 @@ export const useTimer = () => {
 
   const handleReroll = useCallback(
     (index: number) => {
-      if (rerolls > 0 && blockedSites.size > 0) {
+      if (rerolls > 0 && blockedSites.length > 0) {
+        const seenRewardCombinations = [...shownCombinations];
         const reward = generateReward(
           blockedSites,
           seenRewardCombinations,
@@ -201,7 +201,7 @@ export const useTimer = () => {
         dispatch(setShownRewardCombinations(seenRewardCombinations));
       }
     },
-    [rerolls, blockedSites, seenRewardCombinations, dispatch]
+    [rerolls, blockedSites, shownCombinations, dispatch, fatigueScore, momentumScore]
   );
 
   return {

@@ -91,6 +91,6 @@ export const calculateBreakDuration = (fatigueScore: number, momentumScore: numb
     Math.min(MAX_BREAK_DURATION, baseDuration + randomOffset)
   );
 
-  const roundedDuration = Math.floor(randomizedDuration / 5) * 5;
+  const roundedDuration = Math.floor(randomizedDuration / 300) * 300;
   return roundedDuration;
 };

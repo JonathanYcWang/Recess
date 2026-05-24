@@ -9,7 +9,7 @@ import {
   startWorkingSession,
 } from '../actions/blockedSitesActions';
 
-const DEFAULT_SITES = new Set<string>([
+const DEFAULT_SITES = [
   'youtube.com',
   'instagram.com',
   'facebook.com',
@@ -21,7 +21,7 @@ const DEFAULT_SITES = new Set<string>([
   'primevideo.com',
   'amazon.com',
   'reddit.com',
-]);
+];
 
 const initialState: BlockedSitesState = {
   sites: DEFAULT_SITES,
@@ -37,12 +37,12 @@ const blockedSitesReducer = createReducer(initialState, (builder) => {
       state.isInWorkingSession = false;
     })
     .addCase(addBlockedSite, (state, action) => {
-      if (!state.sites.has(action.payload)) {
-        state.sites.add(action.payload);
+      if (!state.sites.includes(action.payload)) {
+        state.sites.push(action.payload);
       }
     })
     .addCase(removeBlockedSite, (state, action) => {
-      state.sites.delete(action.payload);
+      state.sites = state.sites.filter((site) => site !== action.payload);
     })
     .addCase(markBlockedSitesLoaded, (state) => {
       state.isLoaded = true;

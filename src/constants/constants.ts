@@ -9,7 +9,7 @@ export const CEWMA_ALPHA = 0.5;
 export const MAX_FOCUS_SESSION_DURATION = 60 * 60;
 export const MIN_FOCUS_SESSION_DURATION = 15 * 60;
 
-export const MAX_BREAK_DURATION = 15 * 60;
+export const MAX_BREAK_DURATION = 20 * 60;
 export const MIN_BREAK_DURATION = 5 * 60;
 
 export const FINAL_STRETCH_THRESHOLD = 0.15;

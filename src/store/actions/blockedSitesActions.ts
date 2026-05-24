@@ -1,7 +1,7 @@
 import { createAction } from '@reduxjs/toolkit';
 
 export interface BlockedSitesState {
-  sites: Set<string>;
+  sites: string[];
   isLoaded: boolean;
   isInWorkingSession: boolean;
 }

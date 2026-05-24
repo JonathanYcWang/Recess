@@ -216,7 +216,7 @@ const timerReducer = createReducer(initialState, (builder) => {
       const reward: Reward = action.payload;
       state.selectedReward = reward;
       state.sessionState = SESSION_STATES.ONGOING_BREAK_SESSION;
-      setCurrentSessionDuration(state, reward.durationSeconds);
+      setCurrentSessionDuration(state, reward.duration);
       state.currentStartTime = Date.now();
       clearSessionRewards(state);
     })

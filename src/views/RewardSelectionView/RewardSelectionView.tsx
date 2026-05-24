@@ -1,6 +1,7 @@
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CardCarousel, { CardCarouselItem } from '../../components/CardCarousel/CardCarousel';
 import { Reward } from '../../types/reward';
+import { formatWorkSessionTime } from '../../services/timerService';
 import styles from './RewardSelectionView.module.css';
 
 interface RewardSelectionViewProps {
@@ -18,7 +19,7 @@ const RewardSelectionView = ({
 }: RewardSelectionViewProps) => {
   const rewardCards: CardCarouselItem[] = rewards.map((reward: Reward, index: number) => ({
     id: reward.id,
-    title: reward.duration,
+    title: formatWorkSessionTime(reward.duration),
     description: reward.name,
     onClick: () => selectReward(reward),
     refreshOnClick: () => handleReroll(index),

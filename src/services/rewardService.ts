@@ -8,8 +8,7 @@ const createReward = (site: string, duration: number, rewardKey: string): Reward
   return {
     id: rewardKey,
     name: site,
-    duration: `${duration * 60} min`,
-    durationSeconds: duration,
+    duration: duration,
   };
 };
 
@@ -30,7 +29,7 @@ const getRandomCombo = (
 };
 
 export const generateReward = (
-  sites: Set<string>,
+  sites: string[],
   shownCombinations: string[],
   fatigueScore: number,
   momentumScore: number
