@@ -1,14 +1,12 @@
 import { createAction } from '@reduxjs/toolkit';
 
 export interface BlockedSitesState {
-  sites: string[];
+  sites: Set<string>;
   isLoaded: boolean;
   isInWorkingSession: boolean;
 }
 
-export const setBlockedSites = createAction<string[] | BlockedSitesState>(
-  'blockedSites/setBlockedSites'
-);
+export const setBlockedSites = createAction<BlockedSitesState>('blockedSites/setBlockedSites');
 export const addBlockedSite = createAction<string>('blockedSites/addBlockedSite');
 export const removeBlockedSite = createAction<string>('blockedSites/removeBlockedSite');
 export const markBlockedSitesLoaded = createAction('blockedSites/markBlockedSitesLoaded');

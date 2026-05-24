@@ -7,11 +7,16 @@
   width: 100%;
 }
 
-.logo {
+.logoButton {
   position: relative;
+  display: block;
   width: 120px;
   height: 40px;
   flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .logoImage {

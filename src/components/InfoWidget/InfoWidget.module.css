@@ -1,0 +1,210 @@
+.widget {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  background: var(--recess-white);
+  border: 2px solid var(--recess-black);
+  border-radius: 22px;
+  box-shadow: 8px 8px 0 var(--recess-black);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-22);
+  line-height: 1;
+  color: var(--recess-black);
+}
+
+.headerRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.scoreGroup {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+}
+
+.scoreValue {
+  margin: 0;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-48);
+  line-height: 0.9;
+  color: var(--recess-black);
+}
+
+.scoreUnit {
+  margin: 0;
+  padding-bottom: 4px;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-16);
+  color: var(--recess-gray-light);
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-14);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.statusIdle {
+  color: var(--recess-gray-light);
+  background: var(--recess-gray-light-bg);
+  border-color: var(--recess-gray-border);
+}
+
+.statusFresh {
+  color: var(--recess-black);
+  background: var(--recess-gray-light-bg-alt);
+  border-color: var(--recess-green);
+}
+
+.statusModerate {
+  color: var(--recess-black);
+  background: var(--recess-gray-light-bg);
+  border-color: var(--recess-gray-border);
+}
+
+.statusFatigued {
+  color: var(--recess-black);
+  background: #f9eadf;
+  border-color: #d85a30;
+}
+
+.statusExhausted {
+  color: var(--recess-white);
+  background: var(--recess-black);
+  border-color: var(--recess-black);
+}
+
+.progress {
+  width: 100%;
+  height: 12px;
+  border: none;
+  border-radius: 999px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--recess-gray-light-bg);
+}
+
+.progress::-webkit-progress-bar {
+  background: var(--recess-gray-light-bg);
+  border-radius: 999px;
+}
+
+.progress::-webkit-progress-value {
+  border-radius: 999px;
+  background: var(--recess-black);
+}
+
+.progress::-moz-progress-bar {
+  border-radius: 999px;
+  background: var(--recess-black);
+}
+
+.progressFresh::-webkit-progress-value,
+.progressFresh::-moz-progress-bar {
+  background: var(--recess-green);
+}
+
+.progressModerate::-webkit-progress-value,
+.progressModerate::-moz-progress-bar {
+  background: var(--recess-black);
+}
+
+.progressFatigued::-webkit-progress-value,
+.progressFatigued::-moz-progress-bar {
+  background: #d85a30;
+}
+
+.progressExhausted::-webkit-progress-value,
+.progressExhausted::-moz-progress-bar {
+  background: #e24b4a;
+}
+
+.progressBreakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-2);
+}
+
+.breakdownItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--spacing-3);
+  border-radius: 16px;
+  background: var(--recess-gray-light-bg);
+  border: 1px solid var(--recess-gray-border);
+}
+
+.breakdownLabel {
+  margin: 0;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-12);
+  color: var(--recess-gray-light);
+}
+
+.breakdownValue {
+  margin: 0;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-16);
+  color: var(--recess-black);
+}
+
+.note {
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: 16px;
+  background: var(--recess-gray-light-bg);
+  border: 1px solid var(--recess-gray-border);
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-14);
+  color: var(--recess-gray-light);
+}
+
+.noteStrong {
+  color: var(--recess-black);
+}
+
+.momentumValue {
+  margin: 0;
+  font-family: var(--font-patrick);
+  font-size: var(--text-size-18);
+  color: var(--recess-black);
+}
+
+.secondaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .widget {
+    padding: var(--spacing-4);
+    box-shadow: 6px 6px 0 var(--recess-black);
+  }
+
+  .headerRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .progressBreakdown {
+    grid-template-columns: 1fr;
+  }
+}

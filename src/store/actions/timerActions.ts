@@ -11,17 +11,15 @@ export const endSessionEarly = createAction('timer/endSessionEarly');
 export const endWorkSessionEarly = createAction('timer/endWorkSessionEarly');
 export const selectReward = createAction<Reward>('timer/selectReward');
 export const setGeneratedRewards = createAction<Reward[]>('timer/setGeneratedRewards');
-export const addShownRewardCombination = createAction<string>('timer/addShownRewardCombination');
-export const rerollReward = createAction<{ index: number; newReward: Reward }>(
-  'timer/rerollReward'
+export const setShownRewardCombinations = createAction<string[]>(
+  'timer/setShownRewardCombinations'
 );
+
+export const rerollReward = createAction<{ index: number; reward: Reward }>('timer/rerollReward');
 export const transitionToFocusSession = createAction('timer/transitionToFocusSession');
 export const transitionToRewardSelection = createAction('timer/transitionToRewardSelection');
 export const transitionToBeforeWorkSession = createAction('timer/transitionToBeforeWorkSession');
 export const transitionToFocusSessionCountdown = createAction(
   'timer/transitionToFocusSessionCountdown'
 );
-export const updateWeightMultipliers = createAction<{
-  fatigueMultiplier?: number;
-  momentumMultiplier?: number;
-}>('timer/updateWeightMultipliers');
+export const updateFeedbackMultiplier = createAction<number>('timer/updateFeedbackMultiplier');

@@ -1,9 +1,5 @@
 // Shared utility functions for timer/session state
 
-/**
- * Format time in seconds to MM:SS format
- * @param seconds - Time in seconds (will be floored to whole number)
- */
 export const formatTime = (seconds: number): string => {
   const wholeSeconds = Math.floor(seconds);
   const mins = Math.floor(wholeSeconds / 60);

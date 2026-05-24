@@ -4,11 +4,11 @@ import Button from '../../components/Button/Button';
 import PauseIcon from '../../assets/pause.svg?url';
 import PlayIcon from '../../assets/play.svg?url';
 import styles from './OngoingFocusSessionView.module.css';
+import { formatTime } from '../../services/timerService';
 
 interface OngoingFocusSessionViewProps {
   sessionDurationRemaining: number;
   isPaused: boolean;
-  formatTime: (seconds: number) => string;
   pauseSession: () => void;
   resumeSession: () => void;
   endSessionEarly: () => void;
@@ -17,7 +17,6 @@ interface OngoingFocusSessionViewProps {
 const OngoingFocusSessionView = ({
   sessionDurationRemaining,
   isPaused,
-  formatTime,
   pauseSession,
   resumeSession,
   endSessionEarly,

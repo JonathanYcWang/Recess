@@ -1,12 +1,5 @@
+import { SessionState } from '../constants/constants';
 import { Reward } from './reward';
-
-export type SessionState =
-  | 'BEFORE_WORK_SESSION'
-  | 'ONGOING_FOCUS_SESSION'
-  | 'REWARD_SELECTION'
-  | 'ONGOING_BREAK_SESSION'
-  | 'FOCUS_SESSION_COUNTDOWN'
-  | 'WORK_SESSION_COMPLETE';
 
 export interface TimerState {
   sessionState: SessionState;
@@ -28,9 +21,9 @@ export interface TimerState {
   lastFocusSessionCompleted: boolean;
   generatedRewards: Reward[];
 
-  momentum: number;
-  lastCompletedFocusSessionSeconds: number;
+  momentumScore: number;
+  fatigueScore: number;
+  lastFocusSessionDuration: number;
 
-  fatigueWeightMultiplier: number;
-  momentumWeightMultiplier: number;
+  feedbackMultiplier: number;
 }

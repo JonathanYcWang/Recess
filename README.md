@@ -226,6 +226,20 @@ This starts the Vite dev server for rapid UI development. For extension testing,
 
 ---
 
+## Chrome Web Store Readiness
+
+Before publishing, make sure the following are in place:
+
+- A hosted privacy policy URL that accurately explains what data the extension stores locally and whether anything is shared.
+- Chrome Web Store listing assets, including screenshots and an accurate description.
+- A support contact and a verified developer account with 2-step verification enabled.
+- Permission justification that matches the actual runtime behavior.
+- A final review of the packaged `dist` output to confirm there is no remote code loading.
+
+This repo now trims unused extension permissions and ships only the background service worker needed for the current feature set. The remaining store submission work is mainly policy, listing, and hosting setup rather than code.
+
+---
+
 ## Project Structure
 
 ```

@@ -4,12 +4,11 @@ import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
 import Button from '../../components/Button/Button';
 import DurationInputDialog from '../../components/DurationInputDialog/DurationInputDialog';
 import PlayIcon from '../../assets/play.svg?url';
-import { formatWorkSessionTime } from '../../services/timerService';
+import { formatWorkSessionTime, formatTime } from '../../services/timerService';
 
 interface BeforeWorkSessionViewProps {
   totalRemaining: number;
   nextFocusDuration: number;
-  formatTime: (seconds: number) => string;
   startFocusSession: () => void;
   onDurationChange: (duration: number) => void;
 }
@@ -17,7 +16,6 @@ interface BeforeWorkSessionViewProps {
 const BeforeWorkSessionView = ({
   totalRemaining,
   nextFocusDuration,
-  formatTime,
   startFocusSession,
   onDurationChange,
 }: BeforeWorkSessionViewProps) => {

@@ -1,5 +1,6 @@
 import { Middleware, AnyAction } from '@reduxjs/toolkit';
 import { startWorkingSession, endWorkingSession } from './actions/blockedSitesActions';
+import { SESSION_STATES } from '../constants/constants';
 
 const STORAGE_KEYS = {
   timer: 'timerState',
@@ -71,7 +72,7 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
     // Start working session: First focus session start when not already in a working session
     if (
       typedAction.type === 'timer/startFocusSession' &&
-      prevTimer.sessionState === 'BEFORE_WORK_SESSION' &&
+      prevTimer.sessionState === SESSION_STATES.BEFORE_WORK_SESSION &&
       !prevBlockedSites.isInWorkingSession
     ) {
       store.dispatch(startWorkingSession());

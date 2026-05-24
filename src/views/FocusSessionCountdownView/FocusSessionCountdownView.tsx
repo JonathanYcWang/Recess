@@ -4,27 +4,23 @@ import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
 import Button from '../../components/Button/Button';
 import EnergyCheckDialog from '../../components/EnergyCheckDialog/EnergyCheckDialog';
 import PlayIcon from '../../assets/play.svg?url';
-import { formatWorkSessionTime } from '../../services/timerService';
+import { formatWorkSessionTime, formatTime } from '../../services/timerService';
 import styles from './FocusSessionCountdownView.module.css';
 
 interface FocusSessionCountdownViewProps {
   workSessionDurationRemaining: number;
   sessionDurationRemaining: number;
-  formatTime: (seconds: number) => string;
   startFocusSession: () => void;
-  updateWeightMultipliers: (multipliers: {
-    fatigueMultiplier?: number;
-    momentumMultiplier?: number;
-  }) => void;
+  updateFeedbackMultiplier: (feedbackMultiplier: number) => void;
   endWorkSessionEarly: () => void;
 }
 
 const FocusSessionCountdownView = ({
   workSessionDurationRemaining,
   sessionDurationRemaining,
-  formatTime,
+
   startFocusSession,
-  updateWeightMultipliers,
+  updateFeedbackMultiplier,
   endWorkSessionEarly,
 }: FocusSessionCountdownViewProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,15 +37,14 @@ const FocusSessionCountdownView = ({
   const handleEmojiSelect = (emoji: 'pain' | 'meh' | 'smile') => {
     switch (emoji) {
       case 'pain':
-        // Increase fatigue weight by 50%
-        updateWeightMultipliers({ fatigueMultiplier: 1.5 });
+        updateFeedbackMultiplier(0.5);
         break;
       case 'meh':
         // Do nothing - keep weights at default
         break;
       case 'smile':
         // Increase momentum weight by 50%
-        updateWeightMultipliers({ momentumMultiplier: 1.5 });
+        updateFeedbackMultiplier(1.5);
         break;
     }
   };

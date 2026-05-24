@@ -18,15 +18,24 @@ const NavBar = () => {
     navigate('/');
   };
 
+  const handleLogoClick = () => {
+    navigate('/');
+  };
+
   const handleSettingsClick = () => {
     navigate('/settings');
   };
 
   return (
     <div className={styles.navBar}>
-      <div className={styles.logo}>
+      <button
+        aria-label="Go to home page"
+        className={styles.logoButton}
+        type="button"
+        onClick={handleLogoClick}
+      >
         <img alt="Recess" className={styles.logoImage} src="/assets/logo.png" />
-      </div>
+      </button>
       {!isInWorkingSession && (
         <div className={styles.closeButton}>
           <Icon

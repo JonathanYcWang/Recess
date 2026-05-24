@@ -1,86 +1,30 @@
-// ============================================================================
-// TIMER CONSTANTS
-// ============================================================================
+export const DEFAULT_WORK_SESSION_DURATION = 3 * 60 * 60;
 
-// Focus session countdown transition period (in seconds)
-// Time given to user to prepare before re-entering focus session
+export const NOTIFY_TIME_LEFT_SECONDS = 5 * 60; // Notify when 5 minutes are left in a session
 
-// Daily work session target (in seconds)
-// Total duration user aims to work during the day
-export const DEFAULT_WORK_SESSION_DURATION = 3 * 60 * 60; // 3 hours
-
-export const NOTIFY_TIME_LEFT_SECONDS = 300; // Notify when 5 minutes are left in a session
-
-// ============================================================================
-// REWARD SYSTEM CONSTANTS
-// ============================================================================
-
-// Reward duration parameters (in minutes)
-export const REWARD_TIME_INTERVAL = 5; // Rewards are multiples of 5 minutes
 export const MAX_REWARD_TIME = 30; // Maximum reward duration
-
-// Number of reward rerolls available per session
 export const DEFAULT_REROLLS = 3;
 
-// ============================================================================
-// DYNAMIC SESSION DURATION CALCULATION
-// ============================================================================
-
-/**
- * MOMENTUM TRACKING (CEWMA - Completion Exponentially Weighted Moving Average)
- *
- * Momentum tracks how reliably the user completes focus sessions.
- * Higher momentum = user is in a flow state and can handle longer sessions.
- * Lower momentum = user is struggling and needs shorter, more achievable sessions.
- */
-
-// Weight for new session outcomes in CEWMA calculation
-// 0.5 = each new session moves momentum halfway toward the outcome (1 for complete, 0 for abandoned)
 export const CEWMA_ALPHA = 0.5;
+export const MAX_FOCUS_SESSION_DURATION = 60 * 60;
+export const MIN_FOCUS_SESSION_DURATION = 15 * 60;
 
-// Starting momentum value each day (neutral starting point)
-export const CEWMA_STARTING_VALUE = 0.5;
+export const MAX_BREAK_DURATION = 15 * 60;
+export const MIN_BREAK_DURATION = 5 * 60;
 
-/**
- * FATIGUE CALCULATION
- *
- * Fatigue increases as the user works longer during the day.
- * It considers both total accumulated work and recent session intensity.
- * Higher fatigue = shorter focus sessions and longer breaks.
- */
+export const FINAL_STRETCH_THRESHOLD = 0.15;
 
-// How much recent session strain contributes to overall fatigue
-export const SESSION_STRAIN_WEIGHT = 0.5;
+export const FOCUS_COUNTDOWN_DURATION = 10;
 
-// Sessions longer than this percentage of daily target are considered "big" and increase strain
-export const FATIGUE_SESSION_SIZE_THRESHOLD = 0.5; // 50% of daily target
+export const MAX_REWARD_GENERATION_RETRIES = 5000;
 
-/**
- * FOCUS SESSION DURATION FORMULA
- *
- * Duration = BASE + MOMENTUM_WEIGHT × M - FATIGUE_WEIGHT × F - PROGRESS_WEIGHT × P
- *
- * Where:
- * - M = momentum (0 to 1)
- * - F = fatigue (0 to 1+)
- * - P = progress toward daily goal (0 to 1+)
- */
+export const SESSION_STATES = {
+  ONGOING_FOCUS_SESSION: 'ONGOING_FOCUS_SESSION',
+  ONGOING_BREAK_SESSION: 'ONGOING_BREAK_SESSION',
+  FOCUS_SESSION_COUNTDOWN: 'FOCUS_SESSION_COUNTDOWN',
+  REWARD_SELECTION: 'REWARD_SELECTION',
+  BEFORE_WORK_SESSION: 'BEFORE_WORK_SESSION',
+  WORK_SESSION_COMPLETE: 'WORK_SESSION_COMPLETE',
+} as const;
 
-export const BASE_WORK = 10 * 60; // Minimum baseline session length
-export const MOMENTUM_WORK_WEIGHT = 30; // Reward for high completion rate
-export const FATIGUE_WORK_WEIGHT = 25; // Primary limiter based on tiredness
-export const PROGRESS_WORK_WEIGHT = 10; // Slight reduction as day progresses
-
-/**
- * BREAK DURATION FORMULA
- *
- * Duration = BASE + FATIGUE_WEIGHT × F + PROGRESS_WEIGHT × P + MOMENTUM_WEIGHT × M
- *
- * Breaks get longer when fatigued and as the day progresses.
- * High momentum allows longer breaks (user has "earned" more recovery time).
- */
-
-export const BASE_BREAK = 5 * 60; // Minimum baseline break length
-export const FATIGUE_BREAK_WEIGHT = 10; // Primary driver of break length
-export const PROGRESS_BREAK_WEIGHT = 2; // Longer breaks later in day
-export const MOMENTUM_BREAK_WEIGHT = 4; // High momentum = can afford longer recovery
+export type SessionState = (typeof SESSION_STATES)[keyof typeof SESSION_STATES];

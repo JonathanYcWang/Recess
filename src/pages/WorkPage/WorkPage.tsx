@@ -10,9 +10,10 @@ import RewardSelectionView from '../../views/RewardSelectionView/RewardSelection
 import OngoingBreakSessionView from '../../views/OngoingBreakSessionView/OngoingBreakSessionView';
 import FocusSessionCountdownView from '../../views/FocusSessionCountdownView/FocusSessionCountdownView';
 import WorkSessionCompleteView from '../../views/WorkSessionCompleteView/WorkSessionCompleteView';
-import styles from './MainPage.module.css';
+import styles from './WorkPage.module.css';
+import { SESSION_STATES } from '../../constants/constants';
 
-const MainPage = () => {
+const WorkPage = () => {
   const hasOnboarded = useSelector((state: RootState) => selectHasOnboarded(state));
   const {
     timerState,
@@ -26,9 +27,8 @@ const MainPage = () => {
     endWorkSessionEarly,
     transitionToBeforeWorkSession,
     setTotalTimer,
-    updateWeightMultipliers,
+    updateFeedbackMultiplier,
     rewards,
-    formatTime,
     isLoaded,
   } = useTimer();
 
@@ -37,20 +37,18 @@ const MainPage = () => {
 
   const { sessionState, isPaused, rerolls, selectedReward } = timerState;
 
-  // Show loading state until timer state is loaded
   if (!isLoaded) {
     return (
-      <div className={styles.mainPage}>
+      <div className={styles.workPage}>
         <NavBar />
         <div>Loading...</div>
       </div>
     );
   }
 
-  // Show welcome view if user hasn't onboarded
   if (!hasOnboarded) {
     return (
-      <div className={styles.mainPage}>
+      <div className={styles.workPage}>
         <WelcomeView />
       </div>
     );
@@ -58,30 +56,28 @@ const MainPage = () => {
 
   const renderContent = () => {
     switch (sessionState) {
-      case 'BEFORE_WORK_SESSION':
+      case SESSION_STATES.BEFORE_WORK_SESSION:
         return (
           <BeforeWorkSessionView
             totalRemaining={totalRemaining}
             nextFocusDuration={currentTimer}
-            formatTime={formatTime}
             startFocusSession={startFocusSession}
             onDurationChange={setTotalTimer}
           />
         );
 
-      case 'ONGOING_FOCUS_SESSION':
+      case SESSION_STATES.ONGOING_FOCUS_SESSION:
         return (
           <OngoingFocusSessionView
             sessionDurationRemaining={currentRemaining}
             isPaused={isPaused}
-            formatTime={formatTime}
             pauseSession={pauseSession}
             resumeSession={resumeSession}
             endSessionEarly={endSessionEarly}
           />
         );
 
-      case 'REWARD_SELECTION':
+      case SESSION_STATES.REWARD_SELECTION:
         return (
           <RewardSelectionView
             rewards={rewards}
@@ -91,29 +87,27 @@ const MainPage = () => {
           />
         );
 
-      case 'ONGOING_BREAK_SESSION':
+      case SESSION_STATES.ONGOING_BREAK_SESSION:
         return (
           <OngoingBreakSessionView
             sessionDurationRemaining={currentRemaining}
             selectedReward={selectedReward}
-            formatTime={formatTime}
             endSessionEarly={endSessionEarly}
           />
         );
 
-      case 'FOCUS_SESSION_COUNTDOWN':
+      case SESSION_STATES.FOCUS_SESSION_COUNTDOWN:
         return (
           <FocusSessionCountdownView
             workSessionDurationRemaining={totalRemaining}
             sessionDurationRemaining={currentRemaining}
-            formatTime={formatTime}
             startFocusSession={startFocusSession}
-            updateWeightMultipliers={updateWeightMultipliers}
+            updateFeedbackMultiplier={updateFeedbackMultiplier}
             endWorkSessionEarly={endWorkSessionEarly}
           />
         );
 
-      case 'WORK_SESSION_COMPLETE':
+      case SESSION_STATES.WORK_SESSION_COMPLETE:
         return (
           <WorkSessionCompleteView transitionToBeforeWorkSession={transitionToBeforeWorkSession} />
         );
@@ -124,11 +118,11 @@ const MainPage = () => {
   };
 
   return (
-    <div className={styles.mainPage}>
-      {sessionState !== 'REWARD_SELECTION' && <NavBar />}
+    <div className={styles.workPage}>
+      {sessionState !== SESSION_STATES.REWARD_SELECTION && <NavBar />}
       {renderContent()}
     </div>
   );
 };
 
-export default MainPage;
+export default WorkPage;

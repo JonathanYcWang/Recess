@@ -1,13 +1,15 @@
-import { MemoryRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import MainPage from './pages/MainPage/MainPage';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './pages/HomePage/HomePage';
 import QuizPage from './pages/QuizPage/QuizPage';
 import SettingsPage from './pages/SettingsPage/SettingsPage';
+import WorkPage from './pages/WorkPage/WorkPage';
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/work" element={<WorkPage />} />
         <Route path="/quiz" element={<QuizPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route

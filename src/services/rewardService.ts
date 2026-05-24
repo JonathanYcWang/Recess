@@ -1,77 +1,51 @@
 import { Reward } from '../types/reward';
-import { MAX_REWARD_TIME, REWARD_TIME_INTERVAL } from '../constants/constants';
+import { calculateBreakDuration } from './sessionDurationService';
+import { MAX_REWARD_GENERATION_RETRIES } from '../constants/constants';
 
-/**
- * Get combination key for a site/time pair
- */
-const getCombinationKey = (site: string, minutes: number): string => `${site}-${minutes}`;
+const getCombinationKey = (site: string, seconds: number): string => `${site}-${seconds}`;
 
-/**
- * Generate all possible reward combinations for given sites
- */
-const getAllPossibleCombinations = (sites: string[]): Array<{ site: string; minutes: number }> => {
-  const numIntervals = Math.floor(MAX_REWARD_TIME / REWARD_TIME_INTERVAL);
-  return sites.flatMap((site) =>
-    Array.from({ length: numIntervals }, (_, i) => ({
-      site,
-      minutes: (i + 1) * REWARD_TIME_INTERVAL,
-    }))
-  );
-};
-
-/**
- * Generate a single reward avoiding previously shown combinations
- */
-export const generateReward = (
-  availableSites: string[],
-  shownCombinations: string[]
-): { reward: Reward; combinationKey: string } | null => {
-  if (availableSites.length === 0) return null;
-
-  const allPossibleCombinations = getAllPossibleCombinations(availableSites);
-
-  const availableCombinations = allPossibleCombinations.filter(
-    (combo) => !shownCombinations.includes(getCombinationKey(combo.site, combo.minutes))
-  );
-
-  const combinationsToUse =
-    availableCombinations.length > 0 ? availableCombinations : allPossibleCombinations;
-
-  const randomCombo = combinationsToUse[Math.floor(Math.random() * combinationsToUse.length)];
-  const combinationKey = getCombinationKey(randomCombo.site, randomCombo.minutes);
-
+const createReward = (site: string, duration: number, rewardKey: string): Reward => {
   return {
-    reward: {
-      id: `${randomCombo.site}-${Date.now()}-${Math.random()}`,
-      name: randomCombo.site,
-      duration: `${randomCombo.minutes} min`,
-      durationSeconds: randomCombo.minutes * 60,
-    },
-    combinationKey,
+    id: rewardKey,
+    name: site,
+    duration: `${duration * 60} min`,
+    durationSeconds: duration,
   };
 };
 
-/**
- * Generate multiple rewards at once
- */
-export const generateRewards = (
-  availableSites: string[],
-  count: number,
-  shownCombinations: string[] = []
-): { rewards: Reward[]; newCombinations: string[] } => {
-  const rewards: Reward[] = [];
-  const combinations = [...shownCombinations];
+const getRandomCombo = (
+  sites: string[],
+  fatigueScore: number,
+  momentumScore: number
+): { site: string; duration: number; rewardKey: string } => {
+  const blockedSites = [...sites];
+  const site = blockedSites[Math.floor(Math.random() * blockedSites.length)];
+  const duration = calculateBreakDuration(fatigueScore, momentumScore);
+  const rewardKey = getCombinationKey(site, duration);
+  return {
+    site,
+    duration,
+    rewardKey,
+  };
+};
 
-  for (let i = 0; i < count; i++) {
-    const result = generateReward(availableSites, combinations);
-    if (result) {
-      rewards.push(result.reward);
-      combinations.push(result.combinationKey);
+export const generateReward = (
+  sites: Set<string>,
+  shownCombinations: string[],
+  fatigueScore: number,
+  momentumScore: number
+): Reward => {
+  const blockedSites = [...sites];
+
+  for (let i = 0; i < MAX_REWARD_GENERATION_RETRIES; i++) {
+    const { site, duration, rewardKey } = getRandomCombo(blockedSites, fatigueScore, momentumScore);
+    if (!shownCombinations.includes(rewardKey)) {
+      shownCombinations.push(rewardKey);
+      return createReward(site, duration, rewardKey);
     }
   }
 
-  return {
-    rewards,
-    newCombinations: combinations.slice(shownCombinations.length),
-  };
+  const { site, duration, rewardKey } = getRandomCombo(blockedSites, fatigueScore, momentumScore);
+  shownCombinations.push(rewardKey);
+  return createReward(site, duration, rewardKey);
 };
