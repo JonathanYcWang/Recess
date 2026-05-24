@@ -115,15 +115,19 @@ export const useTimer = () => {
   const currentRemaining = getActiveRemainingSeconds();
 
   useEffect(() => {
-    if (sessionState === SESSION_STATES.REWARD_SELECTION && blockedSites.length > 0) {
+    if (
+      sessionState === SESSION_STATES.REWARD_SELECTION &&
+      blockedSites.length > 0 &&
+      rewards.length === 0
+    ) {
       const seenRewardCombinations = [...shownCombinations];
-      const rewards = Array.from({ length: 3 }, () =>
+      const newRewards = Array.from({ length: 3 }, () =>
         generateReward(blockedSites, seenRewardCombinations, fatigueScore, momentumScore)
       );
-      dispatch(setGeneratedRewards(rewards));
+      dispatch(setGeneratedRewards(newRewards));
       dispatch(setShownRewardCombinations(seenRewardCombinations));
     }
-  }, [sessionState, dispatch]);
+  }, [sessionState, dispatch, rewards.length]);
 
   // Timer tick and notification effect
   useEffect(() => {
