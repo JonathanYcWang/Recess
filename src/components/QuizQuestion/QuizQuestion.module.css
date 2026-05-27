@@ -1,24 +1,24 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 24px;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
   max-width: 600px;
   margin: 0 auto;
 }
 
 .questionText {
-  font-size: var(--text-size-20);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   line-height: 1.4;
   text-align: center;
-  color: var(--text-primary);
-  margin-bottom: 8px;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
 }
 
 .optionsContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-3);
   width: 100%;
 }

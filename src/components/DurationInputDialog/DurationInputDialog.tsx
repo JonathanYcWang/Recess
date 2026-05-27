@@ -55,18 +55,18 @@ const DurationInputDialog = ({
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerContainer}>
           <h2 className={styles.title}>Set Work Duration</h2>
-          <Icon src={TimesIcon} alt="Close" size={16} onClick={onClose} />
+          <Icon src={TimesIcon} alt="Close" size="sm" onClick={onClose} />
         </div>
         <p className={styles.description}>{minutesToDisplay(time)}</p>
         <Slider
           sx={{
-            color: 'var(--recess-black)',
+            color: 'var(--color-text-primary)',
             height: 8,
 
             '& .MuiSlider-thumb': {
               height: 20,
               width: 20,
-              backgroundColor: 'var(--recess-white)',
+              backgroundColor: 'var(--color-background-primary)',
               border: '2px solid currentColor',
             },
           }}

@@ -16,9 +16,9 @@
   padding: var(--spacing-3);
   box-sizing: border-box;
   overflow: hidden;
-  background-color: var(--recess-white);
-  border: 3px solid var(--recess-black);
-  border-radius: 20px;
+  background-color: var(--color-background-primary);
+  border: 3px solid var(--color-text-primary);
+  border-radius: var(--spacing-5);
   box-shadow: 10px 10px 4px 0px rgba(0, 0, 0, 0.25);
   transition:
     transform 0.2s,
@@ -36,36 +36,34 @@
   margin-top: auto;
   padding: 0;
   padding-top: var(--spacing-1);
-  font-family: var(--font-patrick);
-  font-size: clamp(12px, 1.6vw, 16px);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
   font-style: normal;
-  line-height: normal;
-  letter-spacing: var(--letter-spacing-tiny);
+  line-height: var(--line-height-md);
   text-align: center;
-  color: var(--recess-black);
+  color: var(--color-text-primary);
 }
 
 .description {
   margin: 0;
   margin-top: var(--spacing-1);
   padding: 0;
-  font-family: var(--font-patrick);
-  font-size: clamp(12px, 1.6vw, 16px);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
   font-style: normal;
-  line-height: normal;
-  letter-spacing: var(--letter-spacing-tiny);
-  color: var(--recess-black);
+  line-height: var(--line-height-md);
+  color: var(--color-text-primary);
 }
 
 .title {
   width: 100%;
   margin: 0;
   padding: 0;
-  font-family: var(--font-patrick);
-  font-size: clamp(18px, 2.6vw, 26px);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-2xl);
   font-style: normal;
-  line-height: normal;
-  color: var(--recess-black);
+  line-height: var(--line-height-2xl);
+  color: var(--color-text-primary);
 }
 
 .placeholderImage {
@@ -81,7 +79,7 @@
   display: flex;
   justify-content: center;
   width: 100%;
-  margin-top: 8px;
+  margin-top: var(--spacing-2);
 }
 
 .carousel {

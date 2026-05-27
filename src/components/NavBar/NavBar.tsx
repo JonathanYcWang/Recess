@@ -41,7 +41,7 @@ const NavBar = () => {
           <Icon
             src={isOnSettingsPage ? TimesIcon : SettingsIcon}
             alt="Close"
-            size={20}
+            size="md"
             onClick={isOnSettingsPage ? handleBackToMain : handleSettingsClick}
           />
         </div>

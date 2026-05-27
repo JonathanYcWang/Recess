@@ -4,10 +4,10 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--spacing-2);
   height: fit-content;
   box-sizing: border-box;
-  border-radius: 25px;
+  border-radius: var(--spacing-6);
   transition: opacity 0.2s;
   cursor: pointer;
   font: inherit;
@@ -21,9 +21,9 @@
 }
 
 .primary {
-  padding: 8px 18px;
-  background-color: var(--recess-black);
-  border: 3px solid transparent;
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-text-primary);
+  border: 2px solid transparent;
 }
 
 .primary img {
@@ -31,9 +31,9 @@
 }
 
 .secondary {
-  padding: 8px 18px;
-  background-color: var(--recess-white);
-  border: 3px solid var(--recess-black);
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-background-primary);
+  border: 2px solid var(--color-text-primary);
 }
 
 .secondary img {
@@ -57,25 +57,24 @@
   flex-shrink: 0;
   margin: 0;
   padding: 0;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-18);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-lg);
   font-style: normal;
-  line-height: var(--line-height-18);
-  letter-spacing: var(--letter-spacing-micro);
+  line-height: var(--line-height-lg);
   text-align: center;
   white-space: nowrap;
 }
 
 .primary .text {
-  color: var(--recess-white);
+  color: var(--color-background-primary);
 }
 
 .secondary .text {
-  color: var(--recess-black);
+  color: var(--color-text-primary);
 }
 
 .tertiary .text {
-  color: var(--recess-gray-light);
+  color: var(--color-text-secondary);
   text-decoration: underline;
   text-decoration-style: solid;
   text-underline-position: from-font;

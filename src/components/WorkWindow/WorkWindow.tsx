@@ -11,8 +11,12 @@ interface WorkWindowProps {
 }
 
 const WorkWindow = ({ timeRange, days, enabled, onToggle, onEdit }: WorkWindowProps) => {
-  const handleToggleClick = (e: MouseEvent) => {
+  const handleContainerClick = (e: MouseEvent) => {
     e.stopPropagation();
+    onToggle?.();
+  };
+
+  const handleToggle = () => {
     onToggle?.();
   };
 
@@ -20,8 +24,8 @@ const WorkWindow = ({ timeRange, days, enabled, onToggle, onEdit }: WorkWindowPr
     <div className={styles.workWindow} onClick={onEdit}>
       <p className={styles.timeRange}>{timeRange}</p>
       <p className={styles.days}>{days}</p>
-      <div onClick={handleToggleClick}>
-        <Toggle isOn={enabled} />
+      <div onClick={handleContainerClick}>
+        <Toggle isOn={enabled} onToggle={handleToggle} />
       </div>
     </div>
   );

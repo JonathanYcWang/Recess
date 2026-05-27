@@ -1,11 +1,11 @@
 .editTimeRangeOverlay {
-  width: 400px;
+  width: 25rem;
   padding: var(--spacing-6);
   box-sizing: border-box;
   overflow: hidden;
-  background-color: var(--recess-white);
-  border: 3px solid var(--recess-black);
-  border-radius: 20px;
+  background-color: var(--color-background-primary);
+  border: 0.1875rem solid var(--color-text-primary);
+  border-radius: var(--spacing-5);
 }
 
 .contentContainer {
@@ -14,42 +14,42 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 350px;
+  max-width: 21.875rem;
   margin: 0 auto;
-  gap: 38px;
+  gap: var(--spacing-8);
 }
 
 .timeInput {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 
 .dateInput {
-  min-width: 100px;
+  min-width: 6.25rem;
 }
 
 .timeText {
   margin: 0;
   padding: 0;
-  font-family: var(--font-patrick);
-  font-size: 36px;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-3xl);
   font-style: normal;
-  line-height: 24px;
+  line-height: var(--line-height-3xl);
   text-align: right;
   white-space: nowrap;
-  color: var(--recess-gray-text);
+  color: var(--color-text-secondary);
 }
 
 .dash {
   margin: 0;
   padding: 0;
-  font-family: var(--font-patrick);
-  font-size: 36px;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-3xl);
   font-style: normal;
-  line-height: 24px;
-  color: var(--recess-gray-text);
+  line-height: var(--line-height-3xl);
+  color: var(--color-text-secondary);
 }
 
 .repeatContainer {
@@ -57,46 +57,44 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 
 .repeatLabel {
   margin: 0;
   padding: 0;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-16);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
   font-style: normal;
-  line-height: normal;
-  letter-spacing: var(--letter-spacing-tiny);
+  line-height: var(--line-height-md);
   text-align: center;
   white-space: nowrap;
-  color: var(--recess-black);
+  color: var(--color-text-primary);
 }
 
 .daySelectionContainer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 
 .dayButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 13px;
+  width: 2.125rem;
+  height: 2.125rem;
+  padding: var(--spacing-3);
   margin: 0;
   border: none;
-  border-radius: 25px;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-18);
+  border-radius: var(--spacing-6);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-lg);
   font-style: normal;
-  line-height: var(--line-height-18);
-  letter-spacing: var(--letter-spacing-micro);
+  line-height: var(--line-height-lg);
   text-align: center;
-  color: var(--recess-white);
+  color: var(--color-background-primary);
   transition: transform 0.2s;
   cursor: pointer;
 }
@@ -106,11 +104,11 @@
 }
 
 .dayButtonSelected {
-  background-color: var(--recess-black);
+  background-color: var(--color-text-primary);
 }
 
 .dayButtonUnselected {
-  background-color: #d8d8d8;
+  background-color: var(--color-gray-250);
 }
 
 .actionsContainer {
@@ -124,6 +122,6 @@
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 0.625rem;
   margin-left: auto;
 }

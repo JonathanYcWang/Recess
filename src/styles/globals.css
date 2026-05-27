@@ -1,6 +1,4 @@
-@import './colors.module.css';
-@import './typography.module.css';
-@import './spacing.module.css';
+@import './tokens.css';
 @import './breakpoints.module.css';
 
 @layer base {

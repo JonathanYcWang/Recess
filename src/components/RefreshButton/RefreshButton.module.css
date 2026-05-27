@@ -7,9 +7,9 @@
   width: fit-content;
   height: 40px;
   margin: 0 auto;
-  padding: 8px 18px;
-  background-color: var(--recess-black);
-  border-radius: 25px;
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--color-text-primary);
+  border-radius: var(--spacing-6);
   transition: opacity 0.2s;
   cursor: pointer;
 }

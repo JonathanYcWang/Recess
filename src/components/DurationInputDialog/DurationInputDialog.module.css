@@ -12,32 +12,32 @@
 }
 
 .dialog {
-  background: white;
-  border-radius: 12px;
-  border: 2px solid var(--recess-black);
-  padding: 24px;
+  background: var(--color-background-primary);
+  border-radius: var(--spacing-3);
+  border: 2px solid var(--color-text-primary);
+  padding: var(--spacing-6);
   min-width: 500px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .title {
-  font-size: var(--text-size-20);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
-  margin: 0 0 8px 0;
-  color: #1a1a1a;
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--color-text-primary);
 }
 
 .description {
   text-align: center;
-  font-size: var(--text-size-32);
-  color: #666;
-  margin: 20px;
+  font-size: var(--font-size-3xl);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-5);
 }
 
 .presetTimes {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-5);
   > button {
     flex: 1 1 0;
   }

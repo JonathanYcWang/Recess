@@ -20,7 +20,7 @@ const RewardLink = ({ siteName, status, siteUrl, onClick }: RewardLinkProps) => 
 
   return (
     <div className={styles.rewardLink} onClick={handleClick}>
-      <Icon src={PlaceholderIcon} alt="External link" size={27.5} />
+      <Icon src={PlaceholderIcon} alt="External link" size="lg" />
       <div className={styles.textContainer}>
         <p className={styles.primaryText}>{siteName}</p>
         <div className={styles.secondaryTextContainer}>
@@ -29,7 +29,7 @@ const RewardLink = ({ siteName, status, siteUrl, onClick }: RewardLinkProps) => 
         </div>
       </div>
       <div className={styles.externalLinkIcon}>
-        <Icon src={ExternalLinkIcon} alt="External link" size={27.5} />
+        <Icon src={ExternalLinkIcon} alt="External link" size="lg" />
       </div>
     </div>
   );

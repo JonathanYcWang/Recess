@@ -9,7 +9,7 @@ interface RefreshButtonProps {
 const RefreshButton = ({ onClick }: RefreshButtonProps) => {
   return (
     <div className={styles.refreshButton} onClick={onClick}>
-      <Icon src={RedoIcon} alt="Refresh" size={20} />
+      <Icon src={RedoIcon} alt="Refresh" size="md" />
     </div>
   );
 };

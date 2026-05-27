@@ -1,9 +1,17 @@
 import styles from './Icon.module.css';
 
+type IconSize = 'sm' | 'md' | 'lg';
+
+const sizeMap: Record<IconSize, number> = {
+  sm: 16,
+  md: 24,
+  lg: 32,
+};
+
 interface IconProps {
   src: string;
   alt?: string;
-  size?: number;
+  size?: IconSize | number;
   onClick?: () => void;
   onError?: () => void;
 }
@@ -11,9 +19,10 @@ interface IconProps {
 /**
  * Flexible Icon component that can display any SVG icon.
  */
-const Icon = ({ src, alt = '', size = 24, onClick, onError }: IconProps) => {
+const Icon = ({ src, alt = '', size = 'md', onClick, onError }: IconProps) => {
+  const iconSize = typeof size === 'number' ? size : sizeMap[size];
   return (
-    <div className={styles.icon} style={{ width: size, height: size }} onClick={onClick}>
+    <div className={styles.icon} style={{ width: iconSize, height: iconSize }} onClick={onClick}>
       <img alt={alt} className={styles.image} src={src} onError={onError} />
     </div>
   );

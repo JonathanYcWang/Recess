@@ -1,0 +1,91 @@
+/* Recess Design System - Core Tokens */
+
+:root {
+  /* ---------------------------------- */
+  /*             Typography             */
+  /* ---------------------------------- */
+
+  /* Font Families */
+  --font-family-primary: 'Patrick Hand', cursive;
+  --font-family-secondary: 'BenchNine', sans-serif;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Font Sizes (Type Scale) */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-md: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 2rem; /* 32px */
+  --font-size-4xl: 3rem; /* 48px */
+  --font-size-5xl: 4rem; /* 64px */
+
+  /* Line Heights */
+  --line-height-xs: 1.1;
+  --line-height-sm: 1.2;
+  --line-height-md: 1.3;
+  --line-height-lg: 1.4;
+  --line-height-xl: 1.5;
+  --line-height-2xl: 1.5;
+  --line-height-3xl: 1.2;
+  --line-height-4xl: 1.2;
+  --line-height-5xl: 1.2;
+
+  /* ---------------------------------- */
+  /*               Spacing              */
+  /* ---------------------------------- */
+
+  --spacing-0: 0;
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.25rem; /* 20px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-10: 2.5rem; /* 40px */
+  --spacing-12: 3rem; /* 48px */
+  --spacing-16: 4rem; /* 64px */
+
+  /* ---------------------------------- */
+  /*               Colors               */
+  /* ---------------------------------- */
+
+  /* Palette */
+  --color-black: #1b1b1b;
+  --color-white: #ffffff;
+  --color-green: #37eb4f;
+  --color-red: #d32f2f;
+  --color-orange-light: #f9eadf;
+  --color-orange-dark: #d85a30;
+  --color-red-dark: #e24b4a;
+
+  --color-gray-50: #f5f5f4;
+  --color-gray-100: #f1f0f0;
+  --color-gray-200: #e7e5e4;
+  --color-gray-250: #d8d8d8;
+  --color-gray-300: #b4b4b4;
+  --color-gray-400: #929292;
+  --color-gray-500: #717171;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #302e2f;
+
+  /* Semantic Colors */
+  --color-primary: var(--color-green);
+  --color-text-primary: var(--color-black);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-disabled: var(--color-gray-400);
+  --color-background-primary: var(--color-white);
+  --color-background-secondary: var(--color-gray-50);
+  --color-border-primary: var(--color-gray-200);
+  --color-border-secondary: var(--color-gray-400);
+  --color-status-fatigued-background: var(--color-orange-light);
+  --color-status-fatigued-border: var(--color-orange-dark);
+  --color-status-exhausted-background: var(--color-red-dark);
+}

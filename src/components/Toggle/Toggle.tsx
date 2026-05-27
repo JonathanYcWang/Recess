@@ -2,19 +2,14 @@ import styles from './Toggle.module.css';
 
 interface ToggleProps {
   isOn: boolean;
+  onToggle: () => void;
 }
 
-const Toggle = ({ isOn }: ToggleProps) => {
-  if (isOn) {
-    return (
-      <div className={`${styles.toggle} ${styles.toggleOn}`}>
-        <div className={styles.backgroundShadow} />
-      </div>
-    );
-  }
+const Toggle = ({ isOn, onToggle }: ToggleProps) => {
+  const toggleClasses = `${styles.toggle} ${isOn ? styles.toggleOn : styles.toggleOff}`;
 
   return (
-    <div className={`${styles.toggle} ${styles.toggleOff}`}>
+    <div className={toggleClasses} onClick={onToggle}>
       <div className={styles.backgroundShadow} />
     </div>
   );

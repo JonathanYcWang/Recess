@@ -3,18 +3,18 @@
   flex-direction: column;
   gap: var(--spacing-4);
   padding: var(--spacing-5);
-  background: var(--recess-white);
-  border: 2px solid var(--recess-black);
+  background: var(--color-background-primary);
+  border: 0.125rem solid var(--color-text-primary);
   border-radius: 22px;
-  box-shadow: 8px 8px 0 var(--recess-black);
+  box-shadow: var(--spacing-2) var(--spacing-2) 0 var(--color-text-primary);
 }
 
 .title {
   margin: 0;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-22);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xl);
   line-height: 1;
-  color: var(--recess-black);
+  color: var(--color-text-primary);
 }
 
 .headerRow {
@@ -32,106 +32,106 @@
 
 .scoreValue {
   margin: 0;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-48);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-4xl);
   line-height: 0.9;
-  color: var(--recess-black);
+  color: var(--color-text-primary);
 }
 
 .scoreUnit {
   margin: 0;
-  padding-bottom: 4px;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-16);
-  color: var(--recess-gray-light);
+  padding-bottom: var(--spacing-1);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
 }
 
 .statusPill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 12px;
+  padding: 0.3125rem var(--spacing-3);
   border-radius: 999px;
   border: 1px solid transparent;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-14);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
   line-height: 1;
   white-space: nowrap;
 }
 
 .statusIdle {
-  color: var(--recess-gray-light);
-  background: var(--recess-gray-light-bg);
-  border-color: var(--recess-gray-border);
+  color: var(--color-text-secondary);
+  background: var(--color-background-secondary);
+  border-color: var(--color-border-primary);
 }
 
 .statusFresh {
-  color: var(--recess-black);
-  background: var(--recess-gray-light-bg-alt);
-  border-color: var(--recess-green);
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+  border-color: var(--color-primary);
 }
 
 .statusModerate {
-  color: var(--recess-black);
-  background: var(--recess-gray-light-bg);
-  border-color: var(--recess-gray-border);
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+  border-color: var(--color-border-primary);
 }
 
 .statusFatigued {
-  color: var(--recess-black);
-  background: #f9eadf;
-  border-color: #d85a30;
+  color: var(--color-text-primary);
+  background: var(--color-status-fatigued-background);
+  border-color: var(--color-status-fatigued-border);
 }
 
 .statusExhausted {
-  color: var(--recess-white);
-  background: var(--recess-black);
-  border-color: var(--recess-black);
+  color: var(--color-background-primary);
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
 }
 
 .progress {
   width: 100%;
-  height: 12px;
+  height: var(--spacing-3);
   border: none;
   border-radius: 999px;
   overflow: hidden;
   appearance: none;
-  background: var(--recess-gray-light-bg);
+  background: var(--color-background-secondary);
 }
 
 .progress::-webkit-progress-bar {
-  background: var(--recess-gray-light-bg);
+  background: var(--color-background-secondary);
   border-radius: 999px;
 }
 
 .progress::-webkit-progress-value {
   border-radius: 999px;
-  background: var(--recess-black);
+  background: var(--color-text-primary);
 }
 
 .progress::-moz-progress-bar {
   border-radius: 999px;
-  background: var(--recess-black);
+  background: var(--color-text-primary);
 }
 
 .progressFresh::-webkit-progress-value,
 .progressFresh::-moz-progress-bar {
-  background: var(--recess-green);
+  background: var(--color-primary);
 }
 
 .progressModerate::-webkit-progress-value,
 .progressModerate::-moz-progress-bar {
-  background: var(--recess-black);
+  background: var(--color-text-primary);
 }
 
 .progressFatigued::-webkit-progress-value,
 .progressFatigued::-moz-progress-bar {
-  background: #d85a30;
+  background: var(--color-status-fatigued-border);
 }
 
 .progressExhausted::-webkit-progress-value,
 .progressExhausted::-moz-progress-bar {
-  background: #e24b4a;
+  background: var(--color-status-exhausted-background);
 }
 
 .progressBreakdown {
@@ -143,47 +143,47 @@
 .breakdownItem {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 0.1875rem;
   padding: var(--spacing-3);
-  border-radius: 16px;
-  background: var(--recess-gray-light-bg);
-  border: 1px solid var(--recess-gray-border);
+  border-radius: var(--spacing-4);
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-primary);
 }
 
 .breakdownLabel {
   margin: 0;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-12);
-  color: var(--recess-gray-light);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
 }
 
 .breakdownValue {
   margin: 0;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-16);
-  color: var(--recess-black);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
 }
 
 .note {
   margin: 0;
   padding: var(--spacing-3) var(--spacing-4);
-  border-radius: 16px;
-  background: var(--recess-gray-light-bg);
-  border: 1px solid var(--recess-gray-border);
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-14);
-  color: var(--recess-gray-light);
+  border-radius: var(--spacing-4);
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
 .noteStrong {
-  color: var(--recess-black);
+  color: var(--color-text-primary);
 }
 
 .momentumValue {
   margin: 0;
-  font-family: var(--font-patrick);
-  font-size: var(--text-size-18);
-  color: var(--recess-black);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
 }
 
 .secondaryRow {
@@ -196,7 +196,7 @@
 @media (max-width: 640px) {
   .widget {
     padding: var(--spacing-4);
-    box-shadow: 6px 6px 0 var(--recess-black);
+    box-shadow: 0.375rem 0.375rem 0 var(--color-text-primary);
   }
 
   .headerRow {

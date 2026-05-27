@@ -27,7 +27,7 @@ const Card = ({ title, description, footer, onClick, refreshOnClick }: CardProps
           <Icon
             src={`https://www.google.com/s2/favicons?domain=${description}&sz=128`}
             alt="Placeholder"
-            size={24}
+            size="md"
           />
         </div>
         {footer && <p className={styles.footer}>{footer}</p>}
