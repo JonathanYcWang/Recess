@@ -2,7 +2,7 @@
  * Send a notification via Chrome runtime messaging
  */
 const send = (title: string, message: string): void => {
-  if (!chrome?.runtime?.sendMessage) return;
+  if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) return;
 
   // Ping first to avoid noisy "Receiving end does not exist" errors in cases
   // where the background listener isn't registered (e.g., during development).
