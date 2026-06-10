@@ -1,0 +1,189 @@
+.slots {
+  --reel-item-height: 72px;
+  --reel-window-height: calc(var(--reel-item-height) * 3);
+
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 32rem);
+  gap: var(--spacing-5);
+  box-sizing: border-box;
+  padding: var(--spacing-6);
+  border: 2px solid var(--color-text-primary);
+  border-radius: var(--spacing-2);
+  background: var(--color-background-primary);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: repeat(var(--reel-count, 1), minmax(0, 1fr));
+  gap: var(--spacing-4);
+}
+
+.headerLabel {
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-secondary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-lg);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.reels {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--reel-count, 1), minmax(0, 1fr));
+  gap: var(--spacing-4);
+  min-height: var(--reel-window-height);
+}
+
+.reelWindow {
+  position: relative;
+  height: var(--reel-window-height);
+  overflow: hidden;
+  border: 2px solid var(--color-border-primary);
+  border-radius: var(--spacing-2);
+  background: var(--color-background-secondary);
+}
+
+.reelWindow::before,
+.reelWindow::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: var(--spacing-8);
+  content: '';
+  pointer-events: none;
+}
+
+.reelWindow::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--color-background-secondary), transparent);
+}
+
+.reelWindow::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--color-background-secondary), transparent);
+}
+
+.selectionBand {
+  position: absolute;
+  top: var(--reel-item-height);
+  right: 0;
+  left: 0;
+  z-index: 3;
+  height: var(--reel-item-height);
+  border-top: 2px solid var(--color-text-primary);
+  border-bottom: 2px solid var(--color-text-primary);
+  pointer-events: none;
+}
+
+.reel {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--start-index, 0) * var(--reel-item-height) * -1));
+}
+
+.spinning {
+  animation: spinReel 1.8s cubic-bezier(0.17, 0.67, 0.24, 1) forwards;
+}
+
+.reelItem {
+  display: flex;
+  flex: 0 0 var(--reel-item-height);
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0 var(--spacing-3);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-sm);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.spinButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 2px solid transparent;
+  border-radius: var(--spacing-6);
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-lg);
+  transition: opacity 0.2s;
+}
+
+.spinButton:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.spinButton:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: var(--spacing-1);
+}
+
+.spinButton:disabled {
+  border-color: var(--color-border-secondary);
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  cursor: not-allowed;
+}
+
+.result {
+  min-height: 32px;
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-lg);
+  text-align: center;
+}
+
+@keyframes spinReel {
+  from {
+    transform: translateY(calc(var(--start-index, 0) * var(--reel-item-height) * -1));
+  }
+
+  to {
+    transform: translateY(calc(var(--end-index, 0) * var(--reel-item-height) * -1));
+  }
+}
+
+@media (max-width: 480px) {
+  .slots {
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  .header,
+  .reels {
+    gap: var(--spacing-2);
+  }
+
+  .reelItem {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation-duration: 1ms;
+  }
+
+  .spinButton {
+    transition: none;
+  }
+}

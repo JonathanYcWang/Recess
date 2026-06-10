@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '@/components/Button/Button';
 import PrizeWheel from '@/components/PrizeWheel/PrizeWheel';
 import SessionDetailGrid from '@/components/SessionDetailGrid/SessionDetailGrid';
+import Slots from '@/components/Slots/Slots';
 import styles from './HomePage.module.css';
 import {
   CoconutWheelIcon,
@@ -28,6 +29,22 @@ const HomePage = () => {
           <SessionDetailGrid />
         </div>
         <h1 className={styles.title}>Home Page</h1>
+        <div className={styles.box}>
+          <Slots
+            reels={[
+              {
+                id: 'platform',
+                label: 'Reward',
+                values: ['Notion', 'Figma', 'Reddit', 'Twitch', 'Pinterest', 'Zoom', 'LinkedIn'],
+              },
+              {
+                id: 'scale',
+                label: 'Time',
+                values: ['5 min', '10 min', '15 min', '20 min', '25 min', '30 min'],
+              },
+            ]}
+          />
+        </div>
         <div className={styles.box}>
           <PrizeWheel
             segments={[

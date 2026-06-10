@@ -45,3 +45,5 @@ export const TICKER_WIDTH = 28;
 export const TICKER_CAP_WHEEL_RADIUS = 4;
 export const INNER_RADIUS = WHEEL_RADIUS * 0.18;
 export const ICON_RADIUS = WHEEL_RADIUS * 0.62;
+
+export const SPIN_ROTATIONS = 4;
