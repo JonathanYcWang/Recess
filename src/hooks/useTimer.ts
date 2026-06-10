@@ -224,6 +224,5 @@ export const useTimer = () => {
     updateFeedbackMultiplier: (feedbackMultiplier: number) =>
       dispatch(updateFeedbackMultiplier(feedbackMultiplier)),
     rewards,
-    isLoaded: true,
   };
 };

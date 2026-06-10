@@ -1,13 +1,10 @@
 import { createReducer } from '@reduxjs/toolkit';
 import { completeOnboarding, setHasOnboarded } from '../actions/routingActions';
+import { createInitialRoutingState } from '../initialState';
+import type { RoutingState } from '../initialState';
+export { createInitialRoutingState };
 
-interface RoutingState {
-  hasOnboarded: boolean;
-}
-
-const initialState: RoutingState = {
-  hasOnboarded: false,
-};
+const initialState: RoutingState = createInitialRoutingState();
 
 const routingReducer = createReducer(initialState, (builder) => {
   builder

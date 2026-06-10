@@ -1,12 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit';
 import { TimerState } from '../../types/timer';
 import { Reward } from '../../types/reward';
-import {
-  CEWMA_ALPHA,
-  DEFAULT_REROLLS,
-  DEFAULT_WORK_SESSION_DURATION,
-  FOCUS_COUNTDOWN_DURATION,
-} from '../../constants/constants';
+import { DEFAULT_REROLLS, FOCUS_COUNTDOWN_DURATION } from '../../constants/constants';
 import {
   calculateMomentum,
   calculateFatigue,
@@ -31,41 +26,8 @@ import {
   updateTimerState,
 } from '../actions/timerActions';
 import { SESSION_STATES } from '../../constants/constants';
-
-const createInitialTimerState = (): TimerState => {
-  const base: TimerState = {
-    sessionState: SESSION_STATES.BEFORE_WORK_SESSION,
-    isPaused: false,
-
-    totalTimer: DEFAULT_WORK_SESSION_DURATION,
-    totalRemaining: DEFAULT_WORK_SESSION_DURATION,
-
-    currentTimer: 0,
-    currentTimerRemaining: 0,
-
-    rerolls: DEFAULT_REROLLS,
-    selectedReward: null,
-    shownRewardCombinations: [],
-    generatedRewards: [],
-
-    lastFocusSessionCompleted: false,
-    momentumScore: CEWMA_ALPHA,
-    fatigueScore: 0,
-    lastFocusSessionDuration: 0,
-    feedbackMultiplier: 1.0,
-  };
-
-  const nextFocusSessionDuration = calculateFocusSessionDuration(
-    base.totalTimer,
-    base.totalRemaining,
-    base.momentumScore,
-    base.fatigueScore
-  );
-  base.currentTimer = nextFocusSessionDuration;
-  base.currentTimerRemaining = nextFocusSessionDuration;
-
-  return base;
-};
+import { createInitialTimerState } from '../initialState';
+export { createInitialTimerState } from '../initialState';
 
 const setCurrentSessionDuration = (state: TimerState, duration: number) => {
   state.currentTimer = duration;

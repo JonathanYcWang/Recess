@@ -29,22 +29,12 @@ const WorkPage = () => {
     setTotalTimer,
     updateFeedbackMultiplier,
     rewards,
-    isLoaded,
   } = useTimer();
 
   const currentTimer = timerState.currentTimer;
   const totalRemaining = timerState.totalRemaining;
 
   const { sessionState, isPaused, rerolls, selectedReward } = timerState;
-
-  if (!isLoaded) {
-    return (
-      <div className={styles.workPage}>
-        <NavBar />
-        <div>Loading...</div>
-      </div>
-    );
-  }
 
   if (!hasOnboarded) {
     return (

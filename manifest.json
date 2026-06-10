@@ -3,8 +3,7 @@
   "name": "Recess",
   "version": "1.0.0",
   "description": "A focus session manager with breaks and site blocking",
-  "permissions": ["storage", "tabs", "declarativeNetRequest", "alarms", "notifications"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["storage", "tabs", "alarms", "notifications"],
   "action": {
     "default_title": "Recess"
   },

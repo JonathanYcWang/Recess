@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { selectIsInWorkingSession } from '../../store/selectors';
+import { SESSION_STATES } from '../../constants/constants';
+import { selectSessionState } from '../../store/selectors';
 import type { RootState } from '../../store';
 import Icon from '../Icon/Icon';
 import TimesIcon from '../../assets/times.svg?url';
@@ -9,10 +10,13 @@ import styles from './NavBar.module.css';
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const isInWorkingSession = useSelector((state: RootState) => selectIsInWorkingSession(state));
+  const sessionState = useSelector((state: RootState) => selectSessionState(state));
   const location = useLocation();
 
   const isOnSettingsPage = location.pathname.startsWith('/settings');
+  const shouldHideSettingsButton =
+    sessionState !== SESSION_STATES.BEFORE_WORK_SESSION &&
+    sessionState !== SESSION_STATES.WORK_SESSION_COMPLETE;
 
   const handleBackToMain = () => {
     navigate('/');
@@ -36,7 +40,7 @@ const NavBar = () => {
       >
         <img alt="Recess" className={styles.logoImage} src="/assets/logo.png" />
       </button>
-      {!isInWorkingSession && (
+      {!shouldHideSettingsButton && (
         <div className={styles.closeButton}>
           <Icon
             src={isOnSettingsPage ? TimesIcon : SettingsIcon}

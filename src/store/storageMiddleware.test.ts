@@ -4,19 +4,21 @@ import { SESSION_STATES } from '../constants/constants';
 import { setBlockedSites } from './actions/blockedSitesActions';
 import { setQuizState } from './actions/quizActions';
 import { setHasOnboarded } from './actions/routingActions';
-import {
-  endWorkSessionEarly,
-  setTotalTimer,
-  startFocusSession,
-  updateTimerState,
-} from './actions/timerActions';
+import { setTotalTimer } from './actions/timerActions';
 import { setWorkHours } from './actions/workHoursActions';
 import blockedSitesReducer from './reducers/blockedSitesReducer';
 import quizReducer from './reducers/quizReducer';
 import routingReducer from './reducers/routingReducer';
 import timerReducer from './reducers/timerReducer';
 import workHoursReducer from './reducers/workHoursReducer';
-import { loadStateFromStorage, storageMiddleware } from './storageMiddleware';
+import {
+  createInitialBlockedSitesState,
+  createInitialQuizState,
+  createInitialRoutingState,
+  createInitialTimerState,
+  createInitialWorkHoursState,
+} from './initialState';
+import { loadStateFromStorage, seedInitialStateInStorage, storageMiddleware } from './storageMiddleware';
 
 const createTestStore = () =>
   configureStore({
@@ -57,13 +59,7 @@ describe('storageMiddleware', () => {
 
     store.dispatch(setTotalTimer(3600));
     store.dispatch(setWorkHours([{ id: 'weekday', time: '09:00', days: [], enabled: true }]));
-    store.dispatch(
-      setBlockedSites({
-        sites: ['news.example'],
-        isLoaded: false,
-        isInWorkingSession: true,
-      })
-    );
+    store.dispatch(setBlockedSites(['news.example']));
     store.dispatch(setHasOnboarded(true));
     store.dispatch(
       setQuizState({
@@ -85,22 +81,6 @@ describe('storageMiddleware', () => {
     );
     expect(localStorage.setItem).toHaveBeenCalledWith('hasOnboarded', JSON.stringify(true));
     expect(localStorage.setItem).toHaveBeenCalledWith('quizState', JSON.stringify(store.getState().quiz));
-  });
-
-  it('starts and ends blocked-site working sessions from timer transitions', () => {
-    const localStorage = createLocalStorage();
-    vi.stubGlobal('chrome', undefined);
-    vi.stubGlobal('localStorage', localStorage);
-    const store = createTestStore();
-
-    store.dispatch(startFocusSession());
-
-    expect(store.getState().blockedSites.isInWorkingSession).toBe(true);
-
-    store.dispatch(endWorkSessionEarly());
-
-    expect(store.getState().timer.totalRemaining).toBe(0);
-    expect(store.getState().blockedSites.isInWorkingSession).toBe(false);
   });
 
   it('persists to chrome storage when the extension API is available', () => {
@@ -133,7 +113,7 @@ describe('storageMiddleware', () => {
               totalRemaining: 1,
             },
             workHours: [{ id: 'weekday', time: '09:00', days: [], enabled: true }],
-            blockedSites: { sites: ['news.example'], isLoaded: true, isInWorkingSession: false },
+            blockedSites: { sites: ['news.example'] },
             hasOnboarded: true,
             quizState: {
               currentQuestionId: 'Q1',
@@ -155,7 +135,7 @@ describe('storageMiddleware', () => {
         totalRemaining: 1,
       },
       workHours: [{ id: 'weekday', time: '09:00', days: [], enabled: true }],
-      blockedSites: { sites: ['news.example'], isLoaded: true, isInWorkingSession: false },
+      blockedSites: ['news.example'],
       routing: true,
       quiz: {
         currentQuestionId: 'Q1',
@@ -164,6 +144,71 @@ describe('storageMiddleware', () => {
         results: null,
       },
     });
+  });
+
+  it('seeds missing initial state to chrome storage', async () => {
+    const values: Record<string, unknown> = {};
+    const chromeStorage = {
+      get: vi.fn((keys: string[], callback: (result: Record<string, unknown>) => void) => {
+        const key = keys[0];
+        callback({ [key]: values[key] });
+      }),
+      set: vi.fn((value: Record<string, unknown>, callback: () => void) => {
+        Object.assign(values, value);
+        callback();
+      }),
+      remove: vi.fn(),
+    };
+    vi.stubGlobal('chrome', { storage: { local: chromeStorage } });
+
+    await seedInitialStateInStorage();
+
+    expect(values).toEqual({
+      timerState: createInitialTimerState(),
+      workHours: createInitialWorkHoursState().entries,
+      blockedSites: createInitialBlockedSitesState(),
+      hasOnboarded: createInitialRoutingState().hasOnboarded,
+      quizState: createInitialQuizState(),
+    });
+  });
+
+  it('does not overwrite existing chrome storage values while seeding', async () => {
+    const existingTimer = {
+      sessionState: SESSION_STATES.ONGOING_FOCUS_SESSION,
+      totalRemaining: 120,
+    };
+    const values: Record<string, unknown> = {
+      timerState: existingTimer,
+      blockedSites: ['news.example'],
+    };
+    const chromeStorage = {
+      get: vi.fn((keys: string[], callback: (result: Record<string, unknown>) => void) => {
+        const key = keys[0];
+        callback({ [key]: values[key] });
+      }),
+      set: vi.fn((value: Record<string, unknown>, callback: () => void) => {
+        Object.assign(values, value);
+        callback();
+      }),
+      remove: vi.fn(),
+    };
+    vi.stubGlobal('chrome', { storage: { local: chromeStorage } });
+
+    await seedInitialStateInStorage();
+
+    expect(values.timerState).toBe(existingTimer);
+    expect(values.blockedSites).toEqual(['news.example']);
+    expect(values.workHours).toEqual(createInitialWorkHoursState().entries);
+    expect(values.hasOnboarded).toBe(createInitialRoutingState().hasOnboarded);
+    expect(values.quizState).toEqual(createInitialQuizState());
+    expect(chromeStorage.set).not.toHaveBeenCalledWith(
+      { timerState: expect.anything() },
+      expect.any(Function)
+    );
+    expect(chromeStorage.set).not.toHaveBeenCalledWith(
+      { blockedSites: expect.anything() },
+      expect.any(Function)
+    );
   });
 
   it('returns undefined slices when localStorage contains invalid JSON', async () => {
@@ -181,16 +226,4 @@ describe('storageMiddleware', () => {
     });
   });
 
-  it('does not end blocked-site working session when total remaining was already zero', () => {
-    const localStorage = createLocalStorage();
-    vi.stubGlobal('chrome', undefined);
-    vi.stubGlobal('localStorage', localStorage);
-    const store = createTestStore();
-
-    store.dispatch(startFocusSession());
-    store.dispatch(endWorkSessionEarly());
-    store.dispatch(updateTimerState({ totalRemaining: 0 }));
-
-    expect(store.getState().blockedSites.isInWorkingSession).toBe(false);
-  });
 });

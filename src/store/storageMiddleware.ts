@@ -1,6 +1,11 @@
-import { Middleware, AnyAction } from '@reduxjs/toolkit';
-import { startWorkingSession, endWorkingSession } from './actions/blockedSitesActions';
-import { SESSION_STATES } from '../constants/constants';
+import type { Middleware, AnyAction } from '@reduxjs/toolkit';
+import {
+  createInitialBlockedSitesState,
+  createInitialQuizState,
+  createInitialRoutingState,
+  createInitialTimerState,
+  createInitialWorkHoursState,
+} from './initialState';
 
 const STORAGE_KEYS = {
   timer: 'timerState',
@@ -57,36 +62,34 @@ const storageAPI = {
   },
 };
 
+type PersistedBlockedSites = string[] | { sites?: unknown } | undefined;
+
+const getInitialPersistedState = () => ({
+  [STORAGE_KEYS.timer]: createInitialTimerState(),
+  [STORAGE_KEYS.workHours]: createInitialWorkHoursState().entries,
+  [STORAGE_KEYS.blockedSites]: createInitialBlockedSitesState(),
+  [STORAGE_KEYS.routing]: createInitialRoutingState().hasOnboarded,
+  [STORAGE_KEYS.quiz]: createInitialQuizState(),
+});
+
+const normalizeBlockedSites = (persisted: PersistedBlockedSites): string[] | undefined => {
+  if (Array.isArray(persisted)) {
+    return persisted.filter((site): site is string => typeof site === 'string');
+  }
+
+  if (persisted && Array.isArray(persisted.sites)) {
+    return persisted.sites.filter((site): site is string => typeof site === 'string');
+  }
+
+  return undefined;
+};
+
 export const storageMiddleware: Middleware = (store) => (next) => (action) => {
-  const prevState = store.getState();
   const result = next(action);
   const state = store.getState();
   const typedAction = action as AnyAction;
 
-  // Handle working session state based on timer changes
   if (typedAction.type && typedAction.type.startsWith('timer/')) {
-    const prevTimer = prevState.timer;
-    const currentTimer = state.timer;
-    const prevBlockedSites = prevState.blockedSites;
-
-    // Start working session: First focus session start when not already in a working session
-    if (
-      typedAction.type === 'timer/startFocusSession' &&
-      prevTimer.sessionState === SESSION_STATES.BEFORE_WORK_SESSION &&
-      !prevBlockedSites.isInWorkingSession
-    ) {
-      store.dispatch(startWorkingSession());
-    }
-
-    // End working session: When totalRemaining becomes 0
-    if (
-      currentTimer.totalRemaining === 0 &&
-      prevTimer.totalRemaining > 0 &&
-      prevBlockedSites.isInWorkingSession
-    ) {
-      store.dispatch(endWorkingSession());
-    }
-
     storageAPI.set(STORAGE_KEYS.timer, state.timer);
   }
   if (typedAction.type && typedAction.type.startsWith('workHours/')) {
@@ -106,12 +109,26 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
   return result;
 };
 
+export const seedInitialStateInStorage = async () => {
+  const initialPersistedState = getInitialPersistedState();
+
+  await Promise.all(
+    Object.entries(initialPersistedState).map(async ([key, value]) => {
+      const persistedValue = await storageAPI.get(key);
+
+      if (persistedValue === undefined) {
+        await storageAPI.set(key, value);
+      }
+    })
+  );
+};
+
 export const loadStateFromStorage = async () => {
   const [timerState, workHoursEntries, blockedSitesState, hasOnboarded, quizState] =
     await Promise.all([
       storageAPI.get(STORAGE_KEYS.timer),
       storageAPI.get<any[]>(STORAGE_KEYS.workHours),
-      storageAPI.get<any>(STORAGE_KEYS.blockedSites),
+      storageAPI.get<PersistedBlockedSites>(STORAGE_KEYS.blockedSites),
       storageAPI.get<boolean>(STORAGE_KEYS.routing),
       storageAPI.get<any>(STORAGE_KEYS.quiz),
     ]);
@@ -119,7 +136,7 @@ export const loadStateFromStorage = async () => {
   return {
     timer: timerState,
     workHours: workHoursEntries ? workHoursEntries : undefined,
-    blockedSites: blockedSitesState,
+    blockedSites: normalizeBlockedSites(blockedSitesState),
     routing: hasOnboarded !== undefined ? hasOnboarded : undefined,
     quiz: quizState,
   };

@@ -6,7 +6,7 @@ import routingReducer from '../reducers/routingReducer';
 import timerReducer from '../reducers/timerReducer';
 import workHoursReducer from '../reducers/workHoursReducer';
 import type { RootState } from '../index';
-import { addBlockedSite, startWorkingSession } from '../actions/blockedSitesActions';
+import { addBlockedSite } from '../actions/blockedSitesActions';
 import { selectOption } from '../actions/quizActions';
 import { completeOnboarding } from '../actions/routingActions';
 import { startFocusSession, transitionToRewardSelection } from '../actions/timerActions';
@@ -17,7 +17,6 @@ import {
   selectFatigueScore,
   selectGeneratedRewards,
   selectHasOnboarded,
-  selectIsInWorkingSession,
   selectIsPaused,
   selectIsQuizComplete,
   selectMomentumScore,
@@ -40,10 +39,7 @@ const createState = (): RootState => ({
     undefined,
     setWorkHours([{ id: 'weekday', time: '09:00', days: [true, true, true, true, true, false, false], enabled: true }])
   ),
-  blockedSites: blockedSitesReducer(
-    blockedSitesReducer(undefined, addBlockedSite('news.example')),
-    startWorkingSession()
-  ),
+  blockedSites: blockedSitesReducer(undefined, addBlockedSite('news.example')),
   routing: routingReducer(undefined, completeOnboarding()),
   quiz: quizReducer(
     undefined,
@@ -77,7 +73,6 @@ describe('Redux selectors', () => {
 
     expect(selectWorkHoursEntries(state)).toEqual(state.workHours.entries);
     expect(selectBlockedSites(state)).toContain('news.example');
-    expect(selectIsInWorkingSession(state)).toBe(true);
     expect(selectHasOnboarded(state)).toBe(true);
     expect(selectSelectedChoices(state)).toHaveLength(1);
     expect(selectIsQuizComplete(state)).toBe(false);

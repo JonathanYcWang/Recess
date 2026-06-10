@@ -85,10 +85,7 @@ const createState = (overrides: Partial<RootState['timer']> = {}): RootState => 
     ...overrides,
   },
   workHours: workHoursReducer(undefined, { type: 'test/init' }),
-  blockedSites: blockedSitesReducer(
-    undefined,
-    setBlockedSites({ sites: ['youtube.com', 'reddit.com'], isLoaded: true, isInWorkingSession: false })
-  ),
+  blockedSites: blockedSitesReducer(undefined, setBlockedSites(['youtube.com', 'reddit.com'])),
   routing: routingReducer(undefined, { type: 'test/init' }),
   quiz: quizReducer(undefined, { type: 'test/init' }),
 });
@@ -147,7 +144,6 @@ describe('useTimer', async () => {
     expect(hookMocks.dispatch).toHaveBeenCalledWith(setTotalTimer(1800));
     expect(hookMocks.dispatch).toHaveBeenCalledWith(updateFeedbackMultiplier(1.25));
     expect(result.rewards).toEqual([]);
-    expect(result.isLoaded).toBe(true);
   });
 
   it('calculates live remaining time for an active focus session and pauses with that value', () => {

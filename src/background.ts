@@ -1,3 +1,5 @@
+import { seedInitialStateInStorage } from './store/storageMiddleware';
+
 // --- Work Hours Reminder Scheduling ---
 const WORK_REMINDER_ALARM_PREFIX = 'work-reminder-';
 
@@ -42,7 +44,8 @@ const scheduleWorkReminders = async () => {
 };
 
 // Schedule on startup
-scheduleWorkReminders();
+const initialStateSeed = seedInitialStateInStorage();
+initialStateSeed.then(scheduleWorkReminders);
 
 // Handle alarm firing
 chrome.alarms.onAlarm.addListener((alarm: chrome.alarms.Alarm) => {
@@ -125,110 +128,145 @@ chrome.action.onClicked.addListener(() => {
   chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
 });
 
-type PersistedBlockedSites =
-  | string[]
-  | {
-      sites?: string[];
-    }
-  | undefined;
+type PersistedBlockedSites = string[];
+type PersistedTimerState = {
+  sessionState?: string;
+  selectedReward?: {
+    name: string;
+  } | null;
+};
+type ClosedBlockedTabs = string[];
 
-const getBlockedSites = (persisted: PersistedBlockedSites) => {
-  if (Array.isArray(persisted)) {
-    return { sites: persisted };
+const CLOSED_BLOCKED_TABS_STORAGE_KEY = 'closedBlockedTabs';
+
+const FOCUS_BLOCKED_STATES = new Set([
+  'ONGOING_FOCUS_SESSION',
+  'FOCUS_SESSION_COUNTDOWN',
+  'REWARD_SELECTION',
+  'FOCUS_BLOCKED_STATES',
+]);
+
+let isSyncingBlockingState = false;
+let shouldSyncBlockingStateAgain = false;
+const syncBlockingState = async () => {
+  if (isSyncingBlockingState) {
+    shouldSyncBlockingStateAgain = true;
+    return;
   }
+  isSyncingBlockingState = true;
 
-  return {
-    sites: persisted?.sites ?? [],
-  };
+  try {
+    do {
+      shouldSyncBlockingStateAgain = false;
+      try {
+        const data = await chrome.storage.local.get(['blockedSites', 'timerState']);
+        const sites = data.blockedSites as PersistedBlockedSites;
+        const timerState = data.timerState as PersistedTimerState;
+        const sessionState = timerState?.sessionState;
+
+        if (sessionState && FOCUS_BLOCKED_STATES.has(sessionState)) {
+          await closeBlockedTabs(sites, timerState);
+          return;
+        }
+
+        await reopenClosedBlockedTabs();
+      } catch (error) {
+        console.error('Error syncing blocking state:', error);
+      }
+    } while (shouldSyncBlockingStateAgain);
+  } finally {
+    isSyncingBlockingState = false;
+  }
 };
 
-// Helper function to check if a URL matches any blocked site
-const isDistractingSite = (url: string, blockedSites: string[]): boolean => {
-  try {
-    const urlObj = new URL(url);
-    const hostname = urlObj.hostname.toLowerCase();
+const closeBlockedTabs = async (
+  blockedSites: PersistedBlockedSites,
+  timerState: PersistedTimerState | undefined
+) => {
+  const tabs = await chrome.tabs.query({});
+  const tabsToClose = tabs.filter((tab) => {
+    return Boolean(
+      tab.id !== undefined && tab.url && shouldCloseTabUrl(tab.url, blockedSites, timerState)
+    );
+  });
 
-    return blockedSites.some((site) => {
-      const normalizedSite = site.toLowerCase();
-      return hostname === normalizedSite || hostname.endsWith('.' + normalizedSite);
-    });
+  if (tabsToClose.length > 0) {
+    await rememberClosedTabs(tabsToClose);
+    await chrome.tabs.remove(tabsToClose.map((tab) => tab.id as number));
+  }
+};
+const shouldCloseTabUrl = (
+  url: string,
+  blockedSites: PersistedBlockedSites,
+  timerState: PersistedTimerState | undefined
+): boolean => {
+  const sessionState = timerState?.sessionState;
+  const matchingBlockedSite = blockedSites.find((site) => urlMatchesSite(url, site));
+
+  if (!matchingBlockedSite) {
+    return false;
+  } else if (sessionState === 'ONGOING_BREAK_SESSION') {
+    const rewardSite = timerState?.selectedReward?.name;
+    return !rewardSite || !urlMatchesSite(url, rewardSite);
+  } else if (sessionState && FOCUS_BLOCKED_STATES.has(sessionState)) {
+    return true;
+  }
+
+  return false;
+};
+
+const urlMatchesSite = (url: string, site: string): boolean => {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const domain = site
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .split('/')[0];
+    return hostname === domain || hostname.endsWith(`.${domain}`);
   } catch {
     return false;
   }
 };
 
-// Update declarativeNetRequest rules based on current session state
-let updateBlockingRulesInFlight: Promise<void> = Promise.resolve();
+const rememberClosedTabs = async (tabsToClose: chrome.tabs.Tab[]) => {
+  const rememberedUrls = new Set(await getClosedBlockedTabs());
 
-const BLOCKING_RULE_ID_BASE = 1000;
-const BLOCKING_RULE_ID_LIMIT = 1000; // max sites handled = 1000
+  for (const tab of tabsToClose) {
+    if (tab.url) {
+      rememberedUrls.add(tab.url);
+    }
+  }
 
-const updateBlockingRules = () => {
-  updateBlockingRulesInFlight = updateBlockingRulesInFlight
-    .catch(() => {
-      // swallow to keep the queue moving
-    })
-    .then(async () => {
-      await updateBlockingRulesImpl();
-    });
-
-  return updateBlockingRulesInFlight;
+  if (rememberedUrls.size > 0) {
+    await setClosedBlockedTabs([...rememberedUrls]);
+  }
 };
 
-const updateBlockingRulesImpl = async () => {
-  try {
-    const data = await chrome.storage.local.get(['blockedSites', 'timerState']);
-    const { sites } = getBlockedSites(data.blockedSites);
-    const timerState = data.timerState;
+const getClosedBlockedTabs = async (): Promise<ClosedBlockedTabs> => {
+  const data = await chrome.storage.local.get([CLOSED_BLOCKED_TABS_STORAGE_KEY]);
+  const closedTabs = data[CLOSED_BLOCKED_TABS_STORAGE_KEY];
 
-    // Only block sites during active focus sessions
-    const shouldBlock = timerState?.sessionState === 'ONGOING_FOCUS_SESSION';
+  return Array.isArray(closedTabs) ? closedTabs : [];
+};
 
-    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-    const existingRuleIds = existingRules
-      .map((rule: chrome.declarativeNetRequest.Rule) => rule.id)
-      .filter(
-        (id) => id >= BLOCKING_RULE_ID_BASE && id < BLOCKING_RULE_ID_BASE + BLOCKING_RULE_ID_LIMIT
-      );
+const setClosedBlockedTabs = async (closedTabs: ClosedBlockedTabs) => {
+  await chrome.storage.local.set({ [CLOSED_BLOCKED_TABS_STORAGE_KEY]: closedTabs });
+};
 
-    if (shouldBlock && sites.length > 0) {
-      // Create blocking rules for each site
-      const rules = sites.map((site, index) => ({
-        id: BLOCKING_RULE_ID_BASE + index,
-        priority: 1,
-        action: {
-          type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
-          redirect: {
-            url: chrome.runtime.getURL('index.html'),
-          },
-        },
-        condition: {
-          urlFilter: `*://*.${site}/*`,
-          resourceTypes: [chrome.declarativeNetRequest.ResourceType.MAIN_FRAME],
-        },
-      }));
+const clearClosedBlockedTabs = async () => {
+  await chrome.storage.local.remove([CLOSED_BLOCKED_TABS_STORAGE_KEY]);
+};
 
-      // Ensure we remove any potentially conflicting IDs even if the current
-      // snapshot of existing rules is stale (e.g., due to rapid successive updates).
-      const desiredRuleIds = rules.map((rule) => rule.id);
-      const ruleIdsToRemove = Array.from(new Set([...existingRuleIds, ...desiredRuleIds]));
-
-      // Update rules
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: ruleIdsToRemove,
-        addRules: rules as chrome.declarativeNetRequest.Rule[],
-      });
-    } else {
-      // Remove all blocking rules
-      if (existingRuleIds.length > 0) {
-        await chrome.declarativeNetRequest.updateDynamicRules({
-          removeRuleIds: existingRuleIds,
-        });
-      }
-    }
-  } catch (error) {
-    console.error('Error updating blocking rules:', error);
+const reopenClosedBlockedTabs = async () => {
+  const closedTabs = await getClosedBlockedTabs();
+  for (const url of closedTabs) {
+    await chrome.tabs.create({
+      url,
+      active: false,
+    });
   }
+  await clearClosedBlockedTabs();
 };
 
 // Listen for storage changes
@@ -241,10 +279,16 @@ chrome.storage.onChanged.addListener(
     }
 
     if (changes.blockedSites || changes.timerState) {
-      updateBlockingRules();
+      syncBlockingState();
     }
   }
 );
 
-// Initialize rules on startup
-updateBlockingRules();
+chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
+  if (changeInfo.url || changeInfo.status === 'complete') {
+    syncBlockingState();
+  }
+});
+
+// Initialize tab blocking on startup
+initialStateSeed.then(syncBlockingState);

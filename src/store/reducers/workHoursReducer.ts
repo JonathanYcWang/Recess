@@ -8,16 +8,11 @@ import {
   toggleWorkHoursEntry,
   updateWorkHoursEntry,
 } from '../actions/workHoursActions';
+import { createInitialWorkHoursState } from '../initialState';
+import type { WorkHoursState } from '../initialState';
+export { createInitialWorkHoursState };
 
-interface WorkHoursState {
-  entries: WorkHoursEntry[];
-  isLoaded: boolean;
-}
-
-const initialState: WorkHoursState = {
-  entries: [],
-  isLoaded: false,
-};
+const initialState: WorkHoursState = createInitialWorkHoursState();
 
 const workHoursReducer = createReducer(initialState, (builder) => {
   builder
