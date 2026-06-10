@@ -26,6 +26,9 @@ const HomePage = () => {
       <div className={styles.content}>
         <div className={styles.shell}>
           <SessionDetailGrid />
+        </div>
+        <h1 className={styles.title}>Home Page</h1>
+        <div className={styles.box}>
           <PrizeWheel
             segments={[
               { label: 'Color Bomb', icon: <ColorBombIcon /> },
@@ -49,8 +52,24 @@ const HomePage = () => {
             ]}
           />
         </div>
-        <h1 className={styles.title}>Home Page</h1>
-        <Button text="Go to Work" onClick={handleEnterWork} variant="primary" />
+        <Button
+          text="Go to Work"
+          onClick={handleEnterWork}
+          variant="primary"
+          className={styles.box}
+        />
+        <Button
+          text="Go to Work"
+          onClick={handleEnterWork}
+          variant="primary"
+          className={styles.box}
+        />
+        <Button
+          text="Go to Work"
+          onClick={handleEnterWork}
+          variant="primary"
+          className={styles.box}
+        />
       </div>
     </main>
   );

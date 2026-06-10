@@ -14,6 +14,7 @@
   align-items: center;
   width: min(75rem, 100%);
   gap: var(--spacing-6);
+  margin-bottom: 200px;
 }
 
 .shell {
@@ -29,4 +30,21 @@
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-3xl);
+}
+
+.box {
+  animation: fadeUp 1s linear;
+  animation-timeline: view();
+  animation-range: entry 0% cover 40%;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
