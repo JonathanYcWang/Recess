@@ -79,3 +79,16 @@
   text-decoration-style: solid;
   text-underline-position: from-font;
 }
+
+.disabled {
+  border-color: var(--color-border-secondary);
+  background: var(--color-background-secondary);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+}
+
+.disabled .text {
+  color: var(--color-text-primary);
+}

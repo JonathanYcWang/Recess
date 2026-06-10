@@ -8,11 +8,25 @@ interface ButtonProps {
   onClick?: () => void;
   iconSrc?: string;
   variant?: ButtonVariant;
+  className?: string;
+  disabled?: boolean;
 }
 
-const Button = ({ text, onClick, iconSrc, variant = 'primary' }: ButtonProps) => {
+const Button = ({
+  text,
+  onClick,
+  iconSrc,
+  variant = 'primary',
+  className = '',
+  disabled = false,
+}: ButtonProps) => {
   return (
-    <button className={`${styles.button} ${styles[variant]}`} onClick={onClick}>
+    <button
+      className={`${styles.button} ${styles[variant]} ${className} ${disabled ? styles.disabled : ''}`}
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+    >
       {iconSrc && variant !== 'tertiary' && <Icon src={iconSrc} alt="Icon" size={20} />}
       <span className={styles.text}>{text}</span>
     </button>
