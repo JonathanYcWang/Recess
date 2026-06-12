@@ -5,6 +5,7 @@ import Button from '@/components/Button/Button';
 import Ticker from './Ticker';
 import Wheel from './Wheel';
 import WheelFrame from './WheelFrame';
+import { MAX_SPEED } from '@/constants/constants';
 import {
   getNextWheelSpeed,
   getTickerTilt,
@@ -14,15 +15,13 @@ import {
 const WHEEL_STATE = {
   IDLE: 'idle',
   SPINNING: 'spinning',
-  STOPPING: 'stopping',
 } as const;
 
 type WheelState = (typeof WHEEL_STATE)[keyof typeof WHEEL_STATE];
 
 const WHEEL_ACTION_LABEL = {
   [WHEEL_STATE.IDLE]: 'Spin',
-  [WHEEL_STATE.SPINNING]: 'Stop!',
-  [WHEEL_STATE.STOPPING]: 'Stopping...',
+  [WHEEL_STATE.SPINNING]: 'Spinning...',
 } as const;
 
 interface PrizeWheelProps {
@@ -59,22 +58,15 @@ const PrizeWheel = ({ segments }: PrizeWheelProps) => {
   }, [updateWheelState]);
 
   const animate = useCallback(() => {
-    if (wheelStateRef.current === WHEEL_STATE.SPINNING) {
-      speedRef.current = getNextWheelSpeed(speedRef.current, WHEEL_STATE.SPINNING);
-    }
-
-    if (wheelStateRef.current === WHEEL_STATE.STOPPING) {
-      speedRef.current = getNextWheelSpeed(speedRef.current, WHEEL_STATE.STOPPING);
-    }
-
-    if (
-      wheelStateRef.current !== WHEEL_STATE.SPINNING &&
-      wheelStateRef.current !== WHEEL_STATE.STOPPING
-    ) {
+    if (wheelStateRef.current !== WHEEL_STATE.SPINNING) {
       return;
     }
+
+    speedRef.current = getNextWheelSpeed(speedRef.current, 'stopping');
+
     // Treat the wheel as stopped once its speed is visually indistinguishable from zero since the speed will never actually reach 0
-    if (wheelStateRef.current === WHEEL_STATE.STOPPING && speedRef.current < 0.05) {
+    if (speedRef.current < 0.05) {
+      speedRef.current = 0;
       finishSpin();
       return;
     }
@@ -106,32 +98,12 @@ const PrizeWheel = ({ segments }: PrizeWheelProps) => {
     window.clearTimeout(revealTimeoutRef.current);
     setWinningSegment(null);
     rotationRef.current = 0;
-    speedRef.current = 0;
+    speedRef.current = MAX_SPEED;
     setDisplayRotation(0);
     setTickerTilt(0);
     updateWheelState(WHEEL_STATE.SPINNING);
     animationFrameRef.current = requestAnimationFrame(animate); // “Run this function right before the browser repaints the screen.”
   }, [animate, updateWheelState]);
-
-  const handleStop = useCallback(() => {
-    if (wheelStateRef.current !== WHEEL_STATE.SPINNING) {
-      return;
-    }
-    updateWheelState(WHEEL_STATE.STOPPING);
-  }, [updateWheelState]);
-
-  const handleActionClick = useCallback(() => {
-    switch (wheelStateRef.current) {
-      case WHEEL_STATE.IDLE:
-        return handleSpin();
-      case WHEEL_STATE.SPINNING:
-        return handleStop();
-      default:
-        return;
-    }
-  }, [wheelStateRef, handleSpin, handleStop]);
-
-  const actionDisabled = wheelState === WHEEL_STATE.STOPPING;
 
   return (
     <div className={styles.card} aria-label="Daily booster wheel">
@@ -152,8 +124,8 @@ const PrizeWheel = ({ segments }: PrizeWheelProps) => {
 
       <Button
         text={WHEEL_ACTION_LABEL[wheelState]}
-        onClick={handleActionClick}
-        disabled={actionDisabled}
+        onClick={handleSpin}
+        disabled={wheelState === WHEEL_STATE.SPINNING}
       />
 
       <p className={styles.infoText}>

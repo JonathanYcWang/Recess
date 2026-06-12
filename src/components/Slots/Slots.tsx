@@ -1,6 +1,10 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react';
 import Button from '@/components/Button/Button';
-import { SPIN_ROTATIONS } from '@/constants/constants';
+import {
+  SPIN_ROTATIONS,
+  BASE_REEL_SPIN_DURATION_SECONDS,
+  REEL_STOP_INTERVAL_SECONDS,
+} from '@/constants/constants';
 import styles from './Slots.module.css';
 
 export interface SlotReel {
@@ -37,6 +41,18 @@ export const getReelOffset = (
   return {
     '--start-index': currentIndex,
     '--end-index': SPIN_ROTATIONS * items.length + targetIndex,
+  } as CSSProperties;
+};
+
+export const getReelSpinStyle = (
+  items: string[],
+  currentIndex: number,
+  targetIndex: number,
+  reelIndex: number
+): CSSProperties => {
+  return {
+    ...getReelOffset(items, currentIndex, targetIndex),
+    '--reel-spin-duration': `${BASE_REEL_SPIN_DURATION_SECONDS + reelIndex * REEL_STOP_INTERVAL_SECONDS}s`,
   } as CSSProperties;
 };
 
@@ -108,10 +124,11 @@ const Slots = ({ reels }: SlotsProps) => {
               <div
                 key={`${reel.id}-${spinState.spinKey}`}
                 className={`${styles.reel} ${spinState.isSpinning ? styles.spinning : ''}`}
-                style={getReelOffset(
+                style={getReelSpinStyle(
                   reel.values,
                   spinState.selectedIndexes[reelIndex],
-                  spinState.pendingIndexes[reelIndex]
+                  spinState.pendingIndexes[reelIndex],
+                  reelIndex
                 )}
                 onAnimationEnd={handleReelAnimationEnd}
               >

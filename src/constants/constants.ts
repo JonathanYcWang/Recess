@@ -31,8 +31,8 @@ export type SessionState = (typeof SESSION_STATES)[keyof typeof SESSION_STATES];
 
 export const SEGMENT_COUNT = 8;
 export const SEGMENT_ANGLE = (2 * Math.PI) / SEGMENT_COUNT;
-export const MAX_SPEED = 0.3;
-export const DECEL_FACTOR = 0.982;
+export const MAX_SPEED = 0.5;
+export const DECEL_FACTOR = 0.99;
 export const ACCEL_FACTOR = 0.07;
 export const TICKER_MAX_TILT = 20;
 export const WHEEL_SIZE = 320;
@@ -47,3 +47,6 @@ export const INNER_RADIUS = WHEEL_RADIUS * 0.18;
 export const ICON_RADIUS = WHEEL_RADIUS * 0.62;
 
 export const SPIN_ROTATIONS = 4;
+
+export const BASE_REEL_SPIN_DURATION_SECONDS = 2;
+export const REEL_STOP_INTERVAL_SECONDS = 2.2;

@@ -86,7 +86,7 @@
 }
 
 .spinning {
-  animation: spinReel 1.8s cubic-bezier(0.17, 0.67, 0.24, 1) forwards;
+  animation: spinReel var(--reel-spin-duration, 1.8s) cubic-bezier(0.17, 0.67, 0.24, 1) forwards;
 }
 
 .reelItem {
