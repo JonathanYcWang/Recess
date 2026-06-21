@@ -103,9 +103,15 @@ describe('timerReducer', () => {
   });
 
   it('transitions from a break to focus countdown when ending a break early', () => {
-    vi.spyOn(Date, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(1500).mockReturnValueOnce(2000);
+    vi.spyOn(Date, 'now')
+      .mockReturnValueOnce(1000)
+      .mockReturnValueOnce(1500)
+      .mockReturnValueOnce(2000);
 
-    const breakState = timerReducer(timerReducer(undefined, startFocusSession()), selectReward(reward));
+    const breakState = timerReducer(
+      timerReducer(undefined, startFocusSession()),
+      selectReward(reward)
+    );
     const countdown = timerReducer(breakState, endSessionEarly());
 
     expect(countdown.sessionState).toBe(SESSION_STATES.FOCUS_SESSION_COUNTDOWN);
@@ -144,7 +150,10 @@ describe('timerReducer', () => {
     vi.spyOn(Date, 'now').mockReturnValue(1000);
 
     const withRewards = timerReducer(
-      timerReducer(timerReducer(undefined, setGeneratedRewards([reward])), setShownRewardCombinations(['a,b'])),
+      timerReducer(
+        timerReducer(undefined, setGeneratedRewards([reward])),
+        setShownRewardCombinations(['a,b'])
+      ),
       selectReward(reward)
     );
 

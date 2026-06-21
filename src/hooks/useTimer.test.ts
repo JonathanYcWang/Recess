@@ -47,6 +47,7 @@ vi.mock('react', async () => {
         hookMocks.effectCleanups.push(cleanup);
       }
     },
+    useRef: <T,>(initialValue: T) => ({ current: initialValue }),
     useState: () => [0, hookMocks.setTick],
   };
 });
@@ -234,6 +235,12 @@ describe('useTimer', async () => {
 
     useTimer();
 
+    expect(notifications.notifyFocusComplete).toHaveBeenCalled();
+    expect(hookMocks.setTick).toHaveBeenCalled();
+    expect(hookMocks.dispatch).not.toHaveBeenCalledWith(transitionToRewardSelection());
+
+    vi.advanceTimersByTime(1000);
+
     expect(hookMocks.dispatch).toHaveBeenCalledWith(transitionToRewardSelection());
   });
 
@@ -251,8 +258,12 @@ describe('useTimer', async () => {
 
     expect(notifications.notifyFocusEnding).toHaveBeenCalledWith(5);
     expect(notifications.notifyFocusComplete).toHaveBeenCalled();
-    expect(hookMocks.dispatch).toHaveBeenCalledWith(transitionToRewardSelection());
     expect(hookMocks.setTick).toHaveBeenCalled();
+    expect(hookMocks.dispatch).not.toHaveBeenCalledWith(transitionToRewardSelection());
+
+    vi.advanceTimersByTime(1000);
+
+    expect(hookMocks.dispatch).toHaveBeenCalledWith(transitionToRewardSelection());
   });
 
   it('uses interval ticks for break completion and countdown completion transitions', () => {
@@ -267,11 +278,16 @@ describe('useTimer', async () => {
     vi.advanceTimersByTime(1000);
 
     expect(notifications.notifyBreakComplete).toHaveBeenCalled();
+    expect(hookMocks.dispatch).not.toHaveBeenCalledWith(transitionToFocusSessionCountdown());
+
+    vi.advanceTimersByTime(1000);
+
     expect(hookMocks.dispatch).toHaveBeenCalledWith(transitionToFocusSessionCountdown());
 
     hookMocks.dispatch.mockClear();
     hookMocks.effectCleanups.forEach((cleanup) => cleanup());
     hookMocks.effectCleanups = [];
+    vi.setSystemTime(10_000);
     hookMocks.state = createState({
       sessionState: SESSION_STATES.FOCUS_SESSION_COUNTDOWN,
       currentTimerRemaining: 1,
@@ -280,6 +296,10 @@ describe('useTimer', async () => {
 
     useTimer();
     vi.setSystemTime(12_000);
+    vi.advanceTimersByTime(1000);
+
+    expect(hookMocks.dispatch).not.toHaveBeenCalledWith(transitionToFocusSession());
+
     vi.advanceTimersByTime(1000);
 
     expect(hookMocks.dispatch).toHaveBeenCalledWith(transitionToFocusSession());

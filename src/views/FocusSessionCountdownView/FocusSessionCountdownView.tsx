@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react';
-import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
-import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
+import FocusTimer from '../../components/FocusTimer/FocusTimer';
 import Button from '../../components/Button/Button';
 import EnergyCheckDialog from '../../components/EnergyCheckDialog/EnergyCheckDialog';
 import PlayIcon from '../../assets/play.svg?url';
-import { formatWorkSessionTime, formatTime } from '../../services/timerService';
 import styles from './FocusSessionCountdownView.module.css';
 
 interface FocusSessionCountdownViewProps {
-  workSessionDurationRemaining: number;
-  sessionDurationRemaining: number;
+  currentTimer: number;
+  currentRemaining: number;
   startFocusSession: () => void;
   updateFeedbackMultiplier: (feedbackMultiplier: number) => void;
   endWorkSessionEarly: () => void;
 }
 
 const FocusSessionCountdownView = ({
-  workSessionDurationRemaining,
-  sessionDurationRemaining,
-
+  currentTimer,
+  currentRemaining,
   startFocusSession,
   updateFeedbackMultiplier,
   endWorkSessionEarly,
@@ -55,10 +52,7 @@ const FocusSessionCountdownView = ({
         <p className={styles.header}>Alright, Back To It.</p>
         <p className={styles.caption}>Next focus session is starting soon.</p>
       </div>
-      <SecondaryTimerDescription
-        text={`${formatWorkSessionTime(workSessionDurationRemaining)} To Go`}
-      />
-      <CountdownTimer time={formatTime(sessionDurationRemaining)} label="starting in" />
+      <FocusTimer timer={currentTimer} remainingTimer={currentRemaining} label="starting in" />
       <div className={styles.contentContainer}>
         <Button
           text="Start Focus Session Now"

@@ -18,7 +18,11 @@ import {
   createInitialTimerState,
   createInitialWorkHoursState,
 } from './initialState';
-import { loadStateFromStorage, seedInitialStateInStorage, storageMiddleware } from './storageMiddleware';
+import {
+  loadStateFromStorage,
+  seedInitialStateInStorage,
+  storageMiddleware,
+} from './storageMiddleware';
 
 const createTestStore = () =>
   configureStore({
@@ -49,6 +53,7 @@ const createLocalStorage = () => {
 describe('storageMiddleware', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('persists each Redux slice to localStorage fallback', () => {
@@ -70,7 +75,10 @@ describe('storageMiddleware', () => {
       })
     );
 
-    expect(localStorage.setItem).toHaveBeenCalledWith('timerState', JSON.stringify(store.getState().timer));
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      'timerState',
+      JSON.stringify(store.getState().timer)
+    );
     expect(localStorage.setItem).toHaveBeenCalledWith(
       'workHours',
       JSON.stringify(store.getState().workHours.entries)
@@ -80,7 +88,10 @@ describe('storageMiddleware', () => {
       JSON.stringify(store.getState().blockedSites)
     );
     expect(localStorage.setItem).toHaveBeenCalledWith('hasOnboarded', JSON.stringify(true));
-    expect(localStorage.setItem).toHaveBeenCalledWith('quizState', JSON.stringify(store.getState().quiz));
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      'quizState',
+      JSON.stringify(store.getState().quiz)
+    );
   });
 
   it('persists to chrome storage when the extension API is available', () => {
@@ -225,5 +236,4 @@ describe('storageMiddleware', () => {
       quiz: undefined,
     });
   });
-
 });

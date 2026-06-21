@@ -1,0 +1,49 @@
+.focusTimer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 24rem;
+  aspect-ratio: 1;
+  background: var(--color-background-primary);
+}
+
+.ringSvg {
+  position: absolute;
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  stroke: var(--color-background-secondary);
+}
+
+.ringProgress {
+  stroke: var(--color-text-primary);
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.timerDisplay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  text-align: center;
+}
+
+.timeText {
+  color: var(--color-text-primary);
+  font-family: var(--font-family-secondary);
+  font-size: clamp(3.5rem, 10vw, 4.5rem);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+.labelText {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
+}

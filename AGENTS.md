@@ -21,3 +21,17 @@ Agent MUST follow this guidance:
 - **Keep changes focused**: Do not touch unrelated files or introduce new dependencies without approval.
 - **Verify implementation**: Run `npm run build` after implementation whenever feasible.
 - **Do not invent test commands**: If no test command exists, report that clearly.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues; external pull requests are not a triage request surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Triage uses the canonical labels `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Recess uses a single-context domain layout with `CONTEXT.md` at the repository root and architectural decisions under `docs/adr/`. See `docs/agents/domain.md`.

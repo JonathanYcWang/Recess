@@ -180,6 +180,7 @@ const timerReducer = createReducer(initialState, (builder) => {
       state.sessionState = SESSION_STATES.ONGOING_BREAK_SESSION;
       setCurrentSessionDuration(state, reward.duration);
       state.currentStartTime = Date.now();
+      state.isPaused = false;
       clearSessionRewards(state);
     })
     .addCase(setGeneratedRewards, (state, action) => {

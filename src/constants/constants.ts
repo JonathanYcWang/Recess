@@ -50,3 +50,5 @@ export const SPIN_ROTATIONS = 4;
 
 export const BASE_REEL_SPIN_DURATION_SECONDS = 2;
 export const REEL_STOP_INTERVAL_SECONDS = 2.2;
+
+export const FOCUS_TIMER_RADIUS = 154;

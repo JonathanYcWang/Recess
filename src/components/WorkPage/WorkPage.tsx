@@ -1,9 +1,4 @@
-import { useSelector } from 'react-redux';
-import NavBar from '../../components/NavBar/NavBar';
 import { useTimer } from '../../hooks/useTimer';
-import { selectHasOnboarded } from '../../store/selectors';
-import type { RootState } from '../../store';
-import WelcomeView from '../../views/WelcomeView/WelcomeView';
 import BeforeWorkSessionView from '../../views/BeforeWorkSessionView/BeforeWorkSessionView';
 import OngoingFocusSessionView from '../../views/OngoingFocusSessionView/OngoingFocusSessionView';
 import RewardSelectionView from '../../views/RewardSelectionView/RewardSelectionView';
@@ -14,10 +9,10 @@ import styles from './WorkPage.module.css';
 import { SESSION_STATES } from '../../constants/constants';
 
 const WorkPage = () => {
-  const hasOnboarded = useSelector((state: RootState) => selectHasOnboarded(state));
   const {
-    timerState,
+    currentTimer,
     currentRemaining,
+    totalRemaining,
     startFocusSession,
     pauseSession,
     resumeSession,
@@ -28,29 +23,15 @@ const WorkPage = () => {
     transitionToBeforeWorkSession,
     setTotalTimer,
     updateFeedbackMultiplier,
-    rewards,
+    isPaused,
+    sessionState,
   } = useTimer();
-
-  const currentTimer = timerState.currentTimer;
-  const totalRemaining = timerState.totalRemaining;
-
-  const { sessionState, isPaused, rerolls, selectedReward } = timerState;
-
-  if (!hasOnboarded) {
-    return (
-      <div className={styles.workPage}>
-        <WelcomeView />
-      </div>
-    );
-  }
 
   const renderContent = () => {
     switch (sessionState) {
       case SESSION_STATES.BEFORE_WORK_SESSION:
         return (
           <BeforeWorkSessionView
-            totalRemaining={totalRemaining}
-            nextFocusDuration={currentTimer}
             startFocusSession={startFocusSession}
             onDurationChange={setTotalTimer}
           />
@@ -59,8 +40,10 @@ const WorkPage = () => {
       case SESSION_STATES.ONGOING_FOCUS_SESSION:
         return (
           <OngoingFocusSessionView
-            sessionDurationRemaining={currentRemaining}
             isPaused={isPaused}
+            currentTimer={currentTimer}
+            currentRemaining={currentRemaining}
+            totalRemaining={totalRemaining}
             pauseSession={pauseSession}
             resumeSession={resumeSession}
             endSessionEarly={endSessionEarly}
@@ -68,20 +51,13 @@ const WorkPage = () => {
         );
 
       case SESSION_STATES.REWARD_SELECTION:
-        return (
-          <RewardSelectionView
-            rewards={rewards}
-            rerolls={rerolls}
-            selectReward={selectReward}
-            handleReroll={handleReroll}
-          />
-        );
+        return <RewardSelectionView selectReward={selectReward} handleReroll={handleReroll} />;
 
       case SESSION_STATES.ONGOING_BREAK_SESSION:
         return (
           <OngoingBreakSessionView
-            sessionDurationRemaining={currentRemaining}
-            selectedReward={selectedReward}
+            currentTimer={currentTimer}
+            currentRemaining={currentRemaining}
             endSessionEarly={endSessionEarly}
           />
         );
@@ -89,8 +65,8 @@ const WorkPage = () => {
       case SESSION_STATES.FOCUS_SESSION_COUNTDOWN:
         return (
           <FocusSessionCountdownView
-            workSessionDurationRemaining={totalRemaining}
-            sessionDurationRemaining={currentRemaining}
+            currentTimer={currentTimer}
+            currentRemaining={currentRemaining}
             startFocusSession={startFocusSession}
             updateFeedbackMultiplier={updateFeedbackMultiplier}
             endWorkSessionEarly={endWorkSessionEarly}
@@ -107,12 +83,7 @@ const WorkPage = () => {
     }
   };
 
-  return (
-    <div className={styles.workPage}>
-      {sessionState !== SESSION_STATES.REWARD_SELECTION && <NavBar />}
-      {renderContent()}
-    </div>
-  );
+  return <div className={styles.workPage}>{renderContent()}</div>;
 };
 
 export default WorkPage;

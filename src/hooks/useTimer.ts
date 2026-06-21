@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   startFocusSession,
@@ -47,6 +47,7 @@ const ACTIVE_SESSION_STATES = [
   SESSION_STATES.ONGOING_BREAK_SESSION,
   SESSION_STATES.FOCUS_SESSION_COUNTDOWN,
 ] as const;
+const COMPLETE_TIMER_DISPLAY_DELAY_MS = 1000;
 
 /**
  * Custom hook that provides timer functionality to components
@@ -64,6 +65,17 @@ export const useTimer = () => {
   const fatigueScore = useSelector((state: RootState) => selectFatigueScore(state));
   const momentumScore = useSelector((state: RootState) => selectMomentumScore(state));
   const [, setTick] = useState(0);
+  const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingCompletionSessionRef = useRef<string | null>(null);
+
+  const clearPendingCompletion = useCallback(() => {
+    if (completionTimeoutRef.current) {
+      clearTimeout(completionTimeoutRef.current);
+      completionTimeoutRef.current = null;
+    }
+
+    pendingCompletionSessionRef.current = null;
+  }, []);
 
   const handleExpiredSession = useCallback(
     (remaining: number) => {
@@ -71,18 +83,36 @@ export const useTimer = () => {
         return;
       }
 
+      if (pendingCompletionSessionRef.current === sessionState) {
+        return;
+      }
+
+      pendingCompletionSessionRef.current = sessionState;
+      setTick((t) => t + 1);
+
       if (sessionState === SESSION_STATES.ONGOING_FOCUS_SESSION) {
-        dispatch(transitionToRewardSelection());
+        notifyFocusComplete();
+        completionTimeoutRef.current = setTimeout(() => {
+          completionTimeoutRef.current = null;
+          dispatch(transitionToRewardSelection());
+        }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
         return;
       }
 
       if (sessionState === SESSION_STATES.ONGOING_BREAK_SESSION) {
-        dispatch(transitionToFocusSessionCountdown());
+        notifyBreakComplete();
+        completionTimeoutRef.current = setTimeout(() => {
+          completionTimeoutRef.current = null;
+          dispatch(transitionToFocusSessionCountdown());
+        }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
         return;
       }
 
       if (sessionState === SESSION_STATES.FOCUS_SESSION_COUNTDOWN) {
-        dispatch(transitionToFocusSession());
+        completionTimeoutRef.current = setTimeout(() => {
+          completionTimeoutRef.current = null;
+          dispatch(transitionToFocusSession());
+        }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
       }
     },
     [dispatch, isPaused, sessionState]
@@ -152,9 +182,8 @@ export const useTimer = () => {
             notified.focusEnding = true;
           }
           if (remaining <= 0 && !notified.focusEnd) {
-            notifyFocusComplete();
             notified.focusEnd = true;
-            dispatch(transitionToRewardSelection());
+            handleExpiredSession(remaining);
             return;
           }
         }
@@ -166,16 +195,15 @@ export const useTimer = () => {
             notified.breakEnding = true;
           }
           if (remaining <= 0 && !notified.breakEnd) {
-            notifyBreakComplete();
             notified.breakEnd = true;
-            dispatch(transitionToFocusSessionCountdown());
+            handleExpiredSession(remaining);
             return;
           }
         }
 
         if (sessionState === SESSION_STATES.FOCUS_SESSION_COUNTDOWN) {
           if (remaining <= 0) {
-            dispatch(transitionToFocusSession());
+            handleExpiredSession(remaining);
             return;
           }
         }
@@ -190,6 +218,14 @@ export const useTimer = () => {
   useEffect(() => {
     handleExpiredSession(currentRemaining);
   }, [currentRemaining, handleExpiredSession]);
+
+  useEffect(() => {
+    if (currentRemaining > 0 || isPaused) {
+      clearPendingCompletion();
+    }
+  }, [clearPendingCompletion, currentRemaining, isPaused]);
+
+  useEffect(() => clearPendingCompletion, [clearPendingCompletion]);
 
   const handleReroll = useCallback(
     (index: number) => {
@@ -210,7 +246,9 @@ export const useTimer = () => {
 
   return {
     timerState,
+    currentTimer: timerState.currentTimer,
     currentRemaining,
+    totalRemaining: timerState.totalRemaining,
     startFocusSession: () => dispatch(startFocusSession()),
     pauseSession: () => dispatch(pauseSession(currentRemaining)),
     resumeSession: () => dispatch(resumeSession()),
@@ -224,5 +262,9 @@ export const useTimer = () => {
     updateFeedbackMultiplier: (feedbackMultiplier: number) =>
       dispatch(updateFeedbackMultiplier(feedbackMultiplier)),
     rewards,
+    sessionState,
+    isPaused,
+    rerolls,
+    selectedReward: timerState.selectedReward,
   };
 };

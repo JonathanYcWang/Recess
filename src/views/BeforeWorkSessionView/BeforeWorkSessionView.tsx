@@ -1,44 +1,34 @@
 import { useState } from 'react';
+import { useTimer } from '../../hooks/useTimer';
+
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
-import CountdownTimer from '../../components/CountdownTimer/CountdownTimer';
+import FocusTimer from '../../components/FocusTimer/FocusTimer';
 import Button from '../../components/Button/Button';
 import DurationInputDialog from '../../components/DurationInputDialog/DurationInputDialog';
 import PlayIcon from '../../assets/play.svg?url';
-import { formatWorkSessionTime, formatTime } from '../../services/timerService';
 
 interface BeforeWorkSessionViewProps {
-  totalRemaining: number;
-  nextFocusDuration: number;
   startFocusSession: () => void;
   onDurationChange: (duration: number) => void;
 }
 
 const BeforeWorkSessionView = ({
-  totalRemaining,
-  nextFocusDuration,
   startFocusSession,
   onDurationChange,
 }: BeforeWorkSessionViewProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { currentTimer, totalRemaining } = useTimer();
 
   return (
     <>
-      <SecondaryTimerDescription
-        text={`${formatWorkSessionTime(totalRemaining)} To Go`}
-        onClick={() => setIsDialogOpen(true)}
-      />
-      <CountdownTimer time={formatTime(nextFocusDuration)} label="Next focus session length" />
+      <SecondaryTimerDescription text={'Set work duration'} onClick={() => setIsDialogOpen(true)} />
+      <FocusTimer timer={currentTimer} label="Next focus session length" description={''} />
       <Button
         text="Start Focus Session"
         onClick={startFocusSession}
         iconSrc={PlayIcon}
         variant="primary"
       />
-
-      {/* <div className={styles.illustration}>
-        <img src="/assets/cow.png" alt="pet-illustration" />
-      </div> */}
-
       <DurationInputDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}

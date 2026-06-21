@@ -1,7 +1,250 @@
+.timerHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  text-align: center;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0.375rem var(--spacing-4);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 999px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-sm);
+  box-shadow: 0 4px 12px rgba(27, 27, 27, 0.08);
+}
+
+.statusIcon,
+.icon {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.summaryGrid {
+  display: flex;
+  align-items: stretch;
+  width: min(100%, 28rem);
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-3);
+}
+
+.summaryCard {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--spacing-4);
+  background: var(--color-background-secondary);
+  box-shadow: 0 4px 12px rgba(27, 27, 27, 0.06);
+}
+
+.rewardCard {
+  border-color: var(--color-status-fatigued-border);
+  background: var(--color-orange-light);
+}
+
+.iconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--spacing-3);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+.rewardCard .iconBox {
+  color: var(--color-orange-dark);
+}
+
+.giftIconBox {
+  animation: giftTilt 5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.summaryCopy {
+  min-width: 0;
+}
+
+.summaryLabel,
+.summaryValue {
+  margin: 0;
+}
+
+.summaryLabel {
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-xs);
+}
+
+.summaryValue {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .contentContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-3);
   width: 100%;
+}
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-6);
+  background: rgba(27, 27, 27, 0.18);
+}
+
+.confirmDialog {
+  width: min(20rem, 100%);
+  padding: var(--spacing-8);
+  border: 0.125rem solid var(--color-text-primary);
+  border-radius: 22px;
+  background: var(--color-background-primary);
+  box-shadow: var(--spacing-2) var(--spacing-2) 0 var(--color-text-primary);
+  text-align: center;
+  animation: dialogEnter 0.2s ease both;
+}
+
+.confirmIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--spacing-4);
+  border: 1px solid var(--color-status-fatigued-border);
+  border-radius: var(--spacing-4);
+  background: var(--color-orange-light);
+  color: var(--color-orange-dark);
+}
+
+.confirmIcon .statusIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.confirmTitle {
+  margin: 0 0 var(--spacing-1);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-xl);
+}
+
+.confirmCopy {
+  margin: 0 0 var(--spacing-6);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-md);
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.cancelButton,
+.confirmButton {
+  min-height: 44px;
+  border: 2px solid var(--color-text-primary);
+  border-radius: var(--spacing-4);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-md);
+}
+
+.cancelButton {
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+.confirmButton {
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+}
+
+@media (max-width: 640px) {
+  .summaryGrid {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .giftIconBox {
+    animation: none;
+  }
+}
+
+@keyframes giftTilt {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  76% {
+    transform: rotate(-8deg);
+  }
+
+  82% {
+    transform: rotate(8deg);
+  }
+
+  88% {
+    transform: rotate(-6deg);
+  }
+
+  94% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes dialogEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
