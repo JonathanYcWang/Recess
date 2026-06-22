@@ -18,6 +18,11 @@ export {
   persistedOperationalStorageKeys,
 } from './persistedApplicationState';
 export { settingsCodec, SETTINGS_SCHEMA_VERSION } from './settings/settingsCodec';
+export {
+  createDiagnosticRingBuffer,
+  DIAGNOSTIC_BUFFER_LIMIT,
+} from './diagnostics/diagnosticRingBuffer';
+export type { DiagnosticRecord, DiagnosticCategory } from './diagnostics/diagnosticRingBuffer';
 export type { DiagnosticInput } from './diagnostics/diagnosticInput';
 export {
   documentRegistry,
