@@ -36,6 +36,13 @@ export {
   type QuizState,
 } from './settings/settingsDocument';
 export {
+  createDataControlService,
+  DATA_EXPORT_FORMAT_VERSION,
+  type DataControlService,
+  type DataExportBundle,
+  type DeleteIntent,
+} from './dataControl/dataControlService';
+export {
   describeSettingsDocumentIntegrationTests,
   describeKeyValueAdapterIntegrationTests,
 } from './integration/settingsDocument.integrationTests';
