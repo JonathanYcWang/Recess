@@ -31,9 +31,9 @@ interface PrizeWheelProps {
 const PrizeWheel = ({ segments }: PrizeWheelProps) => {
   const rotationRef = useRef(0);
   const speedRef = useRef(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const wheelStateRef = useRef<WheelState>(WHEEL_STATE.IDLE);
-  const revealTimeoutRef = useRef<number>();
+  const revealTimeoutRef = useRef<number | undefined>(undefined);
 
   const [displayRotation, setDisplayRotation] = useState(0);
   const [tickerTilt, setTickerTilt] = useState(0);
