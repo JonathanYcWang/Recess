@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { SPIN_ROTATIONS } from '@/constants/constants';
+import { SPIN_ROTATIONS, BASE_REEL_SPIN_DURATION_SECONDS, REEL_STOP_INTERVAL_SECONDS } from '@/constants/constants';
 import Slots, { getReelOffset, getReelSpinStyle, replicateReelItems, type SlotReel } from './Slots';
 
 const reels: SlotReel[] = [
@@ -62,11 +62,11 @@ describe('getReelSpinStyle', () => {
     expect(getReelSpinStyle(['A', 'B', 'C'], 1, 2, 0)).toEqual({
       '--start-index': 1,
       '--end-index': SPIN_ROTATIONS * 3 + 2,
-      '--reel-spin-duration': '1.8s',
+      '--reel-spin-duration': `${BASE_REEL_SPIN_DURATION_SECONDS}s`,
     });
 
     expect(getReelSpinStyle(['A', 'B', 'C'], 1, 2, 2)).toMatchObject({
-      '--reel-spin-duration': '3.8s',
+      '--reel-spin-duration': `${BASE_REEL_SPIN_DURATION_SECONDS + 2 * REEL_STOP_INTERVAL_SECONDS}s`,
     });
   });
 });

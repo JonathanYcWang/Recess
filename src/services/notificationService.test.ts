@@ -46,35 +46,37 @@ describe('notificationService', () => {
   });
 
   it('does not send a notification when the ping has no receiver', () => {
-    const sendMessage = vi.fn((_message, callback) => {
-      globalThis.chrome.runtime.lastError = { message: 'Receiving end does not exist' };
-      callback();
-    });
-    globalThis.chrome = {
-      runtime: {
-        sendMessage,
-      },
-    } as unknown as typeof chrome;
+    const runtime: {
+      lastError?: { message: string };
+      sendMessage: ReturnType<typeof vi.fn>;
+    } = {
+      sendMessage: vi.fn((_message, callback) => {
+        runtime.lastError = { message: 'Receiving end does not exist' };
+        callback();
+      }),
+    };
+    globalThis.chrome = { runtime } as unknown as typeof chrome;
 
     notifyBreakComplete();
 
-    expect(sendMessage).toHaveBeenCalledTimes(1);
+    expect(runtime.sendMessage).toHaveBeenCalledTimes(1);
   });
 
   it('logs delivery errors without throwing', () => {
     const debug = vi.spyOn(console, 'debug').mockImplementation(() => {});
-    const sendMessage = vi
-      .fn()
-      .mockImplementationOnce((_message, callback) => callback({ ok: true }))
-      .mockImplementationOnce((_message, callback) => {
-        globalThis.chrome.runtime.lastError = { message: 'closed' };
-        callback();
-      });
-    globalThis.chrome = {
-      runtime: {
-        sendMessage,
-      },
-    } as unknown as typeof chrome;
+    const runtime: {
+      lastError?: { message: string };
+      sendMessage: ReturnType<typeof vi.fn>;
+    } = {
+      sendMessage: vi
+        .fn()
+        .mockImplementationOnce((_message, callback) => callback({ ok: true }))
+        .mockImplementationOnce((_message, callback) => {
+          runtime.lastError = { message: 'closed' };
+          callback();
+        }),
+    };
+    globalThis.chrome = { runtime } as unknown as typeof chrome;
 
     notifyBreakEnding(5);
 
