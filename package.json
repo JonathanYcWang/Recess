@@ -15,7 +15,10 @@
     "knip": "knip --no-progress",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
-    "lint": "eslint \"src/**/*.{ts,tsx}\""
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "package:chromium": "node scripts/package-chromium.mjs",
+    "package:safari": "node scripts/package-safari.mjs",
+    "verify": "npm run format:check && npm run lint && npm test && npm run knip && npm run build && npm run package:chromium && npm run package:safari"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

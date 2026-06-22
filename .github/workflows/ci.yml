@@ -1,4 +1,4 @@
-name: CI
+name: Verify
 
 on:
   push:
@@ -7,8 +7,9 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  verify:
+    name: verify
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
@@ -20,5 +21,69 @@ jobs:
       - name: Verify pinned npm version
         run: test "$(npm --version)" = "11.13.0"
 
+      - name: Select Xcode 26.5
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.5.app
+          xcodebuild -version
+
+      - run: npm ci
+      - run: npm run verify
+
+      - name: Upload packaging artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaging-artifacts
+          path: |
+            dist/
+            build/safari/
+          if-no-files-found: ignore
+
+  package-chromium:
+    name: package-chromium
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
       - run: npm ci
       - run: npm run build
+      - run: npm run package:chromium
+
+      - name: Upload Chromium artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromium-dist
+          path: dist/
+          if-no-files-found: ignore
+
+  package-safari:
+    name: package-safari
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Select Xcode 26.5
+        run: sudo xcode-select -s /Applications/Xcode_26.5.app
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run package:safari
+
+      - name: Upload Safari artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safari-project
+          path: build/safari/
+          if-no-files-found: ignore

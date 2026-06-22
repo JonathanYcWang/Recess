@@ -20,7 +20,10 @@ const WorkWindow = ({ timeRange, days, enabled, onToggle, onEdit }: WorkWindowPr
       <p className={styles.timeRange}>{timeRange}</p>
       <p className={styles.days}>{days}</p>
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- isolate toggle clicks from row edit handler */}
-      <div onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+      <div
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+      >
         <Toggle isOn={enabled} onToggle={handleToggle} />
       </div>
     </div>

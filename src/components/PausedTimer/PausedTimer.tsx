@@ -22,9 +22,7 @@ const PausedTimer = ({
     timerStartedAtRef.current = Date.now();
 
     const updateElapsed = () => {
-      setElapsedSeconds(
-        Math.max(0, Math.floor((Date.now() - timerStartedAtRef.current) / 1000))
-      );
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - timerStartedAtRef.current) / 1000)));
     };
 
     updateElapsed();

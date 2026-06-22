@@ -2,10 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import Button from '@/components/Button/Button';
 import { SPIN_ROTATIONS } from '@/constants/constants';
 import styles from './Slots.module.css';
-import {
-  getSlotsAnimationDurationMs,
-  getSlotsReelSpinDurationSeconds,
-} from './slotsTiming';
+import { getSlotsAnimationDurationMs, getSlotsReelSpinDurationSeconds } from './slotsTiming';
 
 export interface SlotReel {
   id: string;
