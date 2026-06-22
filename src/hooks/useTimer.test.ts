@@ -47,7 +47,7 @@ vi.mock('react', async () => {
         hookMocks.effectCleanups.push(cleanup);
       }
     },
-    useRef: <T,>(initialValue: T) => ({ current: initialValue }),
+    useRef: <T>(initialValue: T) => ({ current: initialValue }),
     useState: () => [0, hookMocks.setTick],
   };
 });
@@ -131,7 +131,9 @@ describe('useTimer', async () => {
     result.updateFeedbackMultiplier(1.25);
 
     expect(result.timerState).toBe((hookMocks.state as RootState).timer);
-    expect(result.currentRemaining).toBe((hookMocks.state as RootState).timer.currentTimerRemaining);
+    expect(result.currentRemaining).toBe(
+      (hookMocks.state as RootState).timer.currentTimerRemaining
+    );
     expect(hookMocks.dispatch).toHaveBeenCalledWith(startFocusSession());
     expect(hookMocks.dispatch).toHaveBeenCalledWith(
       pauseSession((hookMocks.state as RootState).timer.currentTimerRemaining)
@@ -210,7 +212,9 @@ describe('useTimer', async () => {
     const result = useTimer();
     result.handleReroll(1);
 
-    expect(hookMocks.dispatch).toHaveBeenCalledWith(rerollReward({ index: 1, reward: alternateReward }));
+    expect(hookMocks.dispatch).toHaveBeenCalledWith(
+      rerollReward({ index: 1, reward: alternateReward })
+    );
     expect(hookMocks.dispatch).toHaveBeenCalledWith(
       setShownRewardCombinations(['youtube.com-300', 'reddit.com-600'])
     );
@@ -223,7 +227,9 @@ describe('useTimer', async () => {
     result.handleReroll(0);
 
     expect(mockedGenerateReward).not.toHaveBeenCalled();
-    expect(hookMocks.dispatch).not.toHaveBeenCalledWith(expect.objectContaining({ type: rerollReward.type }));
+    expect(hookMocks.dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: rerollReward.type })
+    );
   });
 
   it('transitions an already-expired focus session during render effects', () => {

@@ -1,6 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { SPIN_ROTATIONS, BASE_REEL_SPIN_DURATION_SECONDS, REEL_STOP_INTERVAL_SECONDS } from '@/constants/constants';
+import {
+  SPIN_ROTATIONS,
+  BASE_REEL_SPIN_DURATION_SECONDS,
+  REEL_STOP_INTERVAL_SECONDS,
+} from '@/constants/constants';
 import Slots, { getReelOffset, getReelSpinStyle, replicateReelItems, type SlotReel } from './Slots';
 
 const reels: SlotReel[] = [

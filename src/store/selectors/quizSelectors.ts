@@ -4,9 +4,7 @@ import { getQuestionById } from '../../data/quiz-data';
 
 const selectQuizState = (state: RootState) => state.quiz;
 
-const selectCurrentQuestionId = createSelector([
-  selectQuizState,
-], (quiz) => quiz.currentQuestionId);
+const selectCurrentQuestionId = createSelector([selectQuizState], (quiz) => quiz.currentQuestionId);
 
 export const selectSelectedChoices = createSelector(
   [selectQuizState],
@@ -17,7 +15,6 @@ export const selectIsQuizComplete = createSelector([selectQuizState], (quiz) => 
 
 export const selectQuizResults = createSelector([selectQuizState], (quiz) => quiz.results);
 
-export const selectCurrentQuestion = createSelector(
-  [selectCurrentQuestionId],
-  (id) => getQuestionById(id)
+export const selectCurrentQuestion = createSelector([selectCurrentQuestionId], (id) =>
+  getQuestionById(id)
 );
