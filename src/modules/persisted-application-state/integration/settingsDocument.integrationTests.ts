@@ -101,3 +101,31 @@ export const describeSettingsDocumentIntegrationTests = (
     });
   });
 };
+
+export const describeKeyValueAdapterIntegrationTests = (
+  createAdapter: () => KeyValueStorageAdapter,
+  suiteName: string
+): void => {
+  describe(`${suiteName} key-value adapter integration tests`, () => {
+    it('returns unavailable or null when storage is missing', async () => {
+      const adapter = createAdapter();
+      const read = await adapter.get('missing-key');
+      if (!read.ok) {
+        expect(read.error.kind).toBe('unavailable');
+        return;
+      }
+      expect(read.value).toBeNull();
+    });
+
+    it('persists and reads string values', async () => {
+      const adapter = createAdapter();
+      const write = await adapter.set('test-key', 'test-value');
+      expect(write.ok).toBe(true);
+      const read = await adapter.get('test-key');
+      expect(read.ok).toBe(true);
+      if (read.ok) {
+        expect(read.value).toBe('test-value');
+      }
+    });
+  });
+};

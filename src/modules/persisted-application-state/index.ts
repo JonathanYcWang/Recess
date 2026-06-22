@@ -21,4 +21,7 @@ export {
   type WorkHoursEntry,
   type QuizState,
 } from './settings/settingsDocument';
-export { describeSettingsDocumentIntegrationTests } from './integration/settingsDocument.integrationTests';
+export {
+  describeSettingsDocumentIntegrationTests,
+  describeKeyValueAdapterIntegrationTests,
+} from './integration/settingsDocument.integrationTests';
