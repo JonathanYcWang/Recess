@@ -2,7 +2,6 @@ import { createReducer } from '@reduxjs/toolkit';
 import type { BlockedSitesState } from '../actions/blockedSitesActions';
 import { addBlockedSite, removeBlockedSite, setBlockedSites } from '../actions/blockedSitesActions';
 import { createInitialBlockedSitesState } from '../initialState';
-export { DEFAULT_BLOCKED_SITES, createInitialBlockedSitesState } from '../initialState';
 
 const initialState: BlockedSitesState = createInitialBlockedSitesState();
 

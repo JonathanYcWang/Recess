@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { RING_CENTER, RING_RADIUS, RING_SIZE } from '@/constants/constants';
+import { RING_CENTER, RING_RADIUS, RING_SIZE } from './prizeWheelLayout';
 import styles from './PrizeWheel.module.css';
 
 interface WheelFrameProps {

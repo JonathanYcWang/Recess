@@ -19,7 +19,7 @@ export interface RoutingState {
   hasOnboarded: boolean;
 }
 
-export const DEFAULT_BLOCKED_SITES = [
+const DEFAULT_BLOCKED_SITES = [
   'youtube.com',
   'instagram.com',
   'facebook.com',

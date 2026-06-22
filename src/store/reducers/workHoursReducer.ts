@@ -10,7 +10,6 @@ import {
 } from '../actions/workHoursActions';
 import { createInitialWorkHoursState } from '../initialState';
 import type { WorkHoursState } from '../initialState';
-export { createInitialWorkHoursState };
 
 const initialState: WorkHoursState = createInitialWorkHoursState();
 

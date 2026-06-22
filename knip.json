@@ -1,6 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["index.html", "src/background.ts", "src/content.ts"],
+  "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
+  "ignoreFiles": [
+    "src/components/PrizeWheel/**",
+    "src/components/ParticleBurst/**",
+    "src/hooks/useParticles.ts"
+  ],
   "vite": {
     "config": ["vite.config.ts", "vite.background.config.ts"]
   }

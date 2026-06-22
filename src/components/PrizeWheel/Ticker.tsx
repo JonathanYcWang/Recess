@@ -3,7 +3,7 @@ import {
   RING_RADIUS,
   TICKER_CAP_WHEEL_RADIUS,
   TICKER_WIDTH,
-} from '@/constants/constants';
+} from './prizeWheelLayout';
 import styles from './PrizeWheel.module.css';
 
 interface TickerProps {
