@@ -15,15 +15,20 @@ const PausedTimer = ({
   label = 'On break',
   description = 'Paused Focus Session',
 }: PausedTimerProps) => {
-  const timerStartedAtRef = useRef(Date.now());
-  const [elapsedSeconds, setElapsedSeconds] = useState(() =>
-    Math.max(0, Math.floor((Date.now() - timerStartedAtRef.current) / 1000))
-  );
+  const timerStartedAtRef = useRef(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - timerStartedAtRef.current) / 1000)));
-    }, 1000);
+    timerStartedAtRef.current = Date.now();
+
+    const updateElapsed = () => {
+      setElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - timerStartedAtRef.current) / 1000))
+      );
+    };
+
+    updateElapsed();
+    const intervalId = setInterval(updateElapsed, 1000);
 
     return () => clearInterval(intervalId);
   }, []);

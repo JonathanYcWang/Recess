@@ -1,5 +1,5 @@
-import type { MouseEvent } from 'react';
 import Toggle from '../Toggle/Toggle';
+import { toPressableDivProps } from '@/utils/pressable';
 import styles from './WorkWindow.module.css';
 
 interface WorkWindowProps {
@@ -11,20 +11,16 @@ interface WorkWindowProps {
 }
 
 const WorkWindow = ({ timeRange, days, enabled, onToggle, onEdit }: WorkWindowProps) => {
-  const handleContainerClick = (e: MouseEvent) => {
-    e.stopPropagation();
-    onToggle?.();
-  };
-
   const handleToggle = () => {
     onToggle?.();
   };
 
   return (
-    <div className={styles.workWindow} onClick={onEdit}>
+    <div className={styles.workWindow} {...(onEdit ? toPressableDivProps(onEdit) : {})}>
       <p className={styles.timeRange}>{timeRange}</p>
       <p className={styles.days}>{days}</p>
-      <div onClick={handleContainerClick}>
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- isolate toggle clicks from row edit handler */}
+      <div onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
         <Toggle isOn={enabled} onToggle={handleToggle} />
       </div>
     </div>

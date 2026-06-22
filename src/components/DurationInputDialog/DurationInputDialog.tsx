@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
+import { toPressableDivProps } from '@/utils/pressable';
 import TimesIcon from '../../assets/times.svg?url';
 import Slider from '@mui/material/Slider';
 
@@ -51,8 +52,9 @@ const DurationInputDialog = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.overlay} {...toPressableDivProps(onClose)}>
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- stop overlay dismissal when interacting with dialog content */}
+      <div className={styles.dialog} onMouseDown={(event) => event.stopPropagation()}>
         <div className={styles.headerContainer}>
           <h2 className={styles.title}>Set Work Duration</h2>
           <Icon src={TimesIcon} alt="Close" size="sm" onClick={onClose} />

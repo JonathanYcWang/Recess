@@ -13,7 +13,7 @@ const FocusPet = ({ petName, imgSrc }: FocusPetProps) => {
       </div>
       <p className={styles.description}>Heads down and grinding alongside you.</p>
       <div className={styles.petStage}>
-        <img className={styles.petImage} src={imgSrc} />
+        <img className={styles.petImage} src={imgSrc} alt="" />
       </div>
     </section>
   );

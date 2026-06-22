@@ -1,6 +1,7 @@
 import ExternalLinkIcon from '../../assets/external-link.svg?url';
 import PlaceholderIcon from '../../assets/placeholder.svg?url';
 import Icon from '../Icon/Icon';
+import { toPressableDivProps } from '@/utils/pressable';
 import styles from './RewardLink.module.css';
 
 interface RewardLinkProps {
@@ -19,7 +20,7 @@ const RewardLink = ({ siteName, status, siteUrl, onClick }: RewardLinkProps) => 
   };
 
   return (
-    <div className={styles.rewardLink} onClick={handleClick}>
+    <div className={styles.rewardLink} {...toPressableDivProps(handleClick)}>
       <Icon src={PlaceholderIcon} alt="External link" size="lg" />
       <div className={styles.textContainer}>
         <p className={styles.primaryText}>{siteName}</p>

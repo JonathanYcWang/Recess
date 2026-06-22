@@ -6,7 +6,8 @@ const WORK_REMINDER_ALARM_PREFIX = 'work-reminder-';
 // Helper: parse time string (e.g. '09:00 AM') to {hour, minute}
 const parseTimeString = (timeStr: string): { hour: number; minute: number } => {
   const [time, period] = timeStr.split(' ');
-  let [hour, minute] = time.split(':').map(Number);
+  const [hourPart, minute] = time.split(':').map(Number);
+  let hour = hourPart;
   if (period === 'PM' && hour !== 12) hour += 12;
   if (period === 'AM' && hour === 12) hour = 0;
   return { hour, minute };

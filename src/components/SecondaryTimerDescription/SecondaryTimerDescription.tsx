@@ -1,3 +1,4 @@
+import { toPressableDivProps } from '@/utils/pressable';
 import styles from './SecondaryTimerDescription.module.css';
 
 interface SecondaryTimerDescriptionProps {
@@ -9,7 +10,7 @@ const SecondaryTimerDescription = ({ text, onClick }: SecondaryTimerDescriptionP
   return (
     <div
       className={`${styles.secondaryTimerDescription} ${onClick ? styles.clickable : ''}`}
-      onClick={onClick}
+      {...(onClick ? toPressableDivProps(onClick) : {})}
     >
       <div className={styles.dot} />
       <p className={styles.text}>{text}</p>

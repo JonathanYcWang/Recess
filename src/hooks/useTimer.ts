@@ -157,6 +157,8 @@ export const useTimer = () => {
       dispatch(setGeneratedRewards(newRewards));
       dispatch(setShownRewardCombinations(seenRewardCombinations));
     }
+    // Reward generation is intentionally tied to session entry, not every score change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- blockedSites and scores are read at entry only.
   }, [sessionState, dispatch, rewards.length]);
 
   // Timer tick and notification effect

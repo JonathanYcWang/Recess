@@ -6,7 +6,7 @@ const send = (title: string, message: string): void => {
 
   // Ping first to avoid noisy "Receiving end does not exist" errors in cases
   // where the background listener isn't registered (e.g., during development).
-  chrome.runtime.sendMessage({ type: 'PING' }, (_pong) => {
+  chrome.runtime.sendMessage({ type: 'PING' }, () => {
     const pingErr = chrome.runtime.lastError;
     if (pingErr) {
       // No receiver; nothing to do.
