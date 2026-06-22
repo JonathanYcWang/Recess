@@ -595,7 +595,7 @@ const quizQuestions: QuizQuestion[] = [
     options: [
       {
         id: 'Q6_2_Kidnapped_A',
-        text: 'I\m  JOBLESS now...',
+        text: "I'm  JOBLESS now...",
         mbti: [],
         friction: [],
         next: 'Q7',
@@ -640,7 +640,7 @@ const quizQuestions: QuizQuestion[] = [
 
   {
     id: 'Q8',
-    text: "You\'ve escaped! On your way out, you happen to find the door to the Unemployment King. It's now or never.",
+    text: "You've escaped! On your way out, you happen to find the door to the Unemployment King. It's now or never.",
     options: [
       {
         id: 'Q8_A',

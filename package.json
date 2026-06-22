@@ -14,7 +14,8 @@
     "test": "vitest run",
     "knip": "knip --no-progress",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -29,14 +30,20 @@
     "react-router-dom": "7.18.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/chrome": "0.2.0",
     "@types/node": "24.13.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "6.0.2",
+    "eslint": "^10.5.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.0.0",
     "knip": "6.17.1",
     "prettier": "3.8.4",
     "typescript": "6.0.3",
+    "typescript-eslint": "^8.61.1",
     "vite": "8.0.16",
     "vite-plugin-static-copy": "4.1.1",
     "vitest": "4.1.9"

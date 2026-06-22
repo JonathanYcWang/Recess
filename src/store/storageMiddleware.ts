@@ -1,4 +1,6 @@
 import type { Middleware, AnyAction } from '@reduxjs/toolkit';
+import type { QuizReduxState } from './actions/quizActions';
+import type { WorkHoursEntry } from '../types/workHours';
 import {
   createInitialBlockedSitesState,
   createInitialQuizState,
@@ -16,7 +18,7 @@ const STORAGE_KEYS = {
 };
 
 const storageAPI = {
-  get: async <T = any>(key: string): Promise<T | undefined> => {
+  get: async <T = unknown>(key: string): Promise<T | undefined> => {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       return new Promise((resolve) => {
         chrome.storage.local.get([key], (result) => {
@@ -33,7 +35,7 @@ const storageAPI = {
     }
   },
 
-  set: async <T = any>(key: string, value: T): Promise<void> => {
+  set: async <T = unknown>(key: string, value: T): Promise<void> => {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       return new Promise((resolve) => {
         chrome.storage.local.set({ [key]: value }, () => {
@@ -127,10 +129,10 @@ export const loadStateFromStorage = async () => {
   const [timerState, workHoursEntries, blockedSitesState, hasOnboarded, quizState] =
     await Promise.all([
       storageAPI.get(STORAGE_KEYS.timer),
-      storageAPI.get<any[]>(STORAGE_KEYS.workHours),
+      storageAPI.get<WorkHoursEntry[]>(STORAGE_KEYS.workHours),
       storageAPI.get<PersistedBlockedSites>(STORAGE_KEYS.blockedSites),
       storageAPI.get<boolean>(STORAGE_KEYS.routing),
-      storageAPI.get<any>(STORAGE_KEYS.quiz),
+      storageAPI.get<QuizReduxState>(STORAGE_KEYS.quiz),
     ]);
 
   return {

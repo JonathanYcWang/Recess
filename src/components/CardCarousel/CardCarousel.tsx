@@ -1,5 +1,6 @@
 import Icon from '../Icon/Icon';
 import RefreshButton from '../RefreshButton/RefreshButton';
+import { toPressableDivProps } from '@/utils/pressable';
 import styles from './CardCarousel.module.css';
 
 export interface CardCarouselItem {
@@ -20,7 +21,7 @@ type CardProps = Omit<CardCarouselItem, 'id'>;
 const Card = ({ title, description, footer, onClick, refreshOnClick }: CardProps) => {
   return (
     <div className={styles.cardWrapper}>
-      <div className={styles.card} onClick={onClick}>
+      <div className={styles.card} {...(onClick ? toPressableDivProps(onClick) : {})}>
         <p className={styles.title}>{title}</p>
         <p className={styles.description}>{description}</p>
         <div className={styles.placeholderImage}>

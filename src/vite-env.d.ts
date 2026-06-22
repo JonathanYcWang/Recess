@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/triple-slash-reference, @typescript-eslint/no-require-imports */
 /// <reference types="vite/client" />
 /// <reference types="react" />
 /// <reference types="react-dom" />

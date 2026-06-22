@@ -1,4 +1,5 @@
 import styles from './Icon.module.css';
+import { toPressableDivProps } from '@/utils/pressable';
 
 type IconSize = 'sm' | 'md' | 'lg';
 
@@ -22,7 +23,11 @@ interface IconProps {
 const Icon = ({ src, alt = '', size = 'md', onClick, onError }: IconProps) => {
   const iconSize = typeof size === 'number' ? size : sizeMap[size];
   return (
-    <div className={styles.icon} style={{ width: iconSize, height: iconSize }} onClick={onClick}>
+    <div
+      className={styles.icon}
+      style={{ width: iconSize, height: iconSize }}
+      {...(onClick ? toPressableDivProps(onClick) : {})}
+    >
       <img alt={alt} className={styles.image} src={src} onError={onError} />
     </div>
   );
