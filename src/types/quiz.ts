@@ -15,12 +15,6 @@ export interface QuizQuestion {
   options: QuizOption[];
 }
 
-export interface QuizState {
-  currentQuestionId: string;
-  selectedChoices: QuizOption[];
-  isComplete: boolean;
-}
-
 export interface QuizResults {
   mbti: string;
   dominantFriction: FrictionSignal[];

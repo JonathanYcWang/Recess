@@ -1,13 +1,11 @@
 import Icon from '../Icon/Icon';
 import styles from './Button.module.css';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
-
 interface ButtonProps {
   text: string;
   onClick?: () => void;
   iconSrc?: string;
-  variant?: ButtonVariant;
+  variant?: 'primary' | 'secondary' | 'tertiary';
   className?: string;
   disabled?: boolean;
 }

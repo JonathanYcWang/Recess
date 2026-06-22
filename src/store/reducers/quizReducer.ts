@@ -2,7 +2,6 @@ import { createReducer } from '@reduxjs/toolkit';
 import { restartQuiz, selectOption, setQuizState, updateQuizState } from '../actions/quizActions';
 import { calculateQuizResults } from '../../data/quiz-scoring';
 import { createInitialQuizState } from '../initialState';
-export { createInitialQuizState };
 
 const initialState = createInitialQuizState();
 

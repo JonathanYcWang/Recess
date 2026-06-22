@@ -2,7 +2,6 @@ import { createReducer } from '@reduxjs/toolkit';
 import { completeOnboarding, setHasOnboarded } from '../actions/routingActions';
 import { createInitialRoutingState } from '../initialState';
 import type { RoutingState } from '../initialState';
-export { createInitialRoutingState };
 
 const initialState: RoutingState = createInitialRoutingState();
 

@@ -27,7 +27,6 @@ import {
 } from '../actions/timerActions';
 import { SESSION_STATES } from '../../constants/constants';
 import { createInitialTimerState } from '../initialState';
-export { createInitialTimerState } from '../initialState';
 
 const setCurrentSessionDuration = (state: TimerState, duration: number) => {
   state.currentTimer = duration;

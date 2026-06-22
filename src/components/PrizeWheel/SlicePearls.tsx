@@ -1,4 +1,4 @@
-import { WHEEL_PADDING, WHEEL_SIZE } from '@/constants/constants';
+import { WHEEL_PADDING, WHEEL_SIZE } from './prizeWheelLayout';
 import styles from './PrizeWheel.module.css';
 
 interface SlicePearlsProps {

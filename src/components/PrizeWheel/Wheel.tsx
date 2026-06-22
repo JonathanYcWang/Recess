@@ -3,10 +3,10 @@ import {
   ICON_RADIUS,
   INNER_RADIUS,
   SEGMENT_ANGLE,
-  SEGMENT_COUNT,
   WHEEL_RADIUS,
   WHEEL_SIZE,
-} from '@/constants/constants';
+} from './prizeWheelLayout';
+import { SEGMENT_COUNT } from '@/constants/constants';
 import ParticleBurst from '@/components/ParticleBurst/ParticleBurst';
 import type { Segment } from './PrizeWheel.types';
 import styles from './PrizeWheel.module.css';
