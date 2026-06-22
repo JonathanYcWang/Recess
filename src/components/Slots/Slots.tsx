@@ -1,11 +1,11 @@
-import { useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import Button from '@/components/Button/Button';
-import {
-  SPIN_ROTATIONS,
-  BASE_REEL_SPIN_DURATION_SECONDS,
-  REEL_STOP_INTERVAL_SECONDS,
-} from '@/constants/constants';
+import { SPIN_ROTATIONS } from '@/constants/constants';
 import styles from './Slots.module.css';
+import {
+  getSlotsAnimationDurationMs,
+  getSlotsReelSpinDurationSeconds,
+} from './slotsTiming';
 
 export interface SlotReel {
   id: string;
@@ -48,16 +48,17 @@ export const getReelSpinStyle = (
   items: string[],
   currentIndex: number,
   targetIndex: number,
-  reelIndex: number
+  reelIndex: number,
+  reelCount: number
 ): CSSProperties => {
   return {
     ...getReelOffset(items, currentIndex, targetIndex),
-    '--reel-spin-duration': `${BASE_REEL_SPIN_DURATION_SECONDS + reelIndex * REEL_STOP_INTERVAL_SECONDS}s`,
+    '--reel-spin-duration': `${getSlotsReelSpinDurationSeconds(reelIndex, reelCount)}s`,
   } as CSSProperties;
 };
 
 const Slots = ({ reels }: SlotsProps) => {
-  const completedReelAnimationsRef = useRef(0);
+  const spinSettlementTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reelCountStyle = { '--reel-count': reels.length } as CSSProperties;
   const reelItems = useMemo(() => reels.map((reel) => replicateReelItems(reel.values)), [reels]);
   const [spinState, setSpinState] = useState<SpinState>({
@@ -68,12 +69,29 @@ const Slots = ({ reels }: SlotsProps) => {
     result: null,
   });
 
+  useEffect(() => {
+    return () => {
+      if (spinSettlementTimeoutRef.current) {
+        clearTimeout(spinSettlementTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleSpinSettlement = () => {
+    if (spinSettlementTimeoutRef.current) {
+      clearTimeout(spinSettlementTimeoutRef.current);
+    }
+
+    spinSettlementTimeoutRef.current = setTimeout(() => {
+      spinSettlementTimeoutRef.current = null;
+      handleSpinEnd();
+    }, getSlotsAnimationDurationMs(reels.length));
+  };
+
   const handleSpin = () => {
     if (spinState.isSpinning) {
       return;
     }
-
-    completedReelAnimationsRef.current = 0;
 
     setSpinState((currentState) => ({
       ...currentState,
@@ -82,6 +100,8 @@ const Slots = ({ reels }: SlotsProps) => {
       spinKey: currentState.spinKey + 1,
       result: null,
     }));
+
+    scheduleSpinSettlement();
   };
 
   const handleSpinEnd = () => {
@@ -91,19 +111,6 @@ const Slots = ({ reels }: SlotsProps) => {
       selectedIndexes: currentState.pendingIndexes,
       result: reels.map((reel, reelIndex) => reel.values[currentState.pendingIndexes[reelIndex]]),
     }));
-  };
-
-  const handleReelAnimationEnd = () => {
-    if (!spinState.isSpinning) {
-      return;
-    }
-
-    completedReelAnimationsRef.current += 1;
-
-    if (completedReelAnimationsRef.current === reels.length) {
-      completedReelAnimationsRef.current = 0;
-      handleSpinEnd();
-    }
   };
 
   return (
@@ -128,9 +135,9 @@ const Slots = ({ reels }: SlotsProps) => {
                   reel.values,
                   spinState.selectedIndexes[reelIndex],
                   spinState.pendingIndexes[reelIndex],
-                  reelIndex
+                  reelIndex,
+                  reels.length
                 )}
-                onAnimationEnd={handleReelAnimationEnd}
               >
                 {reelItems[reelIndex].map((value, itemIndex) => (
                   <div className={styles.reelItem} key={`${value}-${itemIndex}`}>

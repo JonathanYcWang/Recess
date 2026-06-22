@@ -1,11 +1,18 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import {
+  SLOTS_ANIMATION_DURATION_SECONDS,
+  SLOTS_DECISION_WINDOW_SECONDS,
+  SLOTS_REEL_STOP_INTERVAL_SECONDS,
   SPIN_ROTATIONS,
-  BASE_REEL_SPIN_DURATION_SECONDS,
-  REEL_STOP_INTERVAL_SECONDS,
 } from '@/constants/constants';
 import Slots, { getReelOffset, getReelSpinStyle, replicateReelItems, type SlotReel } from './Slots';
+import {
+  getSlotsAnimationDurationMs,
+  getSlotsDecisionWindowMs,
+  getSlotsReelSpinDurationSeconds,
+  getSlotsSettlementDelayMs,
+} from './slotsTiming';
 
 const reels: SlotReel[] = [
   {
@@ -38,6 +45,23 @@ describe('Slots', () => {
   });
 });
 
+describe('slots timing constants', () => {
+  it('uses a five-second decision window', () => {
+    expect(SLOTS_DECISION_WINDOW_SECONDS).toBe(5);
+    expect(getSlotsDecisionWindowMs()).toBe(5000);
+  });
+
+  it('caps reel animation at three seconds for the final reel', () => {
+    expect(SLOTS_ANIMATION_DURATION_SECONDS).toBe(3);
+    expect(getSlotsAnimationDurationMs(reels.length)).toBe(3000);
+    expect(getSlotsSettlementDelayMs(reels.length)).toBe(3000);
+  });
+
+  it('keeps settlement timing independent of reduced-motion presentation', () => {
+    expect(getSlotsSettlementDelayMs(reels.length)).toBe(getSlotsAnimationDurationMs(reels.length));
+  });
+});
+
 describe('replicateReelItems', () => {
   it('adds the final item first so the initial selected row has an item above it', () => {
     expect(replicateReelItems(['A', 'B', 'C'])[0]).toBe('C');
@@ -61,16 +85,29 @@ describe('getReelOffset', () => {
   });
 });
 
+describe('getSlotsReelSpinDurationSeconds', () => {
+  it('stops each reel one interval after the previous reel', () => {
+    const reelCount = reels.length;
+
+    expect(getSlotsReelSpinDurationSeconds(0, reelCount)).toBe(
+      SLOTS_ANIMATION_DURATION_SECONDS - SLOTS_REEL_STOP_INTERVAL_SECONDS
+    );
+    expect(getSlotsReelSpinDurationSeconds(1, reelCount)).toBe(SLOTS_ANIMATION_DURATION_SECONDS);
+  });
+});
+
 describe('getReelSpinStyle', () => {
-  it('stops each reel one second after the previous reel', () => {
-    expect(getReelSpinStyle(['A', 'B', 'C'], 1, 2, 0)).toEqual({
+  it('derives reel spin duration from the shared timing helpers', () => {
+    const reelCount = reels.length;
+
+    expect(getReelSpinStyle(['A', 'B', 'C'], 1, 2, 0, reelCount)).toEqual({
       '--start-index': 1,
       '--end-index': SPIN_ROTATIONS * 3 + 2,
-      '--reel-spin-duration': `${BASE_REEL_SPIN_DURATION_SECONDS}s`,
+      '--reel-spin-duration': `${getSlotsReelSpinDurationSeconds(0, reelCount)}s`,
     });
 
-    expect(getReelSpinStyle(['A', 'B', 'C'], 1, 2, 2)).toMatchObject({
-      '--reel-spin-duration': `${BASE_REEL_SPIN_DURATION_SECONDS + 2 * REEL_STOP_INTERVAL_SECONDS}s`,
+    expect(getReelSpinStyle(['A', 'B', 'C'], 1, 2, 1, reelCount)).toMatchObject({
+      '--reel-spin-duration': `${SLOTS_ANIMATION_DURATION_SECONDS}s`,
     });
   });
 });
