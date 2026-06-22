@@ -38,17 +38,26 @@ const EnergyCheckDialog = ({ open, onClose, onEmojiSelect }: EnergyCheckDialogPr
         <div className={styles.contentContainer}>
           <p className={styles.question}>How are you feeling?</p>
           <div className={styles.emotionsContainer}>
-            <div className={styles.emotionIcon} {...toPressableDivProps(() => handleEmojiClick('pain'))}>
+            <div
+              className={styles.emotionIcon}
+              {...toPressableDivProps(() => handleEmojiClick('pain'))}
+            >
               <div className={styles.emotionVector}>
                 <img alt="In pain" className={styles.emotionImage} src={InPainIcon} />
               </div>
             </div>
-            <div className={styles.emotionIcon} {...toPressableDivProps(() => handleEmojiClick('meh'))}>
+            <div
+              className={styles.emotionIcon}
+              {...toPressableDivProps(() => handleEmojiClick('meh'))}
+            >
               <div className={styles.emotionVector}>
                 <img alt="Meh" className={styles.emotionImage} src={MehIcon} />
               </div>
             </div>
-            <div className={styles.emotionIcon} {...toPressableDivProps(() => handleEmojiClick('smile'))}>
+            <div
+              className={styles.emotionIcon}
+              {...toPressableDivProps(() => handleEmojiClick('smile'))}
+            >
               <div className={styles.emotionVector}>
                 <img alt="Happy" className={styles.emotionImage} src={SmileIcon} />
               </div>

@@ -50,6 +50,32 @@ Safari packaging requires a development signing identity configured in Xcode and
 
 Development signing identities and credentials must not be committed to Git or printed in shared logs. Signed packaging and release-artifact verification are owned by their dedicated packaging issue.
 
+## Local verification
+
+`npm run verify` is the single local quality gate. It runs, in order:
+
+1. `npm run format:check`
+2. `npm run lint`
+3. `npm test`
+4. `npm run knip`
+5. `npm run build`
+6. `npm run package:chromium`
+7. `npm run package:safari`
+
+Any failed step exits non-zero. Packaging outputs land in gitignored `dist/` and `build/` directories and do not modify tracked files.
+
+Browser end-to-end checks are manual. See `docs/browser-smoke-checks.md` for Chromium and Safari smoke checklists.
+
+Safari packaging requires macOS with the pinned Xcode toolchain. Linux environments can run every verify step except `package:safari`.
+
+Required GitHub Actions check names for `main` branch protection:
+
+- `verify`
+- `package-chromium`
+- `package-safari`
+
+See `docs/release/branch-protection.md` for branch-rule and milestone-artifact conventions.
+
 ## CI and release alignment
 
 GitHub Actions reads Node from `.node-version` and installs dependencies with `npm ci`. Release automation must use the same Node 24.17.0 and npm 11.13.0 pins documented above.

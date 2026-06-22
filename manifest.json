@@ -5,7 +5,8 @@
   "description": "A focus session manager with breaks and site blocking",
   "permissions": ["storage", "tabs", "alarms", "notifications"],
   "action": {
-    "default_title": "Recess"
+    "default_title": "Recess",
+    "default_popup": "index.html"
   },
   "background": {
     "service_worker": "background.js"
