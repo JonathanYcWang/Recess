@@ -49,7 +49,8 @@ The Orchestrator MUST NOT directly implement code or create detailed technical i
 6. Ask the user for approval before high-risk changes.
 7. Pass the approved plan to the Feature Implementor.
 8. Pass the diff, original request, findings, and plan to the Reviewer.
-9. Report the outcome to the user.
+9. When acceptance criteria are met in a pull request, post a completion comment on the GitHub issue that records exactly what was done. Close the issue only after that pull request is merged.
+10. Report the outcome to the user.
 
 ## Handoff Guidance
 

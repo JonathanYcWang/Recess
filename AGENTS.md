@@ -21,6 +21,11 @@ Agent MUST follow this guidance:
 - **Keep changes focused**: Do not touch unrelated files or introduce new dependencies without approval.
 - **Verify implementation**: Run `npm run build` after implementation whenever feasible.
 - **Do not invent test commands**: If no test command exists, report that clearly.
+- **Complete issues after merge**: When an issue's acceptance criteria are met in a pull request, post a GitHub comment that records exactly what was done (files changed, checks run, and any deliberate scope limits). Close the issue with `gh issue close` only after that pull request is merged. See `docs/agents/issue-tracker.md`.
+
+## Developer toolchain
+
+Local development, CI, and release use the pinned Node, npm, Xcode, and Safari toolchain. See `docs/toolchain.md` for supported versions, verification commands, and signing prerequisites.
 
 ## Agent skills
 
