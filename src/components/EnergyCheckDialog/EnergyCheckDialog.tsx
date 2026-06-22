@@ -23,11 +23,13 @@ const EnergyCheckDialog = ({ open, onClose, onEmojiSelect }: EnergyCheckDialogPr
     <Dialog
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-          padding: '24px',
-          minWidth: '280px',
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+            padding: '24px',
+            minWidth: '280px',
+          },
         },
       }}
     >
