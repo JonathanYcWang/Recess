@@ -12,7 +12,7 @@ import {
   writeJournalEntry,
 } from '@/modules/persisted-application-state/journal/transactionJournal';
 
-const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
+import { SETTINGS_DOCUMENT_KEY } from '@/modules/persisted-application-state/registry/documentRegistry';
 
 describeSettingsDocumentIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');
 
@@ -37,17 +37,19 @@ describe('settings codec', () => {
   });
 });
 
-describe('settings persistence contract', () => {
-  it('defaults invalid stored documents during initialize', async () => {
+describe('document registry initialize', () => {
+  it('defaults only the affected document and reports diagnostic input', async () => {
     const adapter = createInMemoryKeyValueAdapter({
-      [SETTINGS_DOCUMENT_KEY]: JSON.stringify({ schemaVersion: 1, revision: 0, value: 'bad' }),
+      [SETTINGS_DOCUMENT_KEY]: JSON.stringify({ schemaVersion: 1, revision: 0, value: null }),
     });
-    const state = createPersistedApplicationState({ adapter });
+    const diagnostics: import('@/modules/persisted-application-state').DiagnosticInput[] = [];
+    const state = createPersistedApplicationState({
+      adapter,
+      onDiagnostic: (record) => diagnostics.push(record),
+    });
     const initialized = await state.initialize();
     expect(initialized.ok).toBe(true);
-    if (initialized.ok) {
-      expect(initialized.value.documents.settings).toEqual(settingsCodec.createDefault());
-    }
+    expect(diagnostics.some((entry) => entry.category === 'codec-corruption')).toBe(true);
   });
 });
 

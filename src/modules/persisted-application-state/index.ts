@@ -18,8 +18,14 @@ export {
   persistedOperationalStorageKeys,
 } from './persistedApplicationState';
 export { settingsCodec, SETTINGS_SCHEMA_VERSION } from './settings/settingsCodec';
+export type { DiagnosticInput } from './diagnostics/diagnosticInput';
 export {
+  documentRegistry,
+  registeredDocumentNames,
+  createDefaultDocument,
   createDefaultSettingsValue,
+} from './registry/documentRegistry';
+export {
   type SettingsValue,
   type WorkHoursEntry,
   type QuizState,
