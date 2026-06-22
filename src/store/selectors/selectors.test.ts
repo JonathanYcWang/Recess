@@ -37,7 +37,14 @@ const createState = (): RootState => ({
   ),
   workHours: workHoursReducer(
     undefined,
-    setWorkHours([{ id: 'weekday', time: '09:00', days: [true, true, true, true, true, false, false], enabled: true }])
+    setWorkHours([
+      {
+        id: 'weekday',
+        time: '09:00',
+        days: [true, true, true, true, true, false, false],
+        enabled: true,
+      },
+    ])
   ),
   blockedSites: blockedSitesReducer(undefined, addBlockedSite('news.example')),
   routing: routingReducer(undefined, completeOnboarding()),

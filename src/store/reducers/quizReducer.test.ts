@@ -68,6 +68,8 @@ describe('quizReducer', () => {
   it('restarts with a fresh initial state', () => {
     const answered = quizReducer(undefined, selectOption(firstChoice));
 
-    expect(quizReducer(answered, restartQuiz())).toEqual(quizReducer(undefined, { type: 'test/init' }));
+    expect(quizReducer(answered, restartQuiz())).toEqual(
+      quizReducer(undefined, { type: 'test/init' })
+    );
   });
 });

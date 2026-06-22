@@ -12,6 +12,7 @@
     "build:scripts": "node build-scripts.mjs",
     "preview": "vite preview",
     "test": "vitest run",
+    "knip": "knip --no-progress",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\""
   },
@@ -33,11 +34,11 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "6.0.2",
-    "knip": "^6.14.1",
-    "prettier": "^3.8.3",
+    "knip": "6.17.1",
+    "prettier": "3.8.4",
     "typescript": "6.0.3",
     "vite": "8.0.16",
     "vite-plugin-static-copy": "4.1.1",
-    "vitest": "^4.1.9"
+    "vitest": "4.1.9"
   }
 }
