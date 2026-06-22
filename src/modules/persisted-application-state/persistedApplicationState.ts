@@ -1,3 +1,10 @@
+import {
+  clearJournalEntry,
+  JOURNAL_STORAGE_KEY,
+  rollForwardJournal,
+  writeJournalEntry,
+  type JournalHooks,
+} from './journal/transactionJournal';
 import type {
   CommitError,
   CommitResult,
@@ -17,6 +24,7 @@ const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 
 export interface PersistedApplicationStateOptions {
   adapter: KeyValueStorageAdapter;
+  journalHooks?: JournalHooks;
 }
 
 let commitChain: Promise<unknown> = Promise.resolve();
@@ -38,6 +46,7 @@ const readSettings = async (
     StorageError | import('./types').CodecError
   >
 > => {
+  await rollForwardJournal(adapter, settingsCodec);
   const stored = await adapter.get(SETTINGS_DOCUMENT_KEY);
   if (!stored.ok) {
     return stored;
@@ -61,7 +70,8 @@ const readSettings = async (
 const writeSettings = async (
   adapter: KeyValueStorageAdapter,
   document: VersionedDocument<PersistedDocuments['settings']>,
-  expectedRevision: number
+  expectedRevision: number,
+  journalHooks?: JournalHooks
 ): Promise<Result<VersionedDocument<PersistedDocuments['settings']>, CommitError>> => {
   const current = await readSettings(adapter);
   if (!current.ok) {
@@ -86,18 +96,59 @@ const writeSettings = async (
     revision: expectedRevision + 1,
     value: document.value,
   };
-  const encoded = JSON.stringify(settingsCodec.encode(nextDocument));
-  const write = await adapter.set(SETTINGS_DOCUMENT_KEY, encoded);
-  if (!write.ok) {
-    return { ok: false, error: { kind: 'storage', error: write.error } };
+  const encodedDocument = settingsCodec.encode(nextDocument);
+  const transactionId = `txn-${expectedRevision + 1}-${Date.now()}`;
+
+  const journalWrite = await writeJournalEntry(
+    adapter,
+    {
+      transactionId,
+      documentKey: SETTINGS_DOCUMENT_KEY,
+      expectedRevision,
+      nextRevision: nextDocument.revision,
+      encodedDocument,
+      phase: 'pending-document-write',
+    },
+    journalHooks
+  );
+  if (!journalWrite.ok) {
+    return { ok: false, error: { kind: 'storage', error: journalWrite.error } };
   }
+
+  const documentWrite = await adapter.set(SETTINGS_DOCUMENT_KEY, JSON.stringify(encodedDocument));
+  if (!documentWrite.ok) {
+    return { ok: false, error: { kind: 'storage', error: documentWrite.error } };
+  }
+  journalHooks?.afterDocumentWrite?.();
+
+  const pendingClear = await writeJournalEntry(
+    adapter,
+    {
+      transactionId,
+      documentKey: SETTINGS_DOCUMENT_KEY,
+      expectedRevision,
+      nextRevision: nextDocument.revision,
+      encodedDocument,
+      phase: 'pending-journal-clear',
+    },
+    journalHooks
+  );
+  if (!pendingClear.ok) {
+    return { ok: false, error: { kind: 'storage', error: pendingClear.error } };
+  }
+
+  const clear = await clearJournalEntry(adapter, journalHooks);
+  if (!clear.ok) {
+    return { ok: false, error: { kind: 'storage', error: clear.error } };
+  }
+
   return { ok: true, value: nextDocument };
 };
 
 export const createPersistedApplicationState = (
   options: PersistedApplicationStateOptions
 ): PersistedApplicationState => {
-  const { adapter } = options;
+  const { adapter, journalHooks } = options;
   const listeners = new Map<PersistedDocumentName, Set<PersistedChangeListener>>();
 
   const notify = (documents: Partial<HydrationSnapshot['documents']>) => {
@@ -118,6 +169,7 @@ export const createPersistedApplicationState = (
 
   return {
     async initialize(): Promise<Result<HydrationSnapshot, StorageError>> {
+      await rollForwardJournal(adapter, settingsCodec, journalHooks);
       const loaded = await readSettings(adapter);
       if (loaded.ok) {
         return { ok: true, value: { documents: { settings: loaded.value } } };
@@ -169,7 +221,8 @@ export const createPersistedApplicationState = (
               revision: mutation.expectedRevision,
               value: mutation.value,
             },
-            mutation.expectedRevision
+            mutation.expectedRevision,
+            journalHooks
           );
           if (!committed.ok) {
             return committed as Result<CommitResult, CommitError>;
@@ -196,3 +249,8 @@ export const createPersistedApplicationState = (
     },
   };
 };
+
+export const persistedOperationalStorageKeys = (): string[] => [
+  SETTINGS_DOCUMENT_KEY,
+  JOURNAL_STORAGE_KEY,
+];

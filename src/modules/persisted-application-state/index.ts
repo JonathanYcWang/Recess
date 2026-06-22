@@ -13,7 +13,10 @@ export type {
   VersionedDocument,
 } from './types';
 
-export { createPersistedApplicationState } from './persistedApplicationState';
+export {
+  createPersistedApplicationState,
+  persistedOperationalStorageKeys,
+} from './persistedApplicationState';
 export { settingsCodec, SETTINGS_SCHEMA_VERSION } from './settings/settingsCodec';
 export {
   createDefaultSettingsValue,
