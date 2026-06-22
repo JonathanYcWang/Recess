@@ -42,15 +42,16 @@ The Orchestrator MUST NOT directly implement code or create detailed technical i
 ## Default Workflow
 
 1. Receive the user request.
-2. Identify relevant risks, instructions, and skills.
-3. Ask the Code Explorer to inspect relevant files and report current behavior.
-4. Pass the request, Code Explorer findings, and relevant context to the Planner.
-5. Ask the Planner for implementation approach, edge cases, and testing strategy.
-6. Ask the user for approval before high-risk changes.
-7. Pass the approved plan to the Feature Implementor.
-8. Pass the diff, original request, findings, and plan to the Reviewer.
-9. When acceptance criteria are met in a pull request, post a completion comment on the GitHub issue that records exactly what was done. Close the issue only after that pull request is merged.
-10. Report the outcome to the user.
+2. For a new issue, sync the latest `main` and create a new branch from it before investigation or implementation. See `docs/agents/issue-tracker.md`.
+3. Identify relevant risks, instructions, and skills.
+4. Ask the Code Explorer to inspect relevant files and report current behavior.
+5. Pass the request, Code Explorer findings, and relevant context to the Planner.
+6. Ask the Planner for implementation approach, edge cases, and testing strategy.
+7. Ask the user for approval before high-risk changes.
+8. Pass the approved plan to the Feature Implementor.
+9. Pass the diff, original request, findings, and plan to the Reviewer.
+10. When acceptance criteria are met in a pull request, post a completion comment on the GitHub issue that records exactly what was done. Close the issue only after that pull request is merged.
+11. Report the outcome to the user.
 
 ## Handoff Guidance
 

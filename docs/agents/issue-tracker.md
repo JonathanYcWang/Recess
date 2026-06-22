@@ -2,6 +2,21 @@
 
 Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
+## Starting work on an issue
+
+Before implementing a new issue, sync `main` and create a dedicated branch from it. Do not continue issue work on an existing feature branch or reuse a branch from a prior issue.
+
+```sh
+git fetch origin
+git checkout main
+git pull origin main
+git checkout -b <issue-slug>
+```
+
+Use a short branch name derived from the issue, for example `upgrade-typescript-vite` for issue #4.
+
+Each issue gets its own branch off the latest `main`. Open one pull request per issue.
+
 ## Conventions
 
 - Create issues with `gh issue create`.
