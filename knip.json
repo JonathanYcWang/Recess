@@ -1,6 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["index.html", "src/background.ts", "src/content.ts"],
+  "ignoreIssues": {
+    "src/modules/**": ["exports", "types"],
+    "src/adapters/browser/**": ["exports", "types"]
+  },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreFiles": [
     "src/components/PrizeWheel/**",
