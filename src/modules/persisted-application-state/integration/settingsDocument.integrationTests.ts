@@ -24,6 +24,7 @@ export const describeSettingsDocumentIntegrationTests = (
       const state = createPersistedApplicationState({ adapter });
       await state.initialize();
       const nextValue = {
+        themePreference: 'system' as const,
         workHours: [],
         blockedSites: ['example.com'],
         hasOnboarded: true,
@@ -64,6 +65,7 @@ export const describeSettingsDocumentIntegrationTests = (
           document: 'settings',
           expectedRevision: 0,
           value: {
+            themePreference: 'system',
             workHours: [],
             blockedSites: [],
             hasOnboarded: true,
@@ -82,6 +84,7 @@ export const describeSettingsDocumentIntegrationTests = (
           document: 'settings',
           expectedRevision: 0,
           value: {
+            themePreference: 'system',
             workHours: [],
             blockedSites: [],
             hasOnboarded: false,

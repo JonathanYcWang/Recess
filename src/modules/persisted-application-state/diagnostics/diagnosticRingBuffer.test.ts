@@ -58,6 +58,7 @@ describe('diagnostic ring buffer', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
+          themePreference: 'system',
           workHours: [],
           blockedSites: ['diag.test'],
           hasOnboarded: false,

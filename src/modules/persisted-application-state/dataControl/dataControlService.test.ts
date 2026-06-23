@@ -79,6 +79,7 @@ describe('data control service', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
+          themePreference: 'system',
           workHours: [],
           blockedSites: ['delete.me'],
           hasOnboarded: true,
