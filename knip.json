@@ -3,7 +3,8 @@
   "entry": ["index.html", "src/background.ts", "src/content.ts"],
   "ignoreIssues": {
     "src/modules/**": ["exports", "types"],
-    "src/adapters/browser/**": ["exports", "types"]
+    "src/adapters/browser/**": ["exports", "types"],
+    "src/runtime/**": ["exports", "types"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreFiles": [

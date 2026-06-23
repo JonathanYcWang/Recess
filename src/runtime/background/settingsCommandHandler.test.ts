@@ -15,11 +15,9 @@ const createHandler = async () => {
   if (!initialized.ok) {
     throw new Error('expected initialization to succeed');
   }
-  const handler = createSettingsCommandHandler(
-    persistence,
-    initialized.value.documents.settings,
-    { diagnostics }
-  );
+  const handler = createSettingsCommandHandler(persistence, initialized.value.documents.settings, {
+    diagnostics,
+  });
   return { handler, persistence, diagnostics };
 };
 

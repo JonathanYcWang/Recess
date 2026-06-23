@@ -24,11 +24,12 @@ export const isThemePreference = (value: unknown): value is ThemePreference =>
 
 export const decodeSettingsCommandEnvelope = (
   envelope: unknown
-):
-  | { ok: true; value: SettingsCommandEnvelope }
-  | { ok: false; error: SettingsCommandError } => {
+): { ok: true; value: SettingsCommandEnvelope } | { ok: false; error: SettingsCommandError } => {
   if (!envelope || typeof envelope !== 'object') {
-    return { ok: false, error: { kind: 'malformed-command', message: 'envelope must be an object' } };
+    return {
+      ok: false,
+      error: { kind: 'malformed-command', message: 'envelope must be an object' },
+    };
   }
 
   const candidate = envelope as Record<string, unknown>;
@@ -65,7 +66,10 @@ export const decodeSettingsCommandEnvelope = (
   ) {
     return {
       ok: false,
-      error: { kind: 'malformed-command', message: 'expectedRevision must be a non-negative integer' },
+      error: {
+        kind: 'malformed-command',
+        message: 'expectedRevision must be a non-negative integer',
+      },
     };
   }
   if (!candidate.command || typeof candidate.command !== 'object') {

@@ -1,5 +1,21 @@
 export { createBackgroundCompositionRoot } from './background/backgroundCompositionRoot';
+export { registerSettingsRuntimeListener } from './background/settingsRuntimeListener';
 export { COMMAND_LEDGER_LIMIT, createCommandLedger } from './commandLedger';
+export {
+  createInProcessRuntimeTransport,
+  createMessagingSettingsClient,
+} from './client/messagingSettingsClient';
+export { createInProcessSettingsClient } from './client/inProcessSettingsClient';
+export {
+  createChromiumRuntimeTransport,
+  createExtensionRuntimeTransport,
+  createSafariCompatibleRuntimeTransport,
+} from './messaging/extensionRuntimeTransport';
+export {
+  SETTINGS_RUNTIME_CHANNEL,
+  SETTINGS_RUNTIME_PORT_NAME,
+  type SettingsRuntimeTransportError,
+} from './messaging/messages';
 export {
   decodeSettingsCommandEnvelope,
   type SettingsCommand,
@@ -14,6 +30,9 @@ export {
 } from './protocol/types';
 export type {
   SettingsClient,
+  SettingsClientCommandResult,
+  SettingsClientCurrentResult,
+  SettingsClientError,
   SettingsCommandHandler,
   SettingsCommandResponse,
   SettingsRuntimeError,

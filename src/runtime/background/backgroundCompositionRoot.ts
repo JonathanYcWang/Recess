@@ -4,11 +4,12 @@ import {
   type KeyValueStorageAdapter,
 } from '@/modules/persisted-application-state';
 import { createInProcessSettingsClient } from '../client/inProcessSettingsClient';
-import type { SettingsClient, SettingsRuntimeError } from '../types';
+import type { SettingsClient, SettingsCommandHandler, SettingsRuntimeError } from '../types';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 
-interface BackgroundCompositionRoot {
+export interface BackgroundCompositionRoot {
   settings: SettingsClient;
+  handler: SettingsCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -35,6 +36,7 @@ export const createBackgroundCompositionRoot = async (options: {
     ok: true,
     value: {
       settings: createInProcessSettingsClient(settingsHandler),
+      handler: settingsHandler,
     },
   };
 };

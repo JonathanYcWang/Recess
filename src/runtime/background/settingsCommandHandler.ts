@@ -11,7 +11,12 @@ import {
   type SettingsCommandEnvelope,
   type SettingsCommandError,
 } from '../protocol/settingsCommand';
-import type { SettingsCommandHandler, SettingsCommandResponse, SettingsRuntimeResult, SettingsSnapshot } from '../types';
+import type {
+  SettingsCommandHandler,
+  SettingsCommandResponse,
+  SettingsRuntimeResult,
+  SettingsSnapshot,
+} from '../types';
 
 const cloneSettingsValue = (value: SettingsValue): SettingsValue => ({
   themePreference: value.themePreference,
@@ -52,6 +57,14 @@ export const createSettingsCommandHandler = (
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<SettingsCommandResponse>();
   const diagnostics = options?.diagnostics;
+  const listeners = new Set<(snapshot: SettingsSnapshot) => void>();
+
+  const notifyListeners = () => {
+    const snapshot = cloneSnapshot(current);
+    for (const listener of listeners) {
+      listener(snapshot);
+    }
+  };
 
   const recordUnexpected = (commandId: string, error: unknown): SettingsCommandResponse => {
     const message = error instanceof Error ? error.message : 'unexpected runtime failure';
@@ -66,7 +79,9 @@ export const createSettingsCommandHandler = (
     });
   };
 
-  const executeFresh = async (envelope: SettingsCommandEnvelope): Promise<SettingsCommandResponse> => {
+  const executeFresh = async (
+    envelope: SettingsCommandEnvelope
+  ): Promise<SettingsCommandResponse> => {
     if (envelope.expectedRevision !== undefined && envelope.expectedRevision !== current.revision) {
       return toFailure({
         kind: 'stale-revision',
@@ -105,6 +120,7 @@ export const createSettingsCommandHandler = (
       return toFailure({ kind: 'persistence-failed' });
     }
     current = cloneSnapshot(settings);
+    notifyListeners();
     return toSuccess(current);
   };
 
@@ -113,7 +129,12 @@ export const createSettingsCommandHandler = (
       return { ok: true, value: cloneSnapshot(current) };
     },
 
-    async execute(envelopeInput): Promise<SettingsCommandResponse> {
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+
+    async execute(envelopeInput: unknown): Promise<SettingsCommandResponse> {
       const decoded = decodeSettingsCommandEnvelope(envelopeInput);
       if (!decoded.ok) {
         return toFailure(decoded.error);
