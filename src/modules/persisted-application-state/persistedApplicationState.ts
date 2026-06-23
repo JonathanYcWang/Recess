@@ -1,3 +1,17 @@
+import type { DiagnosticInput } from './diagnostics/diagnosticInput';
+import {
+  clearJournalEntry,
+  JOURNAL_STORAGE_KEY,
+  readJournalEntry,
+  rollForwardJournal,
+  writeJournalEntry,
+  type JournalHooks,
+} from './journal/transactionJournal';
+import {
+  documentRegistry,
+  registeredDocumentNames,
+  type DocumentRegistryEntry,
+} from './registry/documentRegistry';
 import type {
   CommitError,
   CommitResult,
@@ -11,12 +25,11 @@ import type {
   StorageError,
   VersionedDocument,
 } from './types';
-import { settingsCodec } from './settings/settingsCodec';
-
-const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 
 export interface PersistedApplicationStateOptions {
   adapter: KeyValueStorageAdapter;
+  onDiagnostic?: (record: DiagnosticInput) => void;
+  journalHooks?: JournalHooks;
 }
 
 let commitChain: Promise<unknown> = Promise.resolve();
@@ -30,40 +43,42 @@ const runSerialized = <T>(task: () => Promise<T>): Promise<T> => {
   return next;
 };
 
-const readSettings = async (
-  adapter: KeyValueStorageAdapter
-): Promise<
-  Result<
-    VersionedDocument<PersistedDocuments['settings']>,
-    StorageError | import('./types').CodecError
-  >
-> => {
-  const stored = await adapter.get(SETTINGS_DOCUMENT_KEY);
+const formatPersistenceError = (error: StorageError | import('./types').CodecError): string =>
+  'message' in error ? error.message : error.kind;
+
+const readDocument = async <T>(
+  adapter: KeyValueStorageAdapter,
+  entry: DocumentRegistryEntry<T>
+): Promise<Result<VersionedDocument<T>, StorageError | import('./types').CodecError>> => {
+  await rollForwardJournal(adapter, entry.codec);
+  const stored = await adapter.get(entry.storageKey);
   if (!stored.ok) {
     return stored;
   }
   if (stored.value === null) {
-    return { ok: true, value: settingsCodec.createDefault() };
+    return { ok: true, value: entry.createDefault() };
   }
   try {
-    return settingsCodec.decode(JSON.parse(stored.value));
+    return entry.codec.decode(JSON.parse(stored.value));
   } catch {
     return {
       ok: false,
       error: {
         kind: 'invalid-document',
-        message: 'Stored Settings document is not valid JSON',
+        message: `Stored ${entry.document} document is not valid JSON`,
       },
     };
   }
 };
 
-const writeSettings = async (
+const writeDocument = async <T>(
   adapter: KeyValueStorageAdapter,
-  document: VersionedDocument<PersistedDocuments['settings']>,
-  expectedRevision: number
-): Promise<Result<VersionedDocument<PersistedDocuments['settings']>, CommitError>> => {
-  const current = await readSettings(adapter);
+  entry: DocumentRegistryEntry<T>,
+  document: VersionedDocument<T>,
+  expectedRevision: number,
+  journalHooks?: JournalHooks
+): Promise<Result<VersionedDocument<T>, CommitError>> => {
+  const current = await readDocument(adapter, entry);
   if (!current.ok) {
     if ('message' in current.error) {
       return { ok: false, error: { kind: 'codec', error: current.error } };
@@ -81,23 +96,64 @@ const writeSettings = async (
     };
   }
 
-  const nextDocument: VersionedDocument<PersistedDocuments['settings']> = {
-    schemaVersion: settingsCodec.schemaVersion,
+  const nextDocument: VersionedDocument<T> = {
+    ...document,
+    schemaVersion: entry.codec.schemaVersion,
     revision: expectedRevision + 1,
-    value: document.value,
   };
-  const encoded = JSON.stringify(settingsCodec.encode(nextDocument));
-  const write = await adapter.set(SETTINGS_DOCUMENT_KEY, encoded);
-  if (!write.ok) {
-    return { ok: false, error: { kind: 'storage', error: write.error } };
+  const encodedDocument = entry.codec.encode(nextDocument);
+  const transactionId = `txn-${expectedRevision + 1}-${Date.now()}`;
+
+  const journalWrite = await writeJournalEntry(
+    adapter,
+    {
+      transactionId,
+      documentKey: entry.storageKey,
+      expectedRevision,
+      nextRevision: nextDocument.revision,
+      encodedDocument,
+      phase: 'pending-document-write',
+    },
+    journalHooks
+  );
+  if (!journalWrite.ok) {
+    return { ok: false, error: { kind: 'storage', error: journalWrite.error } };
   }
+
+  const documentWrite = await adapter.set(entry.storageKey, JSON.stringify(encodedDocument));
+  if (!documentWrite.ok) {
+    return { ok: false, error: { kind: 'storage', error: documentWrite.error } };
+  }
+  journalHooks?.afterDocumentWrite?.();
+
+  const pendingClear = await writeJournalEntry(
+    adapter,
+    {
+      transactionId,
+      documentKey: entry.storageKey,
+      expectedRevision,
+      nextRevision: nextDocument.revision,
+      encodedDocument,
+      phase: 'pending-journal-clear',
+    },
+    journalHooks
+  );
+  if (!pendingClear.ok) {
+    return { ok: false, error: { kind: 'storage', error: pendingClear.error } };
+  }
+
+  const clear = await clearJournalEntry(adapter, journalHooks);
+  if (!clear.ok) {
+    return { ok: false, error: { kind: 'storage', error: clear.error } };
+  }
+
   return { ok: true, value: nextDocument };
 };
 
 export const createPersistedApplicationState = (
   options: PersistedApplicationStateOptions
 ): PersistedApplicationState => {
-  const { adapter } = options;
+  const { adapter, onDiagnostic, journalHooks } = options;
   const listeners = new Map<PersistedDocumentName, Set<PersistedChangeListener>>();
 
   const notify = (documents: Partial<HydrationSnapshot['documents']>) => {
@@ -116,65 +172,83 @@ export const createPersistedApplicationState = (
     }
   };
 
+  const loadDocumentWithRecovery = async <K extends PersistedDocumentName>(
+    name: K
+  ): Promise<VersionedDocument<PersistedDocuments[K]>> => {
+    const entry = documentRegistry[name];
+    const loaded = await readDocument(adapter, entry);
+    if (loaded.ok) {
+      return loaded.value;
+    }
+    onDiagnostic?.({
+      category: 'codec-corruption',
+      message: `Defaulted ${name} after codec failure`,
+      context: {
+        document: name,
+        reason: formatPersistenceError(loaded.error),
+      },
+    });
+    const defaulted = entry.createDefault();
+    await adapter.set(entry.storageKey, JSON.stringify(entry.codec.encode(defaulted)));
+    return defaulted;
+  };
+
   return {
     async initialize(): Promise<Result<HydrationSnapshot, StorageError>> {
-      const loaded = await readSettings(adapter);
-      if (loaded.ok) {
-        return { ok: true, value: { documents: { settings: loaded.value } } };
+      const documents = {} as HydrationSnapshot['documents'];
+      for (const name of registeredDocumentNames) {
+        const journal = await readJournalEntry(adapter);
+        if (journal.ok && journal.value !== null) {
+          const rolled = await rollForwardJournal(
+            adapter,
+            documentRegistry[name].codec,
+            journalHooks
+          );
+          if (rolled.ok && rolled.value !== null) {
+            onDiagnostic?.({
+              category: 'journal-recovery',
+              message: `Recovered ${name} from transaction journal`,
+              context: { document: name, revision: String(rolled.value.revision) },
+            });
+          }
+        }
+        documents[name] = await loadDocumentWithRecovery(name);
       }
-      const defaulted = settingsCodec.createDefault();
-      const write = await adapter.set(
-        SETTINGS_DOCUMENT_KEY,
-        JSON.stringify(settingsCodec.encode(defaulted))
-      );
-      if (!write.ok) {
-        return write;
-      }
-      return { ok: true, value: { documents: { settings: defaulted } } };
+      return { ok: true, value: { documents } };
     },
 
     async read(key) {
-      if (key !== 'settings') {
-        return {
-          ok: false,
-          error: {
-            kind: 'invalid-document',
-            message: `Unknown document ${key}`,
-          },
-        };
-      }
-      return readSettings(adapter);
+      const entry = documentRegistry[key];
+      return readDocument(adapter, entry);
     },
 
     commit(mutations) {
       return runSerialized(async () => {
         const result: CommitResult['documents'] = {};
         for (const mutation of mutations) {
-          if (mutation.document !== 'settings') {
-            return {
-              ok: false,
-              error: {
-                kind: 'codec',
-                error: {
-                  kind: 'invalid-document',
-                  message: `Unknown document ${mutation.document}`,
-                },
-              },
-            } as Result<CommitResult, CommitError>;
+          const entry = documentRegistry[mutation.document];
+          const current = await readDocument(adapter, entry);
+          if (!current.ok) {
+            return { ok: false, error: { kind: 'codec', error: current.error } } as Result<
+              CommitResult,
+              CommitError
+            >;
           }
-          const committed = await writeSettings(
+          const nextValue = {
+            ...current.value,
+            value: mutation.value,
+          };
+          const committed = await writeDocument(
             adapter,
-            {
-              schemaVersion: settingsCodec.schemaVersion,
-              revision: mutation.expectedRevision,
-              value: mutation.value,
-            },
-            mutation.expectedRevision
+            entry,
+            nextValue,
+            mutation.expectedRevision,
+            journalHooks
           );
           if (!committed.ok) {
             return committed as Result<CommitResult, CommitError>;
           }
-          result.settings = committed.value;
+          result[mutation.document] = committed.value;
         }
         notify(result);
         return { ok: true, value: { documents: result } };
@@ -196,3 +270,8 @@ export const createPersistedApplicationState = (
     },
   };
 };
+
+export const persistedOperationalStorageKeys = (): string[] => [
+  ...registeredDocumentNames.map((name) => documentRegistry[name].storageKey),
+  JOURNAL_STORAGE_KEY,
+];
