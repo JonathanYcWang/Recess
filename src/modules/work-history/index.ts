@@ -8,4 +8,4 @@ export type {
 } from './types';
 
 export { createWorkHistoryService, sortWorkHistoryFacts } from './types';
-export { runWorkHistoryContractSuite } from './contracts/workHistoryContract';
+export { describeWorkHistoryIntegrationTests } from './integration/workHistory.integrationTests';

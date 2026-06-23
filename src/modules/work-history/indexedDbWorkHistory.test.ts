@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createIndexedDbWorkHistoryAdapter } from '@/adapters/browser/chromium/indexedDbWorkHistoryAdapter';
 import { createSafariIndexedDbWorkHistoryAdapter } from '@/adapters/browser/safari/indexedDbWorkHistoryAdapter';
-import { runWorkHistoryContractSuite } from '@/modules/work-history';
+import { describeWorkHistoryIntegrationTests } from '@/modules/work-history';
 
 type StoreRecord = Record<string, unknown>;
 
@@ -76,12 +76,12 @@ describe('indexeddb work history adapters', () => {
     vi.stubGlobal('indexedDB', fakeDb);
   };
 
-  runWorkHistoryContractSuite(() => {
+  describeWorkHistoryIntegrationTests(() => {
     mountIndexedDb();
     return createIndexedDbWorkHistoryAdapter();
   }, 'chromium-indexeddb');
 
-  runWorkHistoryContractSuite(() => {
+  describeWorkHistoryIntegrationTests(() => {
     mountIndexedDb();
     return createSafariIndexedDbWorkHistoryAdapter();
   }, 'safari-indexeddb');

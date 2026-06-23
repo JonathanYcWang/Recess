@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
-import { runWorkHistoryContractSuite } from '@/modules/work-history';
+import { describeWorkHistoryIntegrationTests } from '@/modules/work-history';
 
-runWorkHistoryContractSuite(createInMemoryWorkHistoryAdapter, 'in-memory');
+describeWorkHistoryIntegrationTests(createInMemoryWorkHistoryAdapter, 'in-memory');
 
 describe('in-memory work history adapter', () => {
   it('rejects invalid facts with typed outcomes', async () => {

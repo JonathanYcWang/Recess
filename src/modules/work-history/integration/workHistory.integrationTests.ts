@@ -8,11 +8,11 @@ const sampleFact = (id: string, recordedAt: number): WorkHistoryFact => ({
   payload: { durationMinutes: 25 },
 });
 
-export const runWorkHistoryContractSuite = (
+export const describeWorkHistoryIntegrationTests = (
   createAdapter: () => WorkHistoryStorageAdapter,
   suiteName: string
 ): void => {
-  describe(`${suiteName} work history contract`, () => {
+  describe(`${suiteName} work history integration tests`, () => {
     it('appends facts with stable identities and idempotent duplicate delivery', async () => {
       const adapter = createAdapter();
       const fact = sampleFact('fact-1', 100);
