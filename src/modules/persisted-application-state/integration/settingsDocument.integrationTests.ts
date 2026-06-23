@@ -3,11 +3,11 @@ import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMe
 import { createPersistedApplicationState } from '../persistedApplicationState';
 import type { KeyValueStorageAdapter } from '../types';
 
-export const runSettingsDocumentContractSuite = (
+export const describeSettingsDocumentIntegrationTests = (
   createAdapter: () => KeyValueStorageAdapter,
   suiteName: string
 ): void => {
-  describe(`${suiteName} settings document contract`, () => {
+  describe(`${suiteName} settings document integration tests`, () => {
     it('initializes fresh defaults without exposing storage keys', async () => {
       const adapter = createAdapter();
       const state = createPersistedApplicationState({ adapter });

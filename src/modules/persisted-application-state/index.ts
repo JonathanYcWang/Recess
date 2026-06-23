@@ -21,4 +21,4 @@ export {
   type WorkHoursEntry,
   type QuizState,
 } from './settings/settingsDocument';
-export { runSettingsDocumentContractSuite } from './contracts/settingsDocumentContract';
+export { describeSettingsDocumentIntegrationTests } from './integration/settingsDocument.integrationTests';

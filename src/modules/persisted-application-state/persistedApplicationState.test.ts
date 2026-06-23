@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
 import {
   createPersistedApplicationState,
-  runSettingsDocumentContractSuite,
+  describeSettingsDocumentIntegrationTests,
   settingsCodec,
 } from '@/modules/persisted-application-state';
 import { createDefaultSettingsValue } from '@/modules/persisted-application-state/settings/settingsDocument';
 
 const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 
-runSettingsDocumentContractSuite(createInMemoryKeyValueAdapter, 'in-memory');
+describeSettingsDocumentIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');
 
 describe('settings codec', () => {
   it('accepts valid documents and rejects unsupported versions', () => {
