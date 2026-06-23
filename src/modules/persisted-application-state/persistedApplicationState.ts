@@ -1,4 +1,4 @@
-import type { DiagnosticInput } from './diagnostics/diagnosticInput';
+import type { DiagnosticRingBuffer } from './diagnostics/diagnosticRingBuffer';
 import {
   clearJournalEntry,
   JOURNAL_STORAGE_KEY,
@@ -28,7 +28,7 @@ import type {
 
 export interface PersistedApplicationStateOptions {
   adapter: KeyValueStorageAdapter;
-  onDiagnostic?: (record: DiagnosticInput) => void;
+  diagnostics?: DiagnosticRingBuffer;
   journalHooks?: JournalHooks;
 }
 
@@ -153,7 +153,7 @@ const writeDocument = async <T>(
 export const createPersistedApplicationState = (
   options: PersistedApplicationStateOptions
 ): PersistedApplicationState => {
-  const { adapter, onDiagnostic, journalHooks } = options;
+  const { adapter, diagnostics, journalHooks } = options;
   const listeners = new Map<PersistedDocumentName, Set<PersistedChangeListener>>();
 
   const notify = (documents: Partial<HydrationSnapshot['documents']>) => {
@@ -180,7 +180,7 @@ export const createPersistedApplicationState = (
     if (loaded.ok) {
       return loaded.value;
     }
-    onDiagnostic?.({
+    diagnostics?.record({
       category: 'codec-corruption',
       message: `Defaulted ${name} after codec failure`,
       context: {
@@ -205,7 +205,7 @@ export const createPersistedApplicationState = (
             journalHooks
           );
           if (rolled.ok && rolled.value !== null) {
-            onDiagnostic?.({
+            diagnostics?.record({
               category: 'journal-recovery',
               message: `Recovered ${name} from transaction journal`,
               context: { document: name, revision: String(rolled.value.revision) },

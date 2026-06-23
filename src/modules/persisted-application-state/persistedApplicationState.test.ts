@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
 import {
+  createDiagnosticRingBuffer,
   createPersistedApplicationState,
   describeSettingsDocumentIntegrationTests,
   settingsCodec,
@@ -38,18 +39,15 @@ describe('settings codec', () => {
 });
 
 describe('document registry initialize', () => {
-  it('defaults only the affected document and reports diagnostic input', async () => {
+  it('defaults only the affected document and records diagnostic input', async () => {
     const adapter = createInMemoryKeyValueAdapter({
       [SETTINGS_DOCUMENT_KEY]: JSON.stringify({ schemaVersion: 1, revision: 0, value: null }),
     });
-    const diagnostics: import('@/modules/persisted-application-state').DiagnosticInput[] = [];
-    const state = createPersistedApplicationState({
-      adapter,
-      onDiagnostic: (record) => diagnostics.push(record),
-    });
+    const diagnostics = createDiagnosticRingBuffer();
+    const state = createPersistedApplicationState({ adapter, diagnostics });
     const initialized = await state.initialize();
     expect(initialized.ok).toBe(true);
-    expect(diagnostics.some((entry) => entry.category === 'codec-corruption')).toBe(true);
+    expect(diagnostics.all().some((entry) => entry.category === 'codec-corruption')).toBe(true);
   });
 });
 
