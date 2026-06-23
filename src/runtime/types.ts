@@ -3,18 +3,20 @@ import type {
   ThemePreference,
   VersionedDocument,
 } from '@/modules/persisted-application-state';
+import type {
+  SettingsCommandEnvelope,
+  SettingsCommandError,
+} from './protocol/settingsCommand';
+import type { RuntimeCommandResponse } from './protocol/types';
 
 export type SettingsSnapshot = VersionedDocument<SettingsValue>;
 
-type SettingsIntent = {
-  kind: 'set-theme-preference';
-  preference: unknown;
-};
+export type SettingsCommandResponse = RuntimeCommandResponse<
+  SettingsSnapshot,
+  SettingsCommandError
+>;
 
-export type SettingsRuntimeError =
-  | { kind: 'invalid-theme-preference' }
-  | { kind: 'persistence-unavailable' }
-  | { kind: 'persistence-failed' };
+export type SettingsRuntimeError = SettingsCommandError;
 
 export type SettingsRuntimeResult =
   | { ok: true; value: SettingsSnapshot }
@@ -22,10 +24,14 @@ export type SettingsRuntimeResult =
 
 export interface SettingsCommandHandler {
   current(): SettingsRuntimeResult;
-  dispatch(intent: SettingsIntent): Promise<SettingsRuntimeResult>;
+  execute(envelope: SettingsCommandEnvelope): Promise<SettingsCommandResponse>;
 }
 
 export interface SettingsClient {
   current(): Promise<SettingsRuntimeResult>;
-  setThemePreference(preference: ThemePreference): Promise<SettingsRuntimeResult>;
+  command(envelope: SettingsCommandEnvelope): Promise<SettingsCommandResponse>;
+  setThemePreference(
+    preference: ThemePreference,
+    options?: { commandId?: string; expectedRevision?: number }
+  ): Promise<SettingsCommandResponse>;
 }
