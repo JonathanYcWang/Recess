@@ -1,0 +1,37 @@
+import {
+  createPersistedApplicationState,
+  type KeyValueStorageAdapter,
+} from '@/modules/persisted-application-state';
+import { createInProcessSettingsClient } from '../client/inProcessSettingsClient';
+import type { SettingsClient, SettingsRuntimeError } from '../types';
+import { createSettingsCommandHandler } from './settingsCommandHandler';
+
+interface BackgroundCompositionRoot {
+  settings: SettingsClient;
+}
+
+type BackgroundCompositionRootResult =
+  | { ok: true; value: BackgroundCompositionRoot }
+  | { ok: false; error: SettingsRuntimeError };
+
+export const createBackgroundCompositionRoot = async (options: {
+  adapter: KeyValueStorageAdapter;
+}): Promise<BackgroundCompositionRootResult> => {
+  const persistence = createPersistedApplicationState({ adapter: options.adapter });
+  const initialized = await persistence.initialize();
+  if (!initialized.ok) {
+    return { ok: false, error: { kind: 'persistence-unavailable' } };
+  }
+
+  const settingsHandler = createSettingsCommandHandler(
+    persistence,
+    initialized.value.documents.settings
+  );
+
+  return {
+    ok: true,
+    value: {
+      settings: createInProcessSettingsClient(settingsHandler),
+    },
+  };
+};

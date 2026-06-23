@@ -36,6 +36,22 @@ describe('settings codec', () => {
       expect(invalid.error.kind).toBe('unsupported-version');
     }
   });
+
+  it('defaults the preference when decoding an older Settings value', () => {
+    const olderValue: Partial<ReturnType<typeof createDefaultSettingsValue>> =
+      createDefaultSettingsValue();
+    delete olderValue.themePreference;
+    const decoded = settingsCodec.decode({
+      schemaVersion: 1,
+      revision: 2,
+      value: olderValue,
+    });
+
+    expect(decoded.ok).toBe(true);
+    if (decoded.ok) {
+      expect(decoded.value.value.themePreference).toBe('system');
+    }
+  });
 });
 
 describe('document registry initialize', () => {

@@ -22,7 +22,11 @@ export interface QuizState {
   results: QuizResults | null;
 }
 
+export const THEME_PREFERENCES = ['system', 'light', 'dark'] as const;
+export type ThemePreference = (typeof THEME_PREFERENCES)[number];
+
 export interface SettingsValue {
+  themePreference: ThemePreference;
   workHours: WorkHoursEntry[];
   blockedSites: string[];
   hasOnboarded: boolean;
@@ -44,6 +48,7 @@ const DEFAULT_BLOCKED_SITES = [
 ];
 
 export const createDefaultSettingsValue = (): SettingsValue => ({
+  themePreference: 'system',
   workHours: [],
   blockedSites: [...DEFAULT_BLOCKED_SITES],
   hasOnboarded: false,

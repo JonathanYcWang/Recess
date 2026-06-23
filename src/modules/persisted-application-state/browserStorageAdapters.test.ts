@@ -139,6 +139,7 @@ describe('browser adapter parity', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
+          themePreference: 'system',
           workHours: [],
           blockedSites: ['parity.test'],
           hasOnboarded: true,
@@ -183,6 +184,7 @@ describe('browser adapter parity', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
+          themePreference: 'system',
           workHours: [],
           blockedSites: ['parity.test'],
           hasOnboarded: true,
