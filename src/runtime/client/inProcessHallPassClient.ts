@@ -28,5 +28,13 @@ export const createInProcessHallPassClient = (handler: HallPassCommandHandler): 
       expectedRevision: options?.expectedRevision,
       command: { kind: 'cancel-pending', requestId },
     }),
+  revoke: async (passId, options) =>
+    handler.execute({
+      protocolVersion: RUNTIME_PROTOCOL_VERSION,
+      commandId: options?.commandId ?? createCommandId(),
+      module: 'hall-pass',
+      expectedRevision: options?.expectedRevision,
+      command: { kind: 'revoke', passId },
+    }),
   subscribe: (listener) => handler.subscribe(listener),
 });

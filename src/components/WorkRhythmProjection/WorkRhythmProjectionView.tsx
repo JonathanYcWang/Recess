@@ -16,6 +16,7 @@ const WorkRhythmProjectionView = () => {
   const label = describeWorkRhythmProjection(snapshot, connectionState);
   const hallPassClient = createAppHallPassClient();
   const pending = hallPassProjection.snapshot.pendingRequest;
+  const activePass = hallPassProjection.snapshot.activePass;
 
   const confirmHallPass = () => {
     if (!pending || !hallPassClient) {
@@ -31,6 +32,15 @@ const WorkRhythmProjectionView = () => {
       return;
     }
     void hallPassClient.cancelPending(pending.requestId, {
+      expectedRevision: hallPassProjection.revision ?? undefined,
+    });
+  };
+
+  const revokeHallPass = () => {
+    if (!activePass || !hallPassClient) {
+      return;
+    }
+    void hallPassClient.revoke(activePass.passId, {
       expectedRevision: hallPassProjection.revision ?? undefined,
     });
   };
@@ -63,6 +73,15 @@ const WorkRhythmProjectionView = () => {
               Cancel
             </button>
           </div>
+        </div>
+      ) : null}
+      {snapshot.phase === 'time-out' && activePass ? (
+        <div className={styles.hallPassActive} aria-label="Active Hall Pass">
+          <p className={styles.hallPassTitle}>Hall Pass active: {activePass.destination}</p>
+          <p className={styles.hallPassBalance}>Billed minutes: {activePass.billedMinuteCount}</p>
+          <button type="button" className={styles.cancelButton} onClick={revokeHallPass}>
+            Revoke
+          </button>
         </div>
       ) : null}
     </section>

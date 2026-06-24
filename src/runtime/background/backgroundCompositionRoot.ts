@@ -46,6 +46,11 @@ import { createHallPassCommandHandler } from './hallPassCommandHandler';
 import { createSystemClock } from '../clock';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
 import { createSafariCompatibleAlarmAdapter } from '../alarms/chromiumAlarmAdapter';
+import {
+  createInMemoryBrowserActivityAdapter,
+  createInMemoryBrowserActivityState,
+} from '@/modules/browser-activity/inMemoryBrowserActivity';
+import { createSafariCompatibleBrowserActivityAdapter } from '@/adapters/browser/safari/safariBrowserActivityAdapter';
 import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
 import { createWorkHistoryService } from '@/modules/work-history';
 import { createEffectExecutor } from '../effects/effectExecutor';
@@ -134,6 +139,9 @@ export const createBackgroundCompositionRoot = async (options: {
 
   const alarms: AlarmAdapter = createSafariCompatibleAlarmAdapter() ?? createInMemoryAlarmAdapter();
   const clock = createSystemClock();
+  const browserActivity =
+    createSafariCompatibleBrowserActivityAdapter() ??
+    createInMemoryBrowserActivityAdapter(createInMemoryBrowserActivityState());
 
   const workRhythmHandler = createWorkRhythmCommandHandler(
     persistence,
@@ -158,6 +166,7 @@ export const createBackgroundCompositionRoot = async (options: {
     {
       clock,
       coinHandler,
+      browserActivity,
       diagnostics,
       outcomeStore: hallPassOutcomeStore,
       phaseContext: () => {

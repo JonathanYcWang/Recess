@@ -45,4 +45,15 @@ export const createConnectionAwareHallPassClient = (client: HallPassClient): Hal
     }
     return result;
   },
+  revoke: async (passId, options) => {
+    const manager = getHallPassConnectionManager();
+    if (manager?.getConnectionState() === 'disconnected') {
+      return transportUnavailable();
+    }
+    const result = await client.revoke(passId, options);
+    if (!result.ok && isHallPassTransportError(result.error)) {
+      manager?.markDisconnected();
+    }
+    return result;
+  },
 });
