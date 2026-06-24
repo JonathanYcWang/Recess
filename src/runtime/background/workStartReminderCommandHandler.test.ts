@@ -51,4 +51,28 @@ describe('workStartReminderCommandHandler', () => {
     }
     expect(current.value.snapshot.schedules).toHaveLength(1);
   });
+
+  it('skip next neutralizes the soonest planned occurrence and replans', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+    await root.value.workStartReminder.addSchedule({
+      time: '09:00 AM',
+      days: [false, true, true, true, true, true, false],
+    });
+    const before = root.value.workStartReminderHandler.current();
+    if (!before.ok) {
+      throw new Error('expected current');
+    }
+    const skipped = await root.value.workStartReminder.skipNext();
+    expect(skipped.ok).toBe(true);
+    const after = root.value.workStartReminderHandler.current();
+    expect(after.ok).toBe(true);
+    if (!after.ok) {
+      return;
+    }
+    expect(after.value.revision).toBeGreaterThan(before.value.revision);
+  });
 });

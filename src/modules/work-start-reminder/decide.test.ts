@@ -35,6 +35,6 @@ describe('work-start-reminder domain', () => {
     expect(replanned.occurrences).toHaveLength(1);
     expect(replanned.occurrences[0]?.scheduleId).toBe('schedule-1');
     expect(replanned.occurrences[0]?.alarmName).toBe(workStartReminderAlarmName('occ-1'));
-    expect(computeNextOccurrenceEpochMs(replanned.schedules[0]!, now)! > now).toBe(true);
+    expect(computeNextOccurrenceEpochMs(replanned.schedules[0]!, now, 'UTC')! > now).toBe(true);
   });
 });

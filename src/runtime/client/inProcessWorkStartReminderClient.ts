@@ -50,5 +50,13 @@ export const createInProcessWorkStartReminderClient = (
       expectedRevision: options?.expectedRevision,
       command: { kind: 'toggle-schedule-enabled', id },
     }),
+  skipNext: async (options) =>
+    handler.execute({
+      protocolVersion: RUNTIME_PROTOCOL_VERSION,
+      commandId: options?.commandId ?? createCommandId(),
+      module: 'work-start-reminder',
+      expectedRevision: options?.expectedRevision,
+      command: { kind: 'skip-next' },
+    }),
   subscribe: (listener) => handler.subscribe(listener),
 });

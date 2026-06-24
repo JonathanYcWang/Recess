@@ -96,6 +96,7 @@ export const decideDeleteSchedule = (
     value: {
       schedules: value.schedules.filter((schedule) => schedule.id !== id),
       occurrences: value.occurrences.filter((occurrence) => occurrence.scheduleId !== id),
+      planningTimeZoneId: value.planningTimeZoneId,
     },
   };
 };
@@ -111,6 +112,26 @@ export const decideToggleScheduleEnabled = (
   const schedules = [...value.schedules];
   schedules[index] = { ...schedules[index], enabled: !schedules[index].enabled };
   return { ok: true, value: { ...value, schedules } };
+};
+
+export type SkipNextCommandError = { kind: 'no-planned-occurrence' };
+
+export const decideSkipNext = (
+  value: WorkStartReminderValue
+): { ok: true; value: WorkStartReminderValue } | { ok: false; error: SkipNextCommandError } => {
+  const planned = value.occurrences.filter((occurrence) => occurrence.phase === 'planned');
+  if (planned.length === 0) {
+    return { ok: false, error: { kind: 'no-planned-occurrence' } };
+  }
+  const next = planned.reduce((best, occurrence) =>
+    occurrence.scheduledEpochMs < best.scheduledEpochMs ? occurrence : best
+  );
+  const occurrences = value.occurrences.map((occurrence) =>
+    occurrence.id === next.id
+      ? { ...occurrence, phase: 'resolved' as const, outcome: 'neutral' as const }
+      : occurrence
+  );
+  return { ok: true, value: { ...value, occurrences } };
 };
 
 export const formatScheduleTimeForDisplay = (schedule: ReminderSchedule): string =>
