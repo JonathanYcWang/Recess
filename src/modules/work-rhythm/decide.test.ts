@@ -196,5 +196,15 @@ describe('projectWorkRhythmSnapshot', () => {
       decided.value.focusDurationSeconds - 5 * 60
     );
     expect(afterFiveMinutes.remainingWorkSessionSeconds).toBe(60 * 60 - 5 * 60);
+    expect(afterFiveMinutes.windDownActive).toBe(false);
+
+    const duringWindDown = projectWorkRhythmSnapshot(
+      decided.value,
+      decided.value.focusDeadlineAtEpochMs - 60 * 1000
+    );
+    if (duringWindDown.phase !== 'focus-block') {
+      throw new Error('expected focus block snapshot');
+    }
+    expect(duringWindDown.windDownActive).toBe(true);
   });
 });

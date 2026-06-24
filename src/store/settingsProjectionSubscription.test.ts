@@ -16,6 +16,7 @@ const snapshot: SettingsSnapshot = {
     workHours: [],
     blockedSites: [],
     hasOnboarded: false,
+    windDownSoundEnabled: false,
     quiz: {
       currentQuestionId: 'Q1',
       selectedChoices: [],

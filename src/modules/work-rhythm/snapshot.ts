@@ -1,5 +1,8 @@
 import type { EnergyLevel, MomentumLevel } from '@/modules/workstyle-profile';
 import type { SchedulerReasonCode } from '@/modules/scheduler';
+import { blocksUntilNextFocusBlockStreakMilestone } from './focusBlockStreak';
+import { focusBlockWindDownContext, isWindDownActive } from './windDown';
+import { remainingWorkSessionExtensionSeconds } from './workSessionExtension';
 import type { WorkRhythmValue } from './workRhythmDocument';
 import { remainingWorkSessionSecondsAt } from './acceptRecess';
 
@@ -17,7 +20,9 @@ export type WorkRhythmFocusBlockSnapshot = {
   momentum: MomentumLevel;
   isFinalFocus: boolean;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
   schedulerReasonCodes: SchedulerReasonCode[];
+  windDownActive: boolean;
 };
 
 export type WorkRhythmRecessPromptSnapshot = {
@@ -28,8 +33,36 @@ export type WorkRhythmRecessPromptSnapshot = {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
   deferredRecessCount: number;
   originalGoalPermanentlyComplete: boolean;
+};
+
+export type WorkRhythmTimeOutSnapshot = {
+  phase: 'time-out';
+  sessionId: string;
+  originalGoalSeconds: number;
+  remainingWorkSessionSeconds: number;
+  remainingFocusSeconds: number;
+  elapsedTimeOutSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
+  isFinalFocus: boolean;
+};
+
+export type WorkRhythmWorkSessionCompletedSnapshot = {
+  phase: 'work-session-completed';
+  sessionId: string;
+  originalGoalSeconds: number;
+  cumulativeExtensionSeconds: number;
+  extensionCount: number;
+  remainingExtensionAllowanceSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
 };
 
 export type WorkRhythmRewardGameSnapshot = {
@@ -40,6 +73,7 @@ export type WorkRhythmRewardGameSnapshot = {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
   roundId: string;
 };
 
@@ -52,6 +86,7 @@ export type WorkRhythmRecessSnapshot = {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
   recessPassDestination: string | null;
   schedulerReasonCodes: SchedulerReasonCode[];
 };
@@ -65,12 +100,15 @@ export type WorkRhythmBackToWorkCountdownSnapshot = {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
 };
 
 export type WorkRhythmSnapshot =
   | WorkRhythmInactiveSnapshot
   | WorkRhythmFocusBlockSnapshot
   | WorkRhythmRecessPromptSnapshot
+  | WorkRhythmTimeOutSnapshot
+  | WorkRhythmWorkSessionCompletedSnapshot
   | WorkRhythmRewardGameSnapshot
   | WorkRhythmRecessSnapshot
   | WorkRhythmBackToWorkCountdownSnapshot;
@@ -92,8 +130,52 @@ export const projectWorkRhythmSnapshot = (
       energy: value.energy,
       momentum: value.momentum,
       focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
       deferredRecessCount: value.deferredRecessCount,
       originalGoalPermanentlyComplete: value.originalGoalPermanentlyComplete,
+    };
+  }
+
+  if (value.phase === 'work-session-completed') {
+    return {
+      phase: 'work-session-completed',
+      sessionId: value.sessionId,
+      originalGoalSeconds: value.originalGoalSeconds,
+      cumulativeExtensionSeconds: value.cumulativeExtensionSeconds,
+      extensionCount: value.extensionCount,
+      remainingExtensionAllowanceSeconds: remainingWorkSessionExtensionSeconds(
+        value.cumulativeExtensionSeconds
+      ),
+      energy: value.energy,
+      momentum: value.momentum,
+      focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
+    };
+  }
+
+  if (value.phase === 'time-out') {
+    const elapsedTimeOutSeconds = Math.max(
+      0,
+      Math.floor((nowEpochMs - value.timeOutStartedAtEpochMs) / 1000)
+    );
+    return {
+      phase: 'time-out',
+      sessionId: value.sessionId,
+      originalGoalSeconds: value.originalGoalSeconds,
+      remainingWorkSessionSeconds: value.settledRemainingWorkSessionSeconds,
+      remainingFocusSeconds: value.settledRemainingFocusSeconds,
+      elapsedTimeOutSeconds,
+      energy: value.energy,
+      momentum: value.momentum,
+      focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
+      isFinalFocus: value.isFinalFocus,
     };
   }
 
@@ -106,6 +188,9 @@ export const projectWorkRhythmSnapshot = (
       energy: value.energy,
       momentum: value.momentum,
       focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
       roundId: value.roundId,
     };
   }
@@ -124,6 +209,9 @@ export const projectWorkRhythmSnapshot = (
       energy: value.energy,
       momentum: value.momentum,
       focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
       recessPassDestination: value.recessPassDestination,
       schedulerReasonCodes: value.schedulerReasons.map((reason) => reason.code),
     };
@@ -143,6 +231,9 @@ export const projectWorkRhythmSnapshot = (
       energy: value.energy,
       momentum: value.momentum,
       focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
     };
   }
 
@@ -150,6 +241,7 @@ export const projectWorkRhythmSnapshot = (
     0,
     Math.ceil((value.focusDeadlineAtEpochMs - nowEpochMs) / 1000)
   );
+  const windDownContext = focusBlockWindDownContext(value);
 
   return {
     phase: 'focus-block',
@@ -161,6 +253,10 @@ export const projectWorkRhythmSnapshot = (
     momentum: value.momentum,
     isFinalFocus: value.isFinalFocus,
     focusBlockStreak: value.focusBlockStreak,
+    blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+      value.focusBlockStreak
+    ),
     schedulerReasonCodes: value.schedulerReasons.map((reason) => reason.code),
+    windDownActive: isWindDownActive(windDownContext, nowEpochMs),
   };
 };

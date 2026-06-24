@@ -83,6 +83,7 @@ describe('data control service', () => {
           workHours: [],
           blockedSites: ['delete.me'],
           hasOnboarded: true,
+          windDownSoundEnabled: false,
           quiz: {
             currentQuestionId: 'Q2',
             selectedChoices: [],

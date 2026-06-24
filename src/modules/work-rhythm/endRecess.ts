@@ -136,6 +136,12 @@ export const decideCompleteCountdown = (
         wasExtension: false,
         schedulerReasons: schedulerDecision.reasons.map((reason) => ({ ...reason })),
         focusBlockStreak: current.focusBlockStreak,
+        settlementSegment: 0,
+        originalGoalPermanentlyComplete: false,
+        isWorkSessionExtension: false,
+        extensionTrancheSeconds: 0,
+        extensionBaselineCumulativeSeconds: 0,
+        extensionBaselineCount: 0,
       },
     },
   };

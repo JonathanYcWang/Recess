@@ -23,6 +23,12 @@ const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFoc
   wasExtension: false,
   schedulerReasons: [{ code: 'base-cadence', focusDeltaMinutes: 25, recessDeltaMinutes: 5 }],
   focusBlockStreak: 0,
+  settlementSegment: 0,
+  originalGoalPermanentlyComplete: false,
+  isWorkSessionExtension: false,
+  extensionTrancheSeconds: 0,
+  extensionBaselineCumulativeSeconds: 0,
+  extensionBaselineCount: 0,
   ...overrides,
 });
 
@@ -41,7 +47,9 @@ describe('settleFocusBoundary', () => {
     expect(settled.value.nextValue).toMatchObject({
       phase: 'recess-prompt',
       deferredRecessCount: 1,
+      lastSettledSegment: 0,
       settledRemainingWorkSessionSeconds: 60 * 60 - 25 * 60,
+      focusBlockStreak: 1,
     });
     expect(settled.value.coinCredit.amount).toBe(25);
     expect(settled.value.coinCredit.reasonCode).toBe('standard-focus');
@@ -62,7 +70,12 @@ describe('settleFocusBoundary', () => {
     if (!settled.ok) {
       return;
     }
-    expect(settled.value.nextValue).toEqual({ phase: 'inactive' });
+    expect(settled.value.nextValue).toMatchObject({
+      phase: 'work-session-completed',
+      cumulativeExtensionSeconds: 0,
+      extensionCount: 0,
+      originalGoalPermanentlyComplete: true,
+    });
     expect(settled.value.workSessionCompletedFact?.kind).toBe('work-session-completed');
     expect(settled.value.workSessionCompletedFact?.payload.originalGoalPermanentlyComplete).toBe(
       true
@@ -82,6 +95,23 @@ describe('settleFocusBoundary', () => {
     if (settled.ok) {
       expect(settled.value.coinCredit.amount).toBe(5);
       expect(settled.value.coinCredit.reasonCode).toBe('extension-focus');
+      expect(settled.value.nextValue).toMatchObject({ focusBlockStreak: 0 });
+      expect(settled.value.streakCoinCredit).toBeUndefined();
     }
+  });
+
+  it('awards ten streak coins at the third completed focus block', () => {
+    const focus = baseFocus({ focusBlockStreak: 2, focusBlockIndex: 2, settlementSegment: 0 });
+    const settled = decideFocusBoundarySettlement(focus, focus.focusDeadlineAtEpochMs);
+    expect(settled.ok).toBe(true);
+    if (!settled.ok) {
+      return;
+    }
+    expect(settled.value.nextValue).toMatchObject({ focusBlockStreak: 3 });
+    expect(settled.value.streakCoinCredit).toMatchObject({
+      amount: 10,
+      reasonCode: 'focus-block-streak',
+      transactionId: 'coin-ws-1-focus-block-streak-3',
+    });
   });
 });
