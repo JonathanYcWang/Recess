@@ -9,6 +9,7 @@ import { createInProcessWorkstyleProfileClient } from '../client/inProcessWorkst
 import { createInProcessCoinClient } from '../client/inProcessCoinClient';
 import { createInProcessWorkRhythmClient } from '../client/inProcessWorkRhythmClient';
 import { createInProcessHallPassClient } from '../client/inProcessHallPassClient';
+import { createInProcessWorkStartReminderClient } from '../client/inProcessWorkStartReminderClient';
 import { createCommandOutcomeStore } from '../commandOutcomeStore';
 import type {
   BlockListClient,
@@ -37,12 +38,18 @@ import type {
   HallPassCommandHandler,
   HallPassCommandResponse,
 } from '../hallPassTypes';
+import type {
+  WorkStartReminderClient,
+  WorkStartReminderCommandHandler,
+  WorkStartReminderCommandResponse,
+} from '../workStartReminderTypes';
 import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 import { createWorkstyleProfileCommandHandler } from './workstyleProfileCommandHandler';
 import { createCoinCommandHandler } from './coinCommandHandler';
 import { createWorkRhythmCommandHandler } from './workRhythmCommandHandler';
 import { createHallPassCommandHandler } from './hallPassCommandHandler';
+import { createWorkStartReminderCommandHandler } from './workStartReminderCommandHandler';
 import { createSystemClock } from '../clock';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
 import { createSafariCompatibleAlarmAdapter } from '../alarms/chromiumAlarmAdapter';
@@ -58,6 +65,7 @@ import { createEffectOutcomeStore } from '../effects/effectOutcomeStore';
 import { createWorkHistoryEffectAdapter } from '../effects/workHistoryEffectAdapter';
 import { createChromiumWindDownNotificationAdapter } from '../windDown/windDownNotificationAdapter';
 import { createChromiumWindDownSoundAdapter } from '../windDown/windDownSoundAdapter';
+import { createSafariCompatibleReminderNotificationAdapter } from '../notifications/reminderNotificationAdapter';
 import type { AlarmAdapter } from '../alarms/types';
 import { createSessionNotificationTimeOutReportNotifier } from '../timeOut/timeOutReportNotifier';
 
@@ -68,12 +76,14 @@ export interface BackgroundCompositionRoot {
   coin: CoinClient;
   workRhythm: WorkRhythmClient;
   hallPass: HallPassClient;
+  workStartReminder: WorkStartReminderClient;
   settingsHandler: SettingsCommandHandler;
   blockListHandler: BlockListCommandHandler;
   workstyleProfileHandler: WorkstyleProfileCommandHandler;
   coinHandler: CoinCommandHandler;
   workRhythmHandler: WorkRhythmCommandHandler;
   hallPassHandler: HallPassCommandHandler;
+  workStartReminderHandler: WorkStartReminderCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -102,6 +112,9 @@ export const createBackgroundCompositionRoot = async (options: {
     options.adapter
   );
   const hallPassOutcomeStore = createCommandOutcomeStore<HallPassCommandResponse>(options.adapter);
+  const workStartReminderOutcomeStore = createCommandOutcomeStore<WorkStartReminderCommandResponse>(
+    options.adapter
+  );
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
@@ -179,6 +192,20 @@ export const createBackgroundCompositionRoot = async (options: {
     }
   );
 
+  const workStartReminderHandler = createWorkStartReminderCommandHandler(
+    persistence,
+    initialized.value.documents['work-start-reminder'],
+    {
+      clock,
+      alarms,
+      notifications: createSafariCompatibleReminderNotificationAdapter(),
+      adapter: options.adapter,
+      diagnostics,
+      outcomeStore: workStartReminderOutcomeStore,
+    }
+  );
+  await workStartReminderHandler.bootstrapPlanning();
+
   return {
     ok: true,
     value: {
@@ -188,12 +215,14 @@ export const createBackgroundCompositionRoot = async (options: {
       coin: createInProcessCoinClient(coinHandler),
       workRhythm: createInProcessWorkRhythmClient(workRhythmHandler),
       hallPass: createInProcessHallPassClient(hallPassHandler),
+      workStartReminder: createInProcessWorkStartReminderClient(workStartReminderHandler),
       settingsHandler,
       blockListHandler,
       workstyleProfileHandler,
       coinHandler,
       workRhythmHandler,
       hallPassHandler,
+      workStartReminderHandler,
     },
   };
 };

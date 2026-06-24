@@ -5,7 +5,6 @@ import App from './App';
 import './index.css';
 import { store } from './store';
 import { loadStateFromStorage, seedInitialStateInStorage } from './store/storageMiddleware';
-import { setWorkHours } from './store/actions/workHoursActions';
 import { setBlockedSites } from './store/actions/blockedSitesActions';
 import { setHasOnboarded } from './store/actions/routingActions';
 import { updateTimerState } from './store/actions/timerActions';
@@ -18,6 +17,8 @@ import { startWorkRhythmProjectionSubscription } from './store/workRhythmProject
 import { createAppWorkRhythmClient } from './store/workRhythmClient';
 import { createAppHallPassClient } from './store/hallPassClient';
 import { startHallPassProjectionSubscription } from './store/hallPassProjectionSubscription';
+import { createAppWorkStartReminderClient } from './store/workStartReminderClient';
+import { startWorkStartReminderProjectionSubscription } from './store/workStartReminderProjectionSubscription';
 import { startAccessContextPublisher } from './store/accessContextSubscription';
 
 // Initialize store from storage
@@ -26,9 +27,6 @@ seedInitialStateInStorage()
   .then((savedState) => {
     if (savedState.timer) {
       store.dispatch(updateTimerState(savedState.timer));
-    }
-    if (savedState.workHours) {
-      store.dispatch(setWorkHours(savedState.workHours));
     }
     if (savedState.blockedSites) {
       store.dispatch(setBlockedSites(savedState.blockedSites));
@@ -69,6 +67,14 @@ seedInitialStateInStorage()
     if (hallPassClient) {
       startHallPassProjectionSubscription({
         client: hallPassClient,
+        dispatch: store.dispatch,
+      });
+    }
+
+    const workStartReminderClient = createAppWorkStartReminderClient();
+    if (workStartReminderClient) {
+      startWorkStartReminderProjectionSubscription({
+        client: workStartReminderClient,
         dispatch: store.dispatch,
       });
     }

@@ -94,9 +94,6 @@ export const storageMiddleware: Middleware = (store) => (next) => (action) => {
   if (typedAction.type && typedAction.type.startsWith('timer/')) {
     storageAPI.set(STORAGE_KEYS.timer, state.timer);
   }
-  if (typedAction.type && typedAction.type.startsWith('workHours/')) {
-    storageAPI.set(STORAGE_KEYS.workHours, state.workHours.entries);
-  }
   if (typedAction.type && typedAction.type.startsWith('blockedSites/')) {
     storageAPI.set(STORAGE_KEYS.blockedSites, state.blockedSites);
   }

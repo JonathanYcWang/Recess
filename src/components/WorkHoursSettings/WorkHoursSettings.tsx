@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { Dialog } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Button from '../Button/Button';
 import WorkWindow from '../WorkWindow/WorkWindow';
 import EditTimeRangeOverlay from '../EditTimeRangeOverlay/EditTimeRangeOverlay';
-import { selectWorkHoursEntries } from '../../store/selectors';
-import type { AppDispatch, RootState } from '../../store';
-import {
-  addWorkHoursEntry,
-  updateWorkHoursEntry,
-  deleteWorkHoursEntry,
-  toggleWorkHoursEntry,
-} from '../../store/actions/workHoursActions';
+import { selectWorkStartReminderSchedules } from '../../store/selectors/workStartReminderProjectionSelectors';
+import type { RootState } from '../../store';
+import { createAppWorkStartReminderClient } from '../../store/workStartReminderClient';
 
 import styles from './WorkHoursSettings.module.css';
 
@@ -20,13 +15,15 @@ const DEFAULT_TIME = '09:00 AM';
 const DEFAULT_DAYS = [false, true, true, true, true, true, false];
 
 const WorkHoursSettings = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const entries = useSelector((state: RootState) => selectWorkHoursEntries(state));
+  const entries = useSelector((state: RootState) => selectWorkStartReminderSchedules(state));
+  const revision = useSelector((state: RootState) => state.workStartReminderProjection.revision);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTime, setEditTime] = useState('09:00 AM');
   const [editDays, setEditDays] = useState([false, true, true, true, true, true, false]);
+
+  const client = createAppWorkStartReminderClient();
 
   const openDialog = (id: string | null = null) => {
     setEditingId(id);
@@ -40,8 +37,12 @@ const WorkHoursSettings = () => {
     setDialogOpen(false);
     setEditingId(null);
   };
+
   const handleToggle = (id: string) => {
-    dispatch(toggleWorkHoursEntry(id));
+    if (!client) {
+      return;
+    }
+    void client.toggleScheduleEnabled(id, { expectedRevision: revision ?? undefined });
   };
 
   const formatDays = (selectedDays: boolean[]) => {
@@ -52,19 +53,27 @@ const WorkHoursSettings = () => {
   };
 
   const handleSave = (time: string, days: boolean[]) => {
+    if (!client) {
+      return;
+    }
     if (editingId) {
-      dispatch(updateWorkHoursEntry({ id: editingId, time, days }));
+      void client.updateSchedule(
+        editingId,
+        { time, days },
+        { expectedRevision: revision ?? undefined }
+      );
     } else {
-      dispatch(addWorkHoursEntry({ time, days }));
+      void client.addSchedule({ time, days }, { expectedRevision: revision ?? undefined });
     }
     closeDialog();
   };
 
   const handleDelete = () => {
-    if (editingId) {
-      dispatch(deleteWorkHoursEntry(editingId));
-      closeDialog();
+    if (!client || !editingId) {
+      return;
     }
+    void client.deleteSchedule(editingId, { expectedRevision: revision ?? undefined });
+    closeDialog();
   };
 
   return (

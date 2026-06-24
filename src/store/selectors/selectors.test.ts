@@ -10,12 +10,13 @@ import routingReducer from '../reducers/routingReducer';
 import settingsProjectionReducer from '../reducers/settingsProjectionReducer';
 import timerReducer from '../reducers/timerReducer';
 import workHoursReducer from '../reducers/workHoursReducer';
+import workStartReminderProjectionReducer from '../reducers/workStartReminderProjectionReducer';
 import type { RootState } from '../index';
 import { addBlockedSite } from '../actions/blockedSitesActions';
 import { selectOption } from '../actions/quizActions';
 import { completeOnboarding } from '../actions/routingActions';
 import { startFocusSession, transitionToRewardSelection } from '../actions/timerActions';
-import { setWorkHours } from '../actions/workHoursActions';
+import { setWorkStartReminderProjection } from '../actions/workStartReminderProjectionActions';
 import { setWorkstyleProfileProjection } from '../actions/workstyleProfileProjectionActions';
 import {
   selectAssignedPetId,
@@ -33,7 +34,7 @@ import {
   selectSessionState,
   selectShownRewardCombinations,
   selectTimerState,
-  selectWorkHoursEntries,
+  selectWorkStartReminderSchedules,
   selectWorkstyleProfileEnergy,
   selectWorkstyleProfilePreferredCadence,
   setInRewardSelection,
@@ -44,16 +45,20 @@ const createState = (): RootState => ({
     timerReducer(timerReducer(undefined, startFocusSession()), transitionToRewardSelection()),
     { type: 'test/noop' }
   ),
-  workHours: workHoursReducer(
+  workHours: workHoursReducer(undefined, { type: 'test/init' }),
+  workStartReminderProjection: workStartReminderProjectionReducer(
     undefined,
-    setWorkHours([
-      {
-        id: 'weekday',
-        time: '09:00',
-        days: [true, true, true, true, true, false, false],
-        enabled: true,
-      },
-    ])
+    setWorkStartReminderProjection({
+      revision: 1,
+      schedules: [
+        {
+          id: 'weekday',
+          time: '09:00',
+          days: [true, true, true, true, true, false, false],
+          enabled: true,
+        },
+      ],
+    })
   ),
   blockedSites: blockedSitesReducer(undefined, addBlockedSite('news.example')),
   routing: routingReducer(undefined, completeOnboarding()),
@@ -92,7 +97,9 @@ describe('Redux selectors', () => {
   it('selects work hours, blocked sites, routing, and quiz fields', () => {
     const state = createState();
 
-    expect(selectWorkHoursEntries(state)).toEqual(state.workHours.entries);
+    expect(selectWorkStartReminderSchedules(state)).toEqual(
+      state.workStartReminderProjection.schedules
+    );
     expect(selectBlockedSites(state)).toContain('news.example');
     expect(selectHasOnboarded(state)).toBe(true);
     expect(selectSelectedChoices(state)).toHaveLength(1);
