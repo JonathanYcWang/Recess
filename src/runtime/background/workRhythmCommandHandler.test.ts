@@ -5,6 +5,7 @@ import { createBackgroundCompositionRoot } from '../background/backgroundComposi
 import { createWorkRhythmCommandEnvelope } from '../client/inProcessWorkRhythmClient';
 import {
   DEFAULT_WORK_SESSION_GOAL_SECONDS,
+  endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
 } from '@/modules/work-rhythm';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
@@ -230,6 +231,109 @@ describe('workRhythmCommandHandler', () => {
     if (historyAfter.ok) {
       expect(historyAfter.value).toHaveLength(1);
     }
+  });
+
+  it('ends an active focus block early with partial settlement and idempotent effects', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    const started = await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: 60 * 60,
+        energy: 'steady',
+      })
+    );
+    if (!started.ok || started.snapshot.snapshot.phase !== 'focus-block') {
+      throw new Error('expected focus start');
+    }
+
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+    const workRhythmDoc = hydrated.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'focus-block') {
+      throw new Error('expected focus document');
+    }
+
+    const partialNow = workRhythmDoc.value.focusBlockStartedAtEpochMs + 10 * 60 * 1000;
+    const coinHandler = createCoinCommandHandler(persistence, hydrated.value.documents.coin);
+    const workHistory = createWorkHistoryService(createInMemoryWorkHistoryAdapter());
+    const effectExecutor = createEffectExecutor({
+      store: createEffectOutcomeStore(adapter),
+      adapters: [
+        createWorkHistoryEffectAdapter({
+          append: async (facts) => {
+            const result = await workHistory.append(facts);
+            return result.ok ? { ok: true } : { ok: false, error: 'append-failed' };
+          },
+        }),
+      ],
+    });
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(partialNow),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler,
+      effectExecutor,
+    });
+
+    const commandId = endWorkSessionEarlyCommandId(workRhythmDoc.value.sessionId);
+    const ended = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'end-work-session' }, { commandId })
+    );
+    expect(ended.ok).toBe(true);
+    if (ended.ok) {
+      expect(ended.snapshot.snapshot.phase).toBe('inactive');
+    }
+
+    const coin = await coinHandler.current();
+    const history = await workHistory.query();
+    expect(coin.ok).toBe(true);
+    if (coin.ok) {
+      expect(coin.value.value.transactions).toHaveLength(1);
+      expect(coin.value.value.transactions[0]?.amount).toBe(10);
+    }
+    expect(history.ok).toBe(true);
+    if (history.ok) {
+      expect(history.value).toHaveLength(2);
+      expect(history.value.map((fact) => fact.kind)).toEqual([
+        'focus-block-completed',
+        'work-session-completed',
+      ]);
+      expect(history.value[0]?.payload.completed).toBe(false);
+      expect(history.value[1]?.payload.originalGoalPermanentlyComplete).toBe(false);
+    }
+
+    const duplicate = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'end-work-session' }, { commandId })
+    );
+    expect(duplicate).toEqual(ended);
+    const historyAfter = await workHistory.query();
+    if (historyAfter.ok) {
+      expect(historyAfter.value).toHaveLength(2);
+    }
+  });
+
+  it('rejects end-work-session when inactive', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    const ended = await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope(
+        { kind: 'end-work-session' },
+        { commandId: 'end-work-session-ws-missing' }
+      )
+    );
+    expect(ended).toMatchObject({ ok: false, error: { kind: 'no-active-work-session' } });
   });
 });
 

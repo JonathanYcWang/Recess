@@ -11,6 +11,7 @@ import {
   isValidWorkSessionGoalSeconds,
   type WorkRhythmValue,
 } from './workRhythmDocument';
+import { decideEndWorkSessionEarly } from './endWorkSessionEarly';
 import { decideFocusBoundarySettlement } from './settleFocusBoundary';
 
 const includes = <T extends string>(values: readonly T[], candidate: string): candidate is T =>
@@ -18,14 +19,17 @@ const includes = <T extends string>(values: readonly T[], candidate: string): ca
 
 export type WorkRhythmCommand =
   | { kind: 'start-work-session'; goalSeconds: unknown; energy: unknown }
-  | { kind: 'settle-focus-boundary' };
+  | { kind: 'settle-focus-boundary' }
+  | { kind: 'end-work-session' };
 
 export type WorkRhythmDecisionError =
   | { kind: 'invalid-goal' }
   | { kind: 'invalid-energy' }
   | { kind: 'session-already-active' }
   | { kind: 'invalid-phase-for-settlement' }
-  | { kind: 'boundary-not-due' };
+  | { kind: 'boundary-not-due' }
+  | { kind: 'no-active-work-session' }
+  | { kind: 'original-goal-already-complete' };
 
 export interface WorkRhythmDecisionContext {
   nowEpochMs: number;
@@ -113,6 +117,14 @@ export const applyWorkRhythmCommand = (
       return { ok: false, error: settled.error };
     }
     return { ok: true, value: settled.value.nextValue };
+  }
+
+  if (command.kind === 'end-work-session') {
+    const ended = decideEndWorkSessionEarly(current, context.nowEpochMs);
+    if (!ended.ok) {
+      return { ok: false, error: ended.error };
+    }
+    return { ok: true, value: ended.value.nextValue };
   }
 
   return { ok: false, error: { kind: 'session-already-active' } };
