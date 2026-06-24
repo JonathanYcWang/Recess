@@ -11,7 +11,12 @@ import {
   type SettingsCommandEnvelope,
   type SettingsCommandError,
 } from '../protocol/settingsCommand';
-import type { SettingsCommandHandler, SettingsCommandResponse, SettingsRuntimeResult, SettingsSnapshot } from '../types';
+import type {
+  SettingsCommandHandler,
+  SettingsCommandResponse,
+  SettingsRuntimeResult,
+  SettingsSnapshot,
+} from '../types';
 
 const cloneSettingsValue = (value: SettingsValue): SettingsValue => ({
   themePreference: value.themePreference,
@@ -66,7 +71,9 @@ export const createSettingsCommandHandler = (
     });
   };
 
-  const executeFresh = async (envelope: SettingsCommandEnvelope): Promise<SettingsCommandResponse> => {
+  const executeFresh = async (
+    envelope: SettingsCommandEnvelope
+  ): Promise<SettingsCommandResponse> => {
     if (envelope.expectedRevision !== undefined && envelope.expectedRevision !== current.revision) {
       return toFailure({
         kind: 'stale-revision',

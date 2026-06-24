@@ -3,10 +3,7 @@ import type {
   ThemePreference,
   VersionedDocument,
 } from '@/modules/persisted-application-state';
-import type {
-  SettingsCommandEnvelope,
-  SettingsCommandError,
-} from './protocol/settingsCommand';
+import type { SettingsCommandEnvelope, SettingsCommandError } from './protocol/settingsCommand';
 import type { RuntimeCommandResponse } from './protocol/types';
 
 export type SettingsSnapshot = VersionedDocument<SettingsValue>;
