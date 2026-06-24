@@ -147,7 +147,7 @@ const createInProcessRecoveryFixture = async (): Promise<RecoveryFixture> => {
   const clientFromHandler = (handler: SettingsCommandHandler) =>
     createMessagingSettingsClient(createInProcessRuntimeTransport(handler));
 
-  let client = clientFromHandler(root.value.handler);
+  let client = clientFromHandler(root.value.settingsHandler);
 
   return {
     adapter,
@@ -157,7 +157,7 @@ const createInProcessRecoveryFixture = async (): Promise<RecoveryFixture> => {
       if (!root.ok) {
         throw new Error('expected runtime reconstruction to succeed');
       }
-      client = clientFromHandler(root.value.handler);
+      client = clientFromHandler(root.value.settingsHandler);
       return client;
     },
   };

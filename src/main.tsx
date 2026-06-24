@@ -12,6 +12,8 @@ import { updateTimerState } from './store/actions/timerActions';
 import { setQuizState } from './store/actions/quizActions';
 import { createAppSettingsClient } from './store/settingsClient';
 import { startSettingsProjectionSubscription } from './store/settingsProjectionSubscription';
+import { createAppBlockListClient } from './store/blockListClient';
+import { startBlockListProjectionSubscription } from './store/blockListProjectionSubscription';
 
 // Initialize store from storage
 seedInitialStateInStorage()
@@ -38,6 +40,14 @@ seedInitialStateInStorage()
     if (settingsClient) {
       startSettingsProjectionSubscription({
         client: settingsClient,
+        dispatch: store.dispatch,
+      });
+    }
+
+    const blockListClient = createAppBlockListClient();
+    if (blockListClient) {
+      startBlockListProjectionSubscription({
+        client: blockListClient,
         dispatch: store.dispatch,
       });
     }

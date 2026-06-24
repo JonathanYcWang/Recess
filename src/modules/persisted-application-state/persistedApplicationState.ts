@@ -15,6 +15,7 @@ import {
 import type {
   CommitError,
   CommitResult,
+  DocumentCodec,
   HydrationSnapshot,
   KeyValueStorageAdapter,
   PersistedApplicationState,
@@ -175,7 +176,7 @@ export const createPersistedApplicationState = (
   const loadDocumentWithRecovery = async <K extends PersistedDocumentName>(
     name: K
   ): Promise<VersionedDocument<PersistedDocuments[K]>> => {
-    const entry = documentRegistry[name];
+    const entry = documentRegistry[name] as DocumentRegistryEntry<PersistedDocuments[K]>;
     const loaded = await readDocument(adapter, entry);
     if (loaded.ok) {
       return loaded.value;
@@ -201,7 +202,7 @@ export const createPersistedApplicationState = (
         if (journal.ok && journal.value !== null) {
           const rolled = await rollForwardJournal(
             adapter,
-            documentRegistry[name].codec,
+            documentRegistry[name].codec as DocumentCodec<PersistedDocuments[typeof name]>,
             journalHooks
           );
           if (rolled.ok && rolled.value !== null) {
@@ -212,13 +213,18 @@ export const createPersistedApplicationState = (
             });
           }
         }
-        documents[name] = await loadDocumentWithRecovery(name);
+        (
+          documents as Record<
+            PersistedDocumentName,
+            VersionedDocument<PersistedDocuments[PersistedDocumentName]>
+          >
+        )[name] = await loadDocumentWithRecovery(name);
       }
       return { ok: true, value: { documents } };
     },
 
     async read(key) {
-      const entry = documentRegistry[key];
+      const entry = documentRegistry[key] as DocumentRegistryEntry<PersistedDocuments[typeof key]>;
       return readDocument(adapter, entry);
     },
 
@@ -226,7 +232,9 @@ export const createPersistedApplicationState = (
       return runSerialized(async () => {
         const result: CommitResult['documents'] = {};
         for (const mutation of mutations) {
-          const entry = documentRegistry[mutation.document];
+          const entry = documentRegistry[mutation.document] as DocumentRegistryEntry<
+            PersistedDocuments[typeof mutation.document]
+          >;
           const current = await readDocument(adapter, entry);
           if (!current.ok) {
             return { ok: false, error: { kind: 'codec', error: current.error } } as Result<
@@ -248,7 +256,12 @@ export const createPersistedApplicationState = (
           if (!committed.ok) {
             return committed as Result<CommitResult, CommitError>;
           }
-          result[mutation.document] = committed.value;
+          (
+            result as Record<
+              PersistedDocumentName,
+              VersionedDocument<PersistedDocuments[PersistedDocumentName]> | undefined
+            >
+          )[mutation.document] = committed.value;
         }
         notify(result);
         return { ok: true, value: { documents: result } };

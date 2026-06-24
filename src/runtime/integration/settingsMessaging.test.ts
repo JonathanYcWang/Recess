@@ -24,7 +24,7 @@ const createInProcessMessagingClient = async () => {
   if (!root.ok) {
     throw new Error('expected runtime initialization to succeed');
   }
-  return createMessagingSettingsClient(createInProcessRuntimeTransport(root.value.handler));
+  return createMessagingSettingsClient(createInProcessRuntimeTransport(root.value.settingsHandler));
 };
 
 describeSettingsClientContractTests('in-process transport', createInProcessMessagingClient);

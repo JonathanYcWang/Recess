@@ -38,10 +38,11 @@ export type CommitError =
   | { kind: 'codec'; error: CodecError }
   | { kind: 'serialization'; message: string };
 
-export type PersistedDocumentName = 'settings';
+export type PersistedDocumentName = 'settings' | 'block-list';
 
 export interface PersistedDocuments {
   settings: import('./settings/settingsDocument').SettingsValue;
+  'block-list': import('@/modules/block-list').BlockListValue;
 }
 
 export type PersistedMutation<K extends PersistedDocumentName = PersistedDocumentName> = {

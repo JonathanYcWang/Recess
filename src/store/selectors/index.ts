@@ -5,3 +5,4 @@ export * from './blockedSitesSelectors';
 export * from './routingSelectors';
 export * from './quizSelectors';
 export * from './settingsProjectionSelectors';
+export * from './blockListProjectionSelectors';
