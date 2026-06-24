@@ -15,15 +15,22 @@ import {
   declineRecessCommandId,
   endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
+  focusBlockWindDownContext,
   isFocusBoundaryDue,
   isTimeOutReportDue,
+  isWindDownDue,
+  isWindDownEligible,
   nextTimeOutBoundaryEpochMs,
   projectWorkRhythmSnapshot,
+  remainingPhaseSeconds,
   resumeFromTimeOutCommandId,
   startTimeOutCommandId,
   startWorkSessionExtensionCommandId,
+  windDownBoundaryEpochMs,
+  windDownCommandId,
   workRhythmFocusAlarmName,
   workRhythmTimeOutReportAlarmName,
+  workRhythmWindDownAlarmName,
   type WorkRhythmFocusBlock,
   type WorkRhythmTimeOut,
   type WorkRhythmValue,
@@ -37,6 +44,7 @@ import type { Clock } from '../clock';
 import type { AlarmAdapter } from '../alarms/types';
 import type { EffectExecutor } from '../effects/effectExecutor';
 import { runWorkHistoryAppendEffectTransition } from '../effects/workHistoryEffectTransition';
+import { runWindDownEffectTransition } from '../windDown/windDownEffectTransition';
 import {
   decodeWorkRhythmCommandEnvelope,
   type WorkRhythmCommandEnvelope,
@@ -122,6 +130,7 @@ export const createWorkRhythmCommandHandler = (
   const listeners = new Set<(snapshot: WorkRhythmPublishedSnapshot) => void>();
   let reconcileInFlight: Promise<WorkRhythmCommandResponse | null> | null = null;
   let timeOutReconcileInFlight: Promise<WorkRhythmCommandResponse | null> | null = null;
+  let windDownReconcileInFlight: Promise<WorkRhythmCommandResponse | null> | null = null;
 
   const hydrateLedgerFromStore = async (): Promise<void> => {
     if (!outcomeStore) {
@@ -167,6 +176,23 @@ export const createWorkRhythmCommandHandler = (
       name: workRhythmFocusAlarmName(focus.sessionId),
       whenEpochMs: focus.focusDeadlineAtEpochMs,
     });
+    await scheduleWindDownAlarm(focus);
+  };
+
+  const scheduleWindDownAlarm = async (focus: WorkRhythmFocusBlock): Promise<void> => {
+    const context = focusBlockWindDownContext(focus);
+    if (!isWindDownEligible(context.phaseDurationSeconds)) {
+      await clearWindDownAlarm(focus.sessionId);
+      return;
+    }
+    await alarms.schedule({
+      name: workRhythmWindDownAlarmName(focus.sessionId),
+      whenEpochMs: windDownBoundaryEpochMs(focus.focusDeadlineAtEpochMs),
+    });
+  };
+
+  const clearWindDownAlarm = async (sessionId: string): Promise<void> => {
+    await alarms.clear(workRhythmWindDownAlarmName(sessionId));
   };
 
   const clearFocusAlarm = async (sessionId: string): Promise<void> => {
@@ -186,6 +212,7 @@ export const createWorkRhythmCommandHandler = (
 
   const clearSessionAlarms = async (sessionId: string): Promise<void> => {
     await clearFocusAlarm(sessionId);
+    await clearWindDownAlarm(sessionId);
     await clearTimeOutAlarm(sessionId);
   };
 
@@ -300,6 +327,7 @@ export const createWorkRhythmCommandHandler = (
     }
 
     await clearFocusAlarm(focus.sessionId);
+    await clearWindDownAlarm(focus.sessionId);
     await runSettlementEffects({
       settlementCommandId: outcome.settlementCommandId,
       outcomeRevision: workRhythm.revision,
@@ -421,6 +449,7 @@ export const createWorkRhythmCommandHandler = (
 
     if (sessionId) {
       await clearFocusAlarm(sessionId);
+      await clearWindDownAlarm(sessionId);
     }
     await scheduleTimeOutReportAlarm(workRhythm.value);
 
@@ -845,6 +874,92 @@ export const createWorkRhythmCommandHandler = (
     }
   };
 
+  const readWindDownSoundEnabled = async (): Promise<boolean> => {
+    const settings = await persistence.read('settings');
+    if (!settings.ok) {
+      return false;
+    }
+    return settings.value.value.windDownSoundEnabled;
+  };
+
+  const runWindDownEffects = async (input: {
+    commandId: string;
+    context: import('@/modules/work-rhythm').WindDownPhaseContext;
+    outcomeRevision: number;
+  }): Promise<void> => {
+    if (!effectExecutor) {
+      return;
+    }
+    const soundEnabled = await readWindDownSoundEnabled();
+    await runWindDownEffectTransition({
+      executor: effectExecutor,
+      commandId: input.commandId,
+      payload: {
+        sessionId: input.context.sessionId,
+        phaseKind: input.context.phaseKind,
+        remainingSeconds: String(
+          remainingPhaseSeconds(input.context.phaseEndEpochMs, clock.nowEpochMs())
+        ),
+      },
+      soundEnabled,
+      outcomeRevision: input.outcomeRevision,
+    });
+  };
+
+  const reconcileWindDownSignals = async (): Promise<WorkRhythmCommandResponse | null> => {
+    if (windDownReconcileInFlight) {
+      return windDownReconcileInFlight;
+    }
+    windDownReconcileInFlight = (async () => {
+      if (currentDocument.value.phase !== 'focus-block') {
+        return null;
+      }
+      const focus = currentDocument.value;
+      const context = focusBlockWindDownContext(focus);
+      if (!isWindDownDue(context, clock.nowEpochMs())) {
+        return null;
+      }
+      const commandId = windDownCommandId(context.sessionId, context.phaseKind, context.segmentKey);
+      const cached = ledger.get(commandId);
+      if (cached) {
+        return cached;
+      }
+      if (outcomeStore) {
+        const stored = await outcomeStore.get('work-rhythm', commandId);
+        if (stored) {
+          ledger.set(commandId, stored);
+          return stored;
+        }
+      }
+
+      await runWindDownEffects({
+        commandId,
+        context,
+        outcomeRevision: currentDocument.revision,
+      });
+
+      const response = toSuccess(
+        toPublishedSnapshot(
+          {
+            schemaVersion: initialized.schemaVersion,
+            revision: currentDocument.revision,
+            value: currentDocument.value,
+          },
+          clock
+        )
+      );
+      ledger.set(commandId, response);
+      if (outcomeStore) {
+        await outcomeStore.set('work-rhythm', commandId, response);
+      }
+      publish();
+      return response;
+    })().finally(() => {
+      windDownReconcileInFlight = null;
+    });
+    return windDownReconcileInFlight;
+  };
+
   const reconcileTimeOutReports = async (): Promise<WorkRhythmCommandResponse | null> => {
     if (timeOutReconcileInFlight) {
       return timeOutReconcileInFlight;
@@ -904,6 +1019,7 @@ export const createWorkRhythmCommandHandler = (
     current(): WorkRhythmRuntimeResult {
       void reconcileDueBoundaries();
       void reconcileTimeOutReports();
+      void reconcileWindDownSignals();
       return {
         ok: true,
         value: toPublishedSnapshot(
@@ -925,6 +1041,8 @@ export const createWorkRhythmCommandHandler = (
     reconcileDueBoundaries,
 
     reconcileTimeOutReports,
+
+    reconcileWindDownSignals,
 
     async execute(envelopeInput: unknown): Promise<WorkRhythmCommandResponse> {
       const decoded = decodeWorkRhythmCommandEnvelope(envelopeInput);

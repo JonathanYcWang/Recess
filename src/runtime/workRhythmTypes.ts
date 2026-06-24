@@ -39,6 +39,7 @@ export interface WorkRhythmCommandHandler {
   subscribe(listener: (snapshot: WorkRhythmPublishedSnapshot) => void): () => void;
   reconcileDueBoundaries(): Promise<WorkRhythmCommandResponse | null>;
   reconcileTimeOutReports(): Promise<WorkRhythmCommandResponse | null>;
+  reconcileWindDownSignals(): Promise<WorkRhythmCommandResponse | null>;
 }
 
 export interface WorkRhythmClient {

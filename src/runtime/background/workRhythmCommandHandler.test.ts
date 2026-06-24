@@ -11,7 +11,11 @@ import {
   resumeFromTimeOutCommandId,
   startTimeOutCommandId,
   startWorkSessionExtensionCommandId,
+  windDownBoundaryEpochMs,
+  workRhythmWindDownAlarmName,
 } from '@/modules/work-rhythm';
+import { createInMemoryWindDownNotificationAdapter } from '../windDown/windDownNotificationAdapter';
+import { createInMemoryWindDownSoundAdapter } from '../windDown/windDownSoundAdapter';
 import { createNoOpTimeOutReportNotifier } from '../timeOut/timeOutReportNotifier';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
 import { createCoinCommandHandler } from './coinCommandHandler';
@@ -756,8 +760,9 @@ describe('workRhythmCommandHandler', () => {
         remainingWorkSessionSeconds: 30 * 60,
       });
       const scheduled = alarms.getScheduled();
-      expect(scheduled).toHaveLength(1);
-      expect(scheduled[0]?.whenEpochMs).toBe(
+      expect(scheduled).toHaveLength(2);
+      const focusAlarm = scheduled.find((alarm) => alarm.name.includes('work-rhythm-focus-'));
+      expect(focusAlarm?.whenEpochMs).toBe(
         5_000_000 + extended.snapshot.snapshot.remainingFocusSeconds * 1000
       );
     }
@@ -769,6 +774,118 @@ describe('workRhythmCommandHandler', () => {
       )
     );
     expect(duplicate).toEqual(extended);
+  });
+
+  it('reconciles wind-down once at the durable boundary and still settles focus on time', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    const started = await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+    if (!started.ok || started.snapshot.snapshot.phase !== 'focus-block') {
+      throw new Error('expected focus start');
+    }
+
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+    const workRhythmDoc = hydrated.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'focus-block') {
+      throw new Error('expected focus document');
+    }
+
+    const notificationAdapter = createInMemoryWindDownNotificationAdapter({ deliver: false });
+    const soundAdapter = createInMemoryWindDownSoundAdapter();
+    const effectExecutor = createEffectExecutor({
+      store: createEffectOutcomeStore(adapter),
+      adapters: [notificationAdapter, soundAdapter],
+    });
+    const coinHandler = createCoinCommandHandler(persistence, hydrated.value.documents.coin);
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+
+    const windDownAt = windDownBoundaryEpochMs(workRhythmDoc.value.focusDeadlineAtEpochMs);
+    let handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(windDownAt),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler,
+      effectExecutor,
+      timeOutReportNotifier: createNoOpTimeOutReportNotifier(),
+    });
+
+    const windDown = await handler.reconcileWindDownSignals();
+    expect(windDown?.ok).toBe(true);
+    const duplicateWindDown = await handler.reconcileWindDownSignals();
+    expect(duplicateWindDown).toEqual(windDown);
+
+    handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(workRhythmDoc.value.focusDeadlineAtEpochMs),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler,
+      effectExecutor,
+      timeOutReportNotifier: createNoOpTimeOutReportNotifier(),
+    });
+    const settlementId = focusBoundarySettlementCommandId(
+      workRhythmDoc.value.sessionId,
+      workRhythmDoc.value.focusBlockIndex,
+      workRhythmDoc.value.settlementSegment
+    );
+    const settled = await handler.execute(
+      createWorkRhythmCommandEnvelope(
+        { kind: 'settle-focus-boundary' },
+        { commandId: settlementId }
+      )
+    );
+    expect(settled.ok).toBe(true);
+    if (settled.ok) {
+      expect(settled.snapshot.snapshot.phase).toBe('recess-prompt');
+    }
+  });
+
+  it('schedules a wind-down alarm only for eligible focus blocks', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+
+    const alarms = createInMemoryAlarmAdapter();
+    const coinHandler = createCoinCommandHandler(persistence, hydrated.value.documents.coin);
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+    const handler = createWorkRhythmCommandHandler(
+      persistence,
+      hydrated.value.documents['work-rhythm'],
+      {
+        clock: createFixedClock(1_000_000),
+        alarms,
+        coinHandler,
+        createSessionId: () => 'ws-wind-down',
+      }
+    );
+
+    const started = await handler.execute(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+    expect(started.ok).toBe(true);
+
+    const scheduled = alarms.getScheduled();
+    expect(
+      scheduled.some((alarm) => alarm.name === workRhythmWindDownAlarmName('ws-wind-down'))
+    ).toBe(true);
   });
 });
 

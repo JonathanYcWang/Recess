@@ -1,6 +1,7 @@
 import type { EnergyLevel, MomentumLevel } from '@/modules/workstyle-profile';
 import type { SchedulerReasonCode } from '@/modules/scheduler';
 import { blocksUntilNextFocusBlockStreakMilestone } from './focusBlockStreak';
+import { focusBlockWindDownContext, isWindDownActive } from './windDown';
 import { remainingWorkSessionExtensionSeconds } from './workSessionExtension';
 import type { WorkRhythmValue } from './workRhythmDocument';
 
@@ -20,6 +21,7 @@ export type WorkRhythmFocusBlockSnapshot = {
   focusBlockStreak: number;
   blocksUntilNextStreakMilestone: number;
   schedulerReasonCodes: SchedulerReasonCode[];
+  windDownActive: boolean;
 };
 
 export type WorkRhythmRecessPromptSnapshot = {
@@ -156,6 +158,8 @@ export const projectWorkRhythmSnapshot = (
     value.settledRemainingWorkSessionSeconds - elapsedWorkSeconds
   );
 
+  const windDownContext = focusBlockWindDownContext(value);
+
   return {
     phase: 'focus-block',
     sessionId: value.sessionId,
@@ -170,5 +174,6 @@ export const projectWorkRhythmSnapshot = (
       value.focusBlockStreak
     ),
     schedulerReasonCodes: value.schedulerReasons.map((reason) => reason.code),
+    windDownActive: isWindDownActive(windDownContext, nowEpochMs),
   };
 };

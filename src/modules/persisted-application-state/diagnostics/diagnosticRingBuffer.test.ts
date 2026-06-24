@@ -62,6 +62,7 @@ describe('diagnostic ring buffer', () => {
           workHours: [],
           blockedSites: ['diag.test'],
           hasOnboarded: false,
+          windDownSoundEnabled: false,
           quiz: {
             currentQuestionId: 'Q1',
             selectedChoices: [],

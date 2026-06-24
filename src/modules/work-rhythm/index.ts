@@ -74,6 +74,19 @@ export {
 } from './timeOutReporting';
 export { projectWorkRhythmSnapshot, type WorkRhythmSnapshot } from './snapshot';
 export {
+  focusBlockWindDownContext,
+  isWindDownActive,
+  isWindDownDue,
+  isWindDownEligible,
+  remainingPhaseSeconds,
+  windDownBoundaryEpochMs,
+  windDownCommandId,
+  workRhythmWindDownAlarmName,
+  WIND_DOWN_LEAD_SECONDS,
+  type WindDownPhaseContext,
+  type WindDownPhaseKind,
+} from './windDown';
+export {
   cloneWorkRhythmValue,
   createDefaultWorkRhythmValue,
   DEFAULT_WORK_SESSION_GOAL_SECONDS,

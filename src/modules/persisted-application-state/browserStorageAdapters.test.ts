@@ -143,6 +143,7 @@ describe('browser adapter parity', () => {
           workHours: [],
           blockedSites: ['parity.test'],
           hasOnboarded: true,
+          windDownSoundEnabled: false,
           quiz: {
             currentQuestionId: 'Q1',
             selectedChoices: [],
@@ -188,6 +189,7 @@ describe('browser adapter parity', () => {
           workHours: [],
           blockedSites: ['parity.test'],
           hasOnboarded: true,
+          windDownSoundEnabled: false,
           quiz: {
             currentQuestionId: 'Q1',
             selectedChoices: [],
