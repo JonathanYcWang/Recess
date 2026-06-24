@@ -15,7 +15,8 @@ describe('background composition root', () => {
 
     expect(changed).toMatchObject({
       ok: true,
-      value: {
+      revision: 1,
+      snapshot: {
         schemaVersion: 1,
         revision: 1,
         value: { themePreference: 'dark' },
@@ -34,7 +35,7 @@ describe('background composition root', () => {
     if (!changed.ok) {
       throw new Error('expected Settings command to succeed');
     }
-    changed.value.value.blockedSites.push('caller-only.test');
+    changed.snapshot.value.blockedSites.push('caller-only.test');
 
     const current = await root.value.settings.current();
     expect(current.ok).toBe(true);

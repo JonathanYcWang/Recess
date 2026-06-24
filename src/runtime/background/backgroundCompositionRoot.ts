@@ -1,4 +1,5 @@
 import {
+  createDiagnosticRingBuffer,
   createPersistedApplicationState,
   type KeyValueStorageAdapter,
 } from '@/modules/persisted-application-state';
@@ -17,7 +18,8 @@ type BackgroundCompositionRootResult =
 export const createBackgroundCompositionRoot = async (options: {
   adapter: KeyValueStorageAdapter;
 }): Promise<BackgroundCompositionRootResult> => {
-  const persistence = createPersistedApplicationState({ adapter: options.adapter });
+  const diagnostics = createDiagnosticRingBuffer();
+  const persistence = createPersistedApplicationState({ adapter: options.adapter, diagnostics });
   const initialized = await persistence.initialize();
   if (!initialized.ok) {
     return { ok: false, error: { kind: 'persistence-unavailable' } };
@@ -25,7 +27,8 @@ export const createBackgroundCompositionRoot = async (options: {
 
   const settingsHandler = createSettingsCommandHandler(
     persistence,
-    initialized.value.documents.settings
+    initialized.value.documents.settings,
+    { diagnostics }
   );
 
   return {
