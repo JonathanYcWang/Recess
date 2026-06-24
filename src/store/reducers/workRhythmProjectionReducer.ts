@@ -26,13 +26,13 @@ const workRhythmProjectionReducer = createReducer(initialState, (builder) => {
       const snapshot = action.payload.snapshot;
       if (snapshot.phase === 'inactive') {
         state.snapshot = { phase: 'inactive' };
-      } else if (snapshot.phase === 'recess-prompt') {
-        state.snapshot = { ...snapshot };
-      } else {
+      } else if (snapshot.phase === 'focus-block' || snapshot.phase === 'recess') {
         state.snapshot = {
           ...snapshot,
           schedulerReasonCodes: [...snapshot.schedulerReasonCodes],
         };
+      } else {
+        state.snapshot = { ...snapshot };
       }
       state.connectionState = 'connected';
     })
