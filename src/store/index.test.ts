@@ -7,6 +7,7 @@ describe('Redux store', () => {
       'blockedSites',
       'quiz',
       'routing',
+      'settingsProjection',
       'timer',
       'workHours',
     ]);

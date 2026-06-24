@@ -10,6 +10,8 @@ import { setBlockedSites } from './store/actions/blockedSitesActions';
 import { setHasOnboarded } from './store/actions/routingActions';
 import { updateTimerState } from './store/actions/timerActions';
 import { setQuizState } from './store/actions/quizActions';
+import { createAppSettingsClient } from './store/settingsClient';
+import { startSettingsProjectionSubscription } from './store/settingsProjectionSubscription';
 
 // Initialize store from storage
 seedInitialStateInStorage()
@@ -30,6 +32,14 @@ seedInitialStateInStorage()
 
     if (savedState.quiz) {
       store.dispatch(setQuizState(savedState.quiz));
+    }
+
+    const settingsClient = createAppSettingsClient();
+    if (settingsClient) {
+      startSettingsProjectionSubscription({
+        client: settingsClient,
+        dispatch: store.dispatch,
+      });
     }
   });
 

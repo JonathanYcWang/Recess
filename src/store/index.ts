@@ -4,6 +4,7 @@ import workHoursReducer from './reducers/workHoursReducer';
 import blockedSitesReducer from './reducers/blockedSitesReducer';
 import routingReducer from './reducers/routingReducer';
 import quizReducer from './reducers/quizReducer';
+import settingsProjectionReducer from './reducers/settingsProjectionReducer';
 import { storageMiddleware } from './storageMiddleware';
 
 export const store = configureStore({
@@ -13,6 +14,7 @@ export const store = configureStore({
     blockedSites: blockedSitesReducer,
     routing: routingReducer,
     quiz: quizReducer,
+    settingsProjection: settingsProjectionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
