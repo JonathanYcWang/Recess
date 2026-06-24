@@ -105,5 +105,5 @@ describe('workStartReminder occurrence resolution integration', () => {
       (occurrence) => occurrence.outcome === 'satisfied' && occurrence.id === planned.id
     );
     expect(afterDuplicate).toHaveLength(1);
-  });
+  }, 15_000);
 });

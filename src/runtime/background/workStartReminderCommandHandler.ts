@@ -300,31 +300,26 @@ export const createWorkStartReminderCommandHandler = (
     return toSuccess(publishSnapshot());
   };
 
-  const bootstrap = async (): Promise<void> => {
-    if (!options.adapter) {
-      await commitValue(currentDocument.value);
-      return;
+  const bootstrapPlanning = async (): Promise<void> => {
+    if (options.adapter) {
+      const migrated = await migrateLegacyWorkHours(
+        options.adapter,
+        {
+          schemaVersion: initialized.schemaVersion,
+          revision: currentDocument.revision,
+          value: currentDocument.value,
+        },
+        createScheduleId
+      );
+      if (migrated.value.schedules.length !== currentDocument.value.schedules.length) {
+        currentDocument = {
+          revision: migrated.revision,
+          value: cloneWorkStartReminderValue(migrated.value),
+        };
+      }
     }
-    const migrated = await migrateLegacyWorkHours(
-      options.adapter,
-      {
-        schemaVersion: initialized.schemaVersion,
-        revision: currentDocument.revision,
-        value: currentDocument.value,
-      },
-      createScheduleId
-    );
-    if (migrated.value.schedules.length === currentDocument.value.schedules.length) {
-      await commitValue(currentDocument.value);
-      return;
-    }
-    currentDocument = {
-      revision: migrated.revision,
-      value: cloneWorkStartReminderValue(migrated.value),
-    };
     await commitValue(currentDocument.value);
   };
-  void bootstrap();
 
   const recordUnexpected = (
     commandId: string,
@@ -430,7 +425,7 @@ export const createWorkStartReminderCommandHandler = (
     },
 
     async bootstrapPlanning() {
-      await commitValue(currentDocument.value);
+      await bootstrapPlanning();
     },
 
     async reconcileDueReminder(alarmName: string) {
