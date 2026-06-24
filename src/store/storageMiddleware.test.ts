@@ -5,7 +5,6 @@ import { setBlockedSites } from './actions/blockedSitesActions';
 import { setQuizState } from './actions/quizActions';
 import { setHasOnboarded } from './actions/routingActions';
 import { setTotalTimer } from './actions/timerActions';
-import { setWorkHours } from './actions/workHoursActions';
 import blockedSitesReducer from './reducers/blockedSitesReducer';
 import quizReducer from './reducers/quizReducer';
 import routingReducer from './reducers/routingReducer';
@@ -63,7 +62,6 @@ describe('storageMiddleware', () => {
     const store = createTestStore();
 
     store.dispatch(setTotalTimer(3600));
-    store.dispatch(setWorkHours([{ id: 'weekday', time: '09:00', days: [], enabled: true }]));
     store.dispatch(setBlockedSites(['news.example']));
     store.dispatch(setHasOnboarded(true));
     store.dispatch(
@@ -78,10 +76,6 @@ describe('storageMiddleware', () => {
     expect(localStorage.setItem).toHaveBeenCalledWith(
       'timerState',
       JSON.stringify(store.getState().timer)
-    );
-    expect(localStorage.setItem).toHaveBeenCalledWith(
-      'workHours',
-      JSON.stringify(store.getState().workHours.entries)
     );
     expect(localStorage.setItem).toHaveBeenCalledWith(
       'blockedSites',

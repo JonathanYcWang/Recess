@@ -25,6 +25,7 @@ import blockListProjectionReducer from '../store/reducers/blockListProjectionRed
 import workstyleProfileProjectionReducer from '../store/reducers/workstyleProfileProjectionReducer';
 import workRhythmProjectionReducer from '../store/reducers/workRhythmProjectionReducer';
 import hallPassProjectionReducer from '../store/reducers/hallPassProjectionReducer';
+import workStartReminderProjectionReducer from '../store/reducers/workStartReminderProjectionReducer';
 import quizReducer from '../store/reducers/quizReducer';
 import routingReducer from '../store/reducers/routingReducer';
 import settingsProjectionReducer from '../store/reducers/settingsProjectionReducer';
@@ -99,6 +100,7 @@ const createState = (overrides: Partial<RootState['timer']> = {}): RootState => 
   workstyleProfileProjection: workstyleProfileProjectionReducer(undefined, { type: 'test/init' }),
   workRhythmProjection: workRhythmProjectionReducer(undefined, { type: 'test/init' }),
   hallPassProjection: hallPassProjectionReducer(undefined, { type: 'test/init' }),
+  workStartReminderProjection: workStartReminderProjectionReducer(undefined, { type: 'test/init' }),
 });
 
 const dispatchedTypes = () => hookMocks.dispatch.mock.calls.map(([action]) => action.type);
