@@ -11,6 +11,7 @@ import {
   createDefaultWorkRhythmValue,
   type WorkRhythmFocusBlock,
   type WorkRhythmRecessPrompt,
+  type WorkRhythmTimeOut,
   type WorkRhythmValue,
 } from './workRhythmDocument';
 
@@ -184,6 +185,77 @@ const parseRecessPrompt = (value: unknown): Result<WorkRhythmRecessPrompt, strin
   };
 };
 
+const parseTimeOut = (value: unknown): Result<WorkRhythmTimeOut, string> => {
+  if (!isRecord(value) || value.phase !== 'time-out') {
+    return { ok: false, error: 'time out value must have phase time-out' };
+  }
+  if (typeof value.sessionId !== 'string' || value.sessionId.length === 0) {
+    return { ok: false, error: 'sessionId must be a non-empty string' };
+  }
+  const numberFields = [
+    'originalGoalSeconds',
+    'settledRemainingWorkSessionSeconds',
+    'settledRemainingFocusSeconds',
+    'focusBlockIndex',
+    'focusDurationSeconds',
+    'focusBlockStreak',
+    'timeOutStartedAtEpochMs',
+    'lastReportedFiveMinuteBoundary',
+  ] as const;
+  for (const field of numberFields) {
+    if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
+      return { ok: false, error: `${field} must be a finite number` };
+    }
+  }
+  if (typeof value.energy !== 'string' || !includes(ENERGY_LEVELS, value.energy)) {
+    return { ok: false, error: 'energy must be low, steady, or high' };
+  }
+  if (typeof value.momentum !== 'string' || !includes(MOMENTUM_LEVELS, value.momentum)) {
+    return { ok: false, error: 'momentum must be a valid momentum level' };
+  }
+  if (typeof value.isFinalFocus !== 'boolean') {
+    return { ok: false, error: 'isFinalFocus must be a boolean' };
+  }
+  if (typeof value.wasExtension !== 'boolean') {
+    return { ok: false, error: 'wasExtension must be a boolean' };
+  }
+  if (typeof value.momentumLoweredDuringTimeOut !== 'boolean') {
+    return { ok: false, error: 'momentumLoweredDuringTimeOut must be a boolean' };
+  }
+  if (!Array.isArray(value.schedulerReasons)) {
+    return { ok: false, error: 'schedulerReasons must be an array' };
+  }
+  const schedulerReasons: WorkRhythmTimeOut['schedulerReasons'] = [];
+  for (const reason of value.schedulerReasons) {
+    const parsed = parseSchedulerReason(reason);
+    if (!parsed.ok) {
+      return { ok: false, error: parsed.error };
+    }
+    schedulerReasons.push(parsed.value);
+  }
+  return {
+    ok: true,
+    value: {
+      phase: 'time-out',
+      sessionId: value.sessionId as string,
+      originalGoalSeconds: value.originalGoalSeconds as number,
+      settledRemainingWorkSessionSeconds: value.settledRemainingWorkSessionSeconds as number,
+      settledRemainingFocusSeconds: value.settledRemainingFocusSeconds as number,
+      energy: value.energy as WorkRhythmTimeOut['energy'],
+      momentum: value.momentum as WorkRhythmTimeOut['momentum'],
+      focusBlockIndex: value.focusBlockIndex as number,
+      focusDurationSeconds: value.focusDurationSeconds as number,
+      isFinalFocus: value.isFinalFocus as boolean,
+      wasExtension: value.wasExtension as boolean,
+      schedulerReasons,
+      focusBlockStreak: value.focusBlockStreak as number,
+      timeOutStartedAtEpochMs: value.timeOutStartedAtEpochMs as number,
+      lastReportedFiveMinuteBoundary: value.lastReportedFiveMinuteBoundary as number,
+      momentumLoweredDuringTimeOut: value.momentumLoweredDuringTimeOut as boolean,
+    },
+  };
+};
+
 const parseWorkRhythmValue = (value: unknown): Result<WorkRhythmValue, string> => {
   if (!isRecord(value) || typeof value.phase !== 'string') {
     return { ok: false, error: 'work rhythm value must include phase' };
@@ -197,7 +269,10 @@ const parseWorkRhythmValue = (value: unknown): Result<WorkRhythmValue, string> =
   if (value.phase === 'recess-prompt') {
     return parseRecessPrompt(value);
   }
-  return { ok: false, error: 'phase must be inactive, focus-block, or recess-prompt' };
+  if (value.phase === 'time-out') {
+    return parseTimeOut(value);
+  }
+  return { ok: false, error: 'phase must be inactive, focus-block, recess-prompt, or time-out' };
 };
 
 export const workRhythmCodec: DocumentCodec<WorkRhythmValue> = {

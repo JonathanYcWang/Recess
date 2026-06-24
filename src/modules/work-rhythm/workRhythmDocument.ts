@@ -6,7 +6,7 @@ export const WORK_SESSION_GOAL_MAX_SECONDS = 8 * 60 * 60;
 export const WORK_SESSION_GOAL_STEP_SECONDS = 15 * 60;
 export const DEFAULT_WORK_SESSION_GOAL_SECONDS = 3 * 60 * 60;
 
-export type WorkRhythmPhase = 'inactive' | 'focus-block' | 'recess-prompt';
+export type WorkRhythmPhase = 'inactive' | 'focus-block' | 'recess-prompt' | 'time-out';
 
 export interface WorkRhythmInactive {
   phase: 'inactive';
@@ -45,7 +45,30 @@ export interface WorkRhythmRecessPrompt {
   originalGoalPermanentlyComplete: boolean;
 }
 
-export type WorkRhythmValue = WorkRhythmInactive | WorkRhythmFocusBlock | WorkRhythmRecessPrompt;
+export interface WorkRhythmTimeOut {
+  phase: 'time-out';
+  sessionId: string;
+  originalGoalSeconds: number;
+  settledRemainingWorkSessionSeconds: number;
+  settledRemainingFocusSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockIndex: number;
+  focusDurationSeconds: number;
+  isFinalFocus: boolean;
+  wasExtension: boolean;
+  schedulerReasons: SchedulerReason[];
+  focusBlockStreak: number;
+  timeOutStartedAtEpochMs: number;
+  lastReportedFiveMinuteBoundary: number;
+  momentumLoweredDuringTimeOut: boolean;
+}
+
+export type WorkRhythmValue =
+  | WorkRhythmInactive
+  | WorkRhythmFocusBlock
+  | WorkRhythmRecessPrompt
+  | WorkRhythmTimeOut;
 
 export const createDefaultWorkRhythmValue = (): WorkRhythmInactive => ({
   phase: 'inactive',
@@ -63,6 +86,12 @@ export const cloneWorkRhythmValue = (value: WorkRhythmValue): WorkRhythmValue =>
   }
   if (value.phase === 'recess-prompt') {
     return { ...value };
+  }
+  if (value.phase === 'time-out') {
+    return {
+      ...value,
+      schedulerReasons: value.schedulerReasons.map((reason) => ({ ...reason })),
+    };
   }
   return {
     phase: 'focus-block',

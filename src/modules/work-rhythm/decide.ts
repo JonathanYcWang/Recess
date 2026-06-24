@@ -12,7 +12,9 @@ import {
   type WorkRhythmValue,
 } from './workRhythmDocument';
 import { decideEndWorkSessionEarly } from './endWorkSessionEarly';
+import { decideResumeFromTimeOut } from './resumeFromTimeOut';
 import { decideFocusBoundarySettlement } from './settleFocusBoundary';
+import { decideStartTimeOut } from './startTimeOut';
 
 const includes = <T extends string>(values: readonly T[], candidate: string): candidate is T =>
   (values as readonly string[]).includes(candidate);
@@ -20,7 +22,9 @@ const includes = <T extends string>(values: readonly T[], candidate: string): ca
 export type WorkRhythmCommand =
   | { kind: 'start-work-session'; goalSeconds: unknown; energy: unknown }
   | { kind: 'settle-focus-boundary' }
-  | { kind: 'end-work-session' };
+  | { kind: 'end-work-session' }
+  | { kind: 'start-time-out' }
+  | { kind: 'resume-from-time-out' };
 
 export type WorkRhythmDecisionError =
   | { kind: 'invalid-goal' }
@@ -29,7 +33,10 @@ export type WorkRhythmDecisionError =
   | { kind: 'invalid-phase-for-settlement' }
   | { kind: 'boundary-not-due' }
   | { kind: 'no-active-work-session' }
-  | { kind: 'original-goal-already-complete' };
+  | { kind: 'original-goal-already-complete' }
+  | { kind: 'invalid-phase-for-time-out' }
+  | { kind: 'already-in-time-out' }
+  | { kind: 'not-in-time-out' };
 
 export interface WorkRhythmDecisionContext {
   nowEpochMs: number;
@@ -125,6 +132,22 @@ export const applyWorkRhythmCommand = (
       return { ok: false, error: ended.error };
     }
     return { ok: true, value: ended.value.nextValue };
+  }
+
+  if (command.kind === 'start-time-out') {
+    const started = decideStartTimeOut(current, context.nowEpochMs);
+    if (!started.ok) {
+      return { ok: false, error: started.error };
+    }
+    return { ok: true, value: started.value.nextValue };
+  }
+
+  if (command.kind === 'resume-from-time-out') {
+    const resumed = decideResumeFromTimeOut(current, context.nowEpochMs);
+    if (!resumed.ok) {
+      return { ok: false, error: resumed.error };
+    }
+    return { ok: true, value: resumed.value.nextValue };
   }
 
   return { ok: false, error: { kind: 'session-already-active' } };

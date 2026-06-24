@@ -26,7 +26,7 @@ const workRhythmProjectionReducer = createReducer(initialState, (builder) => {
       const snapshot = action.payload.snapshot;
       if (snapshot.phase === 'inactive') {
         state.snapshot = { phase: 'inactive' };
-      } else if (snapshot.phase === 'recess-prompt') {
+      } else if (snapshot.phase === 'recess-prompt' || snapshot.phase === 'time-out') {
         state.snapshot = { ...snapshot };
       } else {
         state.snapshot = {

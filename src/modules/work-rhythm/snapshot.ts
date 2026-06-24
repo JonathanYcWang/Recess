@@ -31,10 +31,24 @@ export type WorkRhythmRecessPromptSnapshot = {
   originalGoalPermanentlyComplete: boolean;
 };
 
+export type WorkRhythmTimeOutSnapshot = {
+  phase: 'time-out';
+  sessionId: string;
+  originalGoalSeconds: number;
+  remainingWorkSessionSeconds: number;
+  remainingFocusSeconds: number;
+  elapsedTimeOutSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  isFinalFocus: boolean;
+};
+
 export type WorkRhythmSnapshot =
   | WorkRhythmInactiveSnapshot
   | WorkRhythmFocusBlockSnapshot
-  | WorkRhythmRecessPromptSnapshot;
+  | WorkRhythmRecessPromptSnapshot
+  | WorkRhythmTimeOutSnapshot;
 
 export const projectWorkRhythmSnapshot = (
   value: WorkRhythmValue,
@@ -63,6 +77,25 @@ export const projectWorkRhythmSnapshot = (
       focusBlockStreak: value.focusBlockStreak,
       deferredRecessCount: value.deferredRecessCount,
       originalGoalPermanentlyComplete: value.originalGoalPermanentlyComplete,
+    };
+  }
+
+  if (value.phase === 'time-out') {
+    const elapsedTimeOutSeconds = Math.max(
+      0,
+      Math.floor((nowEpochMs - value.timeOutStartedAtEpochMs) / 1000)
+    );
+    return {
+      phase: 'time-out',
+      sessionId: value.sessionId,
+      originalGoalSeconds: value.originalGoalSeconds,
+      remainingWorkSessionSeconds: value.settledRemainingWorkSessionSeconds,
+      remainingFocusSeconds: value.settledRemainingFocusSeconds,
+      elapsedTimeOutSeconds,
+      energy: value.energy,
+      momentum: value.momentum,
+      focusBlockStreak: value.focusBlockStreak,
+      isFinalFocus: value.isFinalFocus,
     };
   }
 

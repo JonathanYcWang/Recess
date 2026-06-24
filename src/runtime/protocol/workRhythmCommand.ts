@@ -5,7 +5,9 @@ import type { WorkRhythmDecisionError } from '@/modules/work-rhythm';
 export type WorkRhythmCommand =
   | { kind: 'start-work-session'; goalSeconds: unknown; energy: unknown }
   | { kind: 'settle-focus-boundary' }
-  | { kind: 'end-work-session' };
+  | { kind: 'end-work-session' }
+  | { kind: 'start-time-out' }
+  | { kind: 'resume-from-time-out' };
 
 export type WorkRhythmCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -38,6 +40,12 @@ const parseCommand = (command: unknown): WorkRhythmCommand | null => {
   }
   if (command.kind === 'end-work-session') {
     return { kind: 'end-work-session' };
+  }
+  if (command.kind === 'start-time-out') {
+    return { kind: 'start-time-out' };
+  }
+  if (command.kind === 'resume-from-time-out') {
+    return { kind: 'resume-from-time-out' };
   }
   return null;
 };

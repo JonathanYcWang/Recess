@@ -11,7 +11,11 @@ import {
   workSessionCompletedFactId,
 } from './settleFocusBoundary';
 import { createWorkSessionCompletedFact } from './workSessionCompleted';
-import type { WorkRhythmFocusBlock, WorkRhythmValue } from './workRhythmDocument';
+import type {
+  WorkRhythmFocusBlock,
+  WorkRhythmTimeOut,
+  WorkRhythmValue,
+} from './workRhythmDocument';
 
 export type EndWorkSessionEarlyError =
   | { kind: 'no-active-work-session' }
@@ -69,6 +73,72 @@ export const decideEndWorkSessionEarly = (
         }),
       },
     };
+  }
+
+  if (current.phase === 'time-out') {
+    const timeOut = current as WorkRhythmTimeOut;
+    const actualFocusSeconds = Math.max(
+      0,
+      timeOut.focusDurationSeconds - timeOut.settledRemainingFocusSeconds
+    );
+    const completedMinutes = actualFocusSeconds / 60;
+    const coinAmount = timeOut.wasExtension
+      ? coinsForExtensionFocusMinutes(completedMinutes)
+      : coinsForStandardFocusMinutes(completedMinutes);
+    const reasonCode: 'standard-focus' | 'extension-focus' = timeOut.wasExtension
+      ? 'extension-focus'
+      : 'standard-focus';
+    const actualWorkedSeconds =
+      timeOut.originalGoalSeconds - timeOut.settledRemainingWorkSessionSeconds;
+
+    const focusBlockFact = createFocusBlockCompletedFact({
+      factId: focusBlockCompletedFactId(timeOut.sessionId, timeOut.focusBlockIndex),
+      recordedAt: nowEpochMs,
+      workSessionId: timeOut.sessionId,
+      focusBlockIndex: timeOut.focusBlockIndex,
+      plannedFocusMinutes: Math.floor(timeOut.focusDurationSeconds / 60),
+      actualFocusSeconds,
+      completedAt: nowEpochMs,
+      energyAtStart: timeOut.energy,
+      wasExtension: timeOut.wasExtension,
+      completed: false,
+    });
+
+    const outcome: EndWorkSessionEarlyOutcome = {
+      nextValue: { phase: 'inactive' },
+      commandId: endWorkSessionEarlyCommandId(timeOut.sessionId),
+      focusBlockFact,
+      workSessionCompletedFact: createWorkSessionCompletedFact({
+        factId: workSessionCompletedFactId(timeOut.sessionId),
+        recordedAt: nowEpochMs,
+        workSessionId: timeOut.sessionId,
+        originalGoalSeconds: timeOut.originalGoalSeconds,
+        actualWorkedSeconds,
+        completedAt: nowEpochMs,
+        originalGoalPermanentlyComplete: false,
+      }),
+    };
+
+    if (coinAmount > 0) {
+      outcome.coinCredit = {
+        transactionId: endWorkSessionEarlyCoinTransactionId(
+          timeOut.sessionId,
+          timeOut.focusBlockIndex
+        ),
+        amount: coinAmount,
+        reasonCode,
+        recordedAt: nowEpochMs,
+        context: {
+          workSessionId: timeOut.sessionId,
+          focusBlockIndex: timeOut.focusBlockIndex,
+          actualFocusSeconds,
+          wasExtension: timeOut.wasExtension,
+          endedEarly: true,
+        },
+      };
+    }
+
+    return { ok: true, value: outcome };
   }
 
   const focus = current as WorkRhythmFocusBlock;

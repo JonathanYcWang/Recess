@@ -45,6 +45,7 @@ import { createEffectExecutor } from '../effects/effectExecutor';
 import { createEffectOutcomeStore } from '../effects/effectOutcomeStore';
 import { createWorkHistoryEffectAdapter } from '../effects/workHistoryEffectAdapter';
 import type { AlarmAdapter } from '../alarms/types';
+import { createSessionNotificationTimeOutReportNotifier } from '../timeOut/timeOutReportNotifier';
 
 export interface BackgroundCompositionRoot {
   settings: SettingsClient;
@@ -129,9 +130,11 @@ export const createBackgroundCompositionRoot = async (options: {
       effectExecutor,
       diagnostics,
       outcomeStore: workRhythmOutcomeStore,
+      timeOutReportNotifier: createSessionNotificationTimeOutReportNotifier(),
     }
   );
   await workRhythmHandler.reconcileDueBoundaries();
+  await workRhythmHandler.reconcileTimeOutReports();
 
   return {
     ok: true,

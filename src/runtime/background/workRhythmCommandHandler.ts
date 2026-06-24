@@ -3,16 +3,25 @@ import type {
   VersionedDocument,
 } from '@/modules/persisted-application-state';
 import {
+  advanceTimeOutBoundaries,
   applyWorkRhythmCommand,
   cloneWorkRhythmValue,
   decideEndWorkSessionEarly,
   decideFocusBoundarySettlement,
+  decideResumeFromTimeOut,
+  decideStartTimeOut,
   endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
   isFocusBoundaryDue,
+  isTimeOutReportDue,
+  nextTimeOutBoundaryEpochMs,
   projectWorkRhythmSnapshot,
+  resumeFromTimeOutCommandId,
+  startTimeOutCommandId,
   workRhythmFocusAlarmName,
+  workRhythmTimeOutReportAlarmName,
   type WorkRhythmFocusBlock,
+  type WorkRhythmTimeOut,
   type WorkRhythmValue,
 } from '@/modules/work-rhythm';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
@@ -29,6 +38,10 @@ import {
   type WorkRhythmCommandError,
 } from '../protocol/workRhythmCommand';
 import type { CoinCommandHandler } from '../coinTypes';
+import {
+  createNoOpTimeOutReportNotifier,
+  type TimeOutReportNotifier,
+} from '../timeOut/timeOutReportNotifier';
 import type {
   WorkRhythmCommandHandler,
   WorkRhythmCommandResponse,
@@ -43,7 +56,7 @@ const clonePublishedSnapshot = (
   snapshot:
     snapshot.snapshot.phase === 'inactive'
       ? { phase: 'inactive' }
-      : snapshot.snapshot.phase === 'recess-prompt'
+      : snapshot.snapshot.phase === 'recess-prompt' || snapshot.snapshot.phase === 'time-out'
         ? { ...snapshot.snapshot }
         : {
             ...snapshot.snapshot,
@@ -81,6 +94,7 @@ export const createWorkRhythmCommandHandler = (
     createSessionId?: () => string;
     diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkRhythmCommandResponse>;
+    timeOutReportNotifier?: TimeOutReportNotifier;
   }
 ): WorkRhythmCommandHandler => {
   let currentDocument = {
@@ -94,11 +108,13 @@ export const createWorkRhythmCommandHandler = (
   const alarms = options.alarms;
   const coinHandler = options.coinHandler;
   const effectExecutor = options.effectExecutor;
+  const timeOutReportNotifier = options.timeOutReportNotifier ?? createNoOpTimeOutReportNotifier();
   const createSessionId =
     options.createSessionId ??
     (() => `ws-${clock.nowEpochMs()}-${Math.random().toString(36).slice(2, 10)}`);
   const listeners = new Set<(snapshot: WorkRhythmPublishedSnapshot) => void>();
   let reconcileInFlight: Promise<WorkRhythmCommandResponse | null> | null = null;
+  let timeOutReconcileInFlight: Promise<WorkRhythmCommandResponse | null> | null = null;
 
   const hydrateLedgerFromStore = async (): Promise<void> => {
     if (!outcomeStore) {
@@ -148,6 +164,22 @@ export const createWorkRhythmCommandHandler = (
 
   const clearFocusAlarm = async (sessionId: string): Promise<void> => {
     await alarms.clear(workRhythmFocusAlarmName(sessionId));
+  };
+
+  const scheduleTimeOutReportAlarm = async (timeOut: WorkRhythmTimeOut): Promise<void> => {
+    await alarms.schedule({
+      name: workRhythmTimeOutReportAlarmName(timeOut.sessionId),
+      whenEpochMs: nextTimeOutBoundaryEpochMs(timeOut),
+    });
+  };
+
+  const clearTimeOutAlarm = async (sessionId: string): Promise<void> => {
+    await alarms.clear(workRhythmTimeOutReportAlarmName(sessionId));
+  };
+
+  const clearSessionAlarms = async (sessionId: string): Promise<void> => {
+    await clearFocusAlarm(sessionId);
+    await clearTimeOutAlarm(sessionId);
   };
 
   const runSettlementEffects = async (input: {
@@ -297,7 +329,7 @@ export const createWorkRhythmCommandHandler = (
     }
 
     if (sessionId) {
-      await clearFocusAlarm(sessionId);
+      await clearSessionAlarms(sessionId);
     }
 
     await runSettlementEffects({
@@ -307,6 +339,114 @@ export const createWorkRhythmCommandHandler = (
       workSessionCompletedFact: outcome.workSessionCompletedFact,
       coinCredit: outcome.coinCredit,
     });
+
+    currentDocument = {
+      revision: workRhythm.revision,
+      value: cloneWorkRhythmValue(workRhythm.value),
+    };
+    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    publish();
+    return toSuccess(snapshot);
+  };
+
+  const commitStartTimeOut = async (commandId: string): Promise<WorkRhythmCommandResponse> => {
+    const started = decideStartTimeOut(currentDocument.value, clock.nowEpochMs());
+    if (!started.ok) {
+      return toFailure(started.error);
+    }
+    const outcome = started.value;
+    if (commandId !== outcome.commandId) {
+      return toFailure({
+        kind: 'malformed-command',
+        message: 'start-time-out command id mismatch',
+      });
+    }
+
+    const sessionId =
+      currentDocument.value.phase === 'focus-block' ? currentDocument.value.sessionId : null;
+
+    const committed = await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: currentDocument.revision,
+        value: outcome.nextValue,
+      },
+    ]);
+    if (!committed.ok) {
+      if (committed.error.kind === 'conflict') {
+        return toFailure({
+          kind: 'stale-revision',
+          expectedRevision: currentDocument.revision,
+          actualRevision: committed.error.actualRevision,
+        });
+      }
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const workRhythm = committed.value.documents['work-rhythm'];
+    if (!workRhythm || workRhythm.value.phase !== 'time-out') {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    if (sessionId) {
+      await clearFocusAlarm(sessionId);
+    }
+    await scheduleTimeOutReportAlarm(workRhythm.value);
+
+    currentDocument = {
+      revision: workRhythm.revision,
+      value: cloneWorkRhythmValue(workRhythm.value),
+    };
+    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    publish();
+    return toSuccess(snapshot);
+  };
+
+  const commitResumeFromTimeOut = async (commandId: string): Promise<WorkRhythmCommandResponse> => {
+    await reconcileTimeOutReports();
+
+    const resumed = decideResumeFromTimeOut(currentDocument.value, clock.nowEpochMs());
+    if (!resumed.ok) {
+      return toFailure(resumed.error);
+    }
+    const outcome = resumed.value;
+    if (commandId !== outcome.commandId) {
+      return toFailure({
+        kind: 'malformed-command',
+        message: 'resume-from-time-out command id mismatch',
+      });
+    }
+
+    const sessionId =
+      currentDocument.value.phase === 'time-out' ? currentDocument.value.sessionId : null;
+
+    const committed = await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: currentDocument.revision,
+        value: outcome.nextValue,
+      },
+    ]);
+    if (!committed.ok) {
+      if (committed.error.kind === 'conflict') {
+        return toFailure({
+          kind: 'stale-revision',
+          expectedRevision: currentDocument.revision,
+          actualRevision: committed.error.actualRevision,
+        });
+      }
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const workRhythm = committed.value.documents['work-rhythm'];
+    if (!workRhythm || workRhythm.value.phase !== 'focus-block') {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    if (sessionId) {
+      await clearTimeOutAlarm(sessionId);
+    }
+    await scheduleFocusAlarm(workRhythm.value);
 
     currentDocument = {
       revision: workRhythm.revision,
@@ -409,6 +549,37 @@ export const createWorkRhythmCommandHandler = (
       return commitEndWorkSessionEarly(envelope.commandId);
     }
 
+    if (envelope.command.kind === 'start-time-out') {
+      if (currentDocument.value.phase !== 'focus-block') {
+        if (currentDocument.value.phase === 'time-out') {
+          return toFailure({ kind: 'already-in-time-out' });
+        }
+        return toFailure({ kind: 'invalid-phase-for-time-out' });
+      }
+      const expectedCommandId = startTimeOutCommandId(currentDocument.value.sessionId);
+      if (envelope.commandId !== expectedCommandId) {
+        return toFailure({
+          kind: 'malformed-command',
+          message: 'start-time-out command id must match active session',
+        });
+      }
+      return commitStartTimeOut(envelope.commandId);
+    }
+
+    if (envelope.command.kind === 'resume-from-time-out') {
+      if (currentDocument.value.phase !== 'time-out') {
+        return toFailure({ kind: 'not-in-time-out' });
+      }
+      const expectedCommandId = resumeFromTimeOutCommandId(currentDocument.value.sessionId);
+      if (envelope.commandId !== expectedCommandId) {
+        return toFailure({
+          kind: 'malformed-command',
+          message: 'resume-from-time-out command id must match active session',
+        });
+      }
+      return commitResumeFromTimeOut(envelope.commandId);
+    }
+
     return toFailure({ kind: 'malformed-command', message: 'unsupported command' });
   };
 
@@ -448,9 +619,104 @@ export const createWorkRhythmCommandHandler = (
     return reconcileInFlight;
   };
 
+  const runTimeOutReportEffects = async (input: {
+    sessionId: string;
+    events: import('@/modules/work-rhythm').TimeOutBoundaryEvent[];
+    outcomeRevision: number;
+  }): Promise<void> => {
+    for (const event of input.events) {
+      const cached = ledger.get(event.commandId);
+      if (cached) {
+        continue;
+      }
+      if (outcomeStore) {
+        const stored = await outcomeStore.get('work-rhythm', event.commandId);
+        if (stored) {
+          ledger.set(event.commandId, stored);
+          continue;
+        }
+      }
+      await timeOutReportNotifier.notify({
+        sessionId: input.sessionId,
+        boundaryIndex: event.boundaryIndex,
+        elapsedMinutes: event.elapsedMinutes,
+      });
+      const response = toSuccess(
+        toPublishedSnapshot(
+          {
+            schemaVersion: initialized.schemaVersion,
+            revision: input.outcomeRevision,
+            value: currentDocument.value,
+          },
+          clock
+        )
+      );
+      ledger.set(event.commandId, response);
+      if (outcomeStore) {
+        await outcomeStore.set('work-rhythm', event.commandId, response);
+      }
+    }
+  };
+
+  const reconcileTimeOutReports = async (): Promise<WorkRhythmCommandResponse | null> => {
+    if (timeOutReconcileInFlight) {
+      return timeOutReconcileInFlight;
+    }
+    timeOutReconcileInFlight = (async () => {
+      if (currentDocument.value.phase !== 'time-out') {
+        return null;
+      }
+      const timeOut = currentDocument.value;
+      if (!isTimeOutReportDue(timeOut, clock.nowEpochMs())) {
+        return null;
+      }
+
+      const advanced = advanceTimeOutBoundaries(timeOut, clock.nowEpochMs());
+      if (advanced.events.length === 0) {
+        return null;
+      }
+
+      const committed = await persistence.commit([
+        {
+          document: 'work-rhythm',
+          expectedRevision: currentDocument.revision,
+          value: advanced.nextValue,
+        },
+      ]);
+      if (!committed.ok) {
+        return null;
+      }
+
+      const workRhythm = committed.value.documents['work-rhythm'];
+      if (!workRhythm || workRhythm.value.phase !== 'time-out') {
+        return null;
+      }
+
+      currentDocument = {
+        revision: workRhythm.revision,
+        value: cloneWorkRhythmValue(workRhythm.value),
+      };
+
+      await runTimeOutReportEffects({
+        sessionId: workRhythm.value.sessionId,
+        events: advanced.events,
+        outcomeRevision: workRhythm.revision,
+      });
+      await scheduleTimeOutReportAlarm(workRhythm.value);
+
+      const snapshot = toPublishedSnapshot(workRhythm, clock);
+      publish();
+      return toSuccess(snapshot);
+    })().finally(() => {
+      timeOutReconcileInFlight = null;
+    });
+    return timeOutReconcileInFlight;
+  };
+
   return {
     current(): WorkRhythmRuntimeResult {
       void reconcileDueBoundaries();
+      void reconcileTimeOutReports();
       return {
         ok: true,
         value: toPublishedSnapshot(
@@ -470,6 +736,8 @@ export const createWorkRhythmCommandHandler = (
     },
 
     reconcileDueBoundaries,
+
+    reconcileTimeOutReports,
 
     async execute(envelopeInput: unknown): Promise<WorkRhythmCommandResponse> {
       const decoded = decodeWorkRhythmCommandEnvelope(envelopeInput);

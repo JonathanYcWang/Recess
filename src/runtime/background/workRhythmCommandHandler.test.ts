@@ -7,7 +7,10 @@ import {
   DEFAULT_WORK_SESSION_GOAL_SECONDS,
   endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
+  resumeFromTimeOutCommandId,
+  startTimeOutCommandId,
 } from '@/modules/work-rhythm';
+import { createNoOpTimeOutReportNotifier } from '../timeOut/timeOutReportNotifier';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
 import { createCoinCommandHandler } from './coinCommandHandler';
 import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
@@ -334,6 +337,175 @@ describe('workRhythmCommandHandler', () => {
       )
     );
     expect(ended).toMatchObject({ ok: false, error: { kind: 'no-active-work-session' } });
+  });
+
+  it('starts and resumes time out without consuming settled remaining values', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    const started = await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: 60 * 60,
+        energy: 'steady',
+      })
+    );
+    if (!started.ok || started.snapshot.snapshot.phase !== 'focus-block') {
+      throw new Error('expected focus start');
+    }
+
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+    const workRhythmDoc = hydrated.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'focus-block') {
+      throw new Error('expected focus document');
+    }
+
+    const partialNow = workRhythmDoc.value.focusBlockStartedAtEpochMs + 10 * 60 * 1000;
+    const reports: Array<{ elapsedMinutes: number }> = [];
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(partialNow),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
+      timeOutReportNotifier: {
+        notify: async (payload) => {
+          reports.push({ elapsedMinutes: payload.elapsedMinutes });
+        },
+      },
+    });
+
+    const startCommandId = startTimeOutCommandId(workRhythmDoc.value.sessionId);
+    const timedOut = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'start-time-out' }, { commandId: startCommandId })
+    );
+    expect(timedOut.ok).toBe(true);
+    if (timedOut.ok) {
+      expect(timedOut.snapshot.snapshot.phase).toBe('time-out');
+      if (timedOut.snapshot.snapshot.phase === 'time-out') {
+        expect(timedOut.snapshot.snapshot.remainingFocusSeconds).toBe(15 * 60);
+        expect(timedOut.snapshot.snapshot.remainingWorkSessionSeconds).toBe(50 * 60);
+      }
+    }
+
+    const duplicateStart = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'start-time-out' }, { commandId: startCommandId })
+    );
+    expect(duplicateStart).toEqual(timedOut);
+
+    const rehydrated = await persistence.initialize();
+    if (!rehydrated.ok) {
+      throw new Error('expected rehydrate');
+    }
+    const timeOutDoc = rehydrated.value.documents['work-rhythm'];
+
+    const resumeAt = partialNow + 2 * 60 * 1000;
+    const resumedHandler = createWorkRhythmCommandHandler(persistence, timeOutDoc, {
+      clock: createFixedClock(resumeAt),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
+      timeOutReportNotifier: createNoOpTimeOutReportNotifier(),
+    });
+    const resumeCommandId = resumeFromTimeOutCommandId(workRhythmDoc.value.sessionId);
+    const resumed = await resumedHandler.execute(
+      createWorkRhythmCommandEnvelope(
+        { kind: 'resume-from-time-out' },
+        { commandId: resumeCommandId }
+      )
+    );
+    expect(resumed.ok).toBe(true);
+    if (resumed.ok && resumed.snapshot.snapshot.phase === 'focus-block') {
+      expect(resumed.snapshot.snapshot.remainingFocusSeconds).toBe(15 * 60);
+      expect(resumed.snapshot.snapshot.remainingWorkSessionSeconds).toBe(50 * 60);
+    }
+  });
+
+  it('reconciles five- and ten-minute time out reports with momentum lowering', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    const started = await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: 60 * 60,
+        energy: 'high',
+      })
+    );
+    if (!started.ok || started.snapshot.snapshot.phase !== 'focus-block') {
+      throw new Error('expected focus start');
+    }
+
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+    let workRhythmDoc = hydrated.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'focus-block') {
+      throw new Error('expected focus document');
+    }
+
+    const timeOutStart = workRhythmDoc.value.focusBlockStartedAtEpochMs + 60_000;
+    const reports: number[] = [];
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+    let handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(timeOutStart),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
+      timeOutReportNotifier: {
+        notify: async (payload) => {
+          reports.push(payload.elapsedMinutes);
+        },
+      },
+    });
+
+    const startCommandId = startTimeOutCommandId(workRhythmDoc.value.sessionId);
+    const timedOut = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'start-time-out' }, { commandId: startCommandId })
+    );
+    if (!timedOut.ok) {
+      throw new Error('expected time out');
+    }
+
+    const rehydrated = await persistence.initialize();
+    if (!rehydrated.ok) {
+      throw new Error('expected rehydrate');
+    }
+    workRhythmDoc = rehydrated.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'time-out') {
+      throw new Error('expected time out document');
+    }
+
+    const atTenMinutes = workRhythmDoc.value.timeOutStartedAtEpochMs + 10 * 60 * 1000;
+    handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(atTenMinutes),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
+      timeOutReportNotifier: {
+        notify: async (payload) => {
+          reports.push(payload.elapsedMinutes);
+        },
+      },
+    });
+
+    await handler.reconcileTimeOutReports();
+    expect(reports).toEqual([5, 10]);
+    const current = handler.current();
+    if (current.ok && current.value.snapshot.phase === 'time-out') {
+      expect(current.value.snapshot.momentum).toBe('low');
+    }
+
+    await handler.reconcileTimeOutReports();
+    expect(reports).toEqual([5, 10]);
   });
 });
 
