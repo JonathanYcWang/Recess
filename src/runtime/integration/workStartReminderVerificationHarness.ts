@@ -10,7 +10,7 @@ import type { WorkStartReminderValue } from '@/modules/work-start-reminder';
 import type { WorkSessionStreakValue } from '@/modules/work-session-streak';
 import type { CoinLedgerValue } from '@/modules/coin';
 import { OCCURRENCE_ELIGIBILITY_WINDOW_MS } from '@/modules/work-start-reminder';
-import { createFixedClock } from '@/runtime/clock';
+import type { Clock } from '@/runtime/clock';
 import { createInMemoryAlarmAdapter } from '@/runtime/alarms/inMemoryAlarmAdapter';
 import { createCoinCommandHandler } from '@/runtime/background/coinCommandHandler';
 import { createWorkRhythmCommandHandler } from '@/runtime/background/workRhythmCommandHandler';
@@ -50,6 +50,7 @@ export interface WorkStartReminderVerificationHarness {
     delivered: { occurrenceId: string; scheduleId: string }[];
   };
   setNow(epochMs: number): Promise<void>;
+  advanceClock(epochMs: number): void;
   recreate(): Promise<void>;
   readState(): Promise<WorkStartReminderVerificationState>;
   startWorkSession(options?: {
@@ -64,6 +65,9 @@ export const createWorkStartReminderVerificationHarness = async (options?: {
   legacyWorkHoursJson?: string;
 }): Promise<WorkStartReminderVerificationHarness> => {
   let nowEpochMs = options?.nowEpochMs ?? 1_000_000;
+  const verificationClock: Clock = {
+    nowEpochMs: () => nowEpochMs,
+  };
   const adapter = createInMemoryKeyValueAdapter();
   if (options?.legacyWorkHoursJson) {
     await adapter.set('workHours', options.legacyWorkHoursJson);
@@ -124,7 +128,7 @@ export const createWorkStartReminderVerificationHarness = async (options?: {
       persistence,
       documents['work-start-reminder'],
       {
-        clock: createFixedClock(nowEpochMs),
+        clock: verificationClock,
         alarms,
         notifications,
         coinHandler,
@@ -134,7 +138,7 @@ export const createWorkStartReminderVerificationHarness = async (options?: {
     );
     await reminderHandler.bootstrapPlanning();
     workRhythmHandler = createWorkRhythmCommandHandler(persistence, documents['work-rhythm'], {
-      clock: createFixedClock(nowEpochMs),
+      clock: verificationClock,
       alarms,
       coinHandler,
       effectExecutor,
@@ -169,6 +173,9 @@ export const createWorkStartReminderVerificationHarness = async (options?: {
       nowEpochMs = epochMs;
       await buildHandlers();
       reminderClient = createInProcessWorkStartReminderClient(reminderHandler);
+    },
+    advanceClock(epochMs: number) {
+      nowEpochMs = epochMs;
     },
     recreate: async () => {
       await buildHandlers();
@@ -211,3 +218,11 @@ export const findPlannedOccurrence = (reminder: WorkStartReminderValue) => {
 
 export const occurrenceDeadlineEpochMs = (scheduledEpochMs: number): number =>
   scheduledEpochMs + OCCURRENCE_ELIGIBILITY_WINDOW_MS;
+
+export const reconcileReminderAlarmAt = async (
+  harness: Pick<WorkStartReminderVerificationHarness, 'advanceClock' | 'reminderHandler'>,
+  planned: { alarmName: string; scheduledEpochMs: number }
+) => {
+  harness.advanceClock(planned.scheduledEpochMs);
+  return harness.reminderHandler.reconcileDueReminder(planned.alarmName);
+};
