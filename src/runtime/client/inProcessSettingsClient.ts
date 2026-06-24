@@ -18,4 +18,5 @@ export const createInProcessSettingsClient = (handler: SettingsCommandHandler): 
         preference,
       },
     }),
+  subscribe: (listener) => handler.subscribe(listener),
 });

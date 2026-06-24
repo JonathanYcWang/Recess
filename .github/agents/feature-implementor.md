@@ -20,6 +20,8 @@ The Feature Implementor should not re-plan the task from scratch. If the approve
 - Preserve TypeScript strictness.
 - Avoid unrelated refactors.
 - Run relevant checks when feasible.
+- Run `npm run verify` and confirm it passes before reporting work ready for a pull request.
+- After the pull request is opened, stop. The next issue belongs in a new session with a cleared context window.
 - Report changed files, checks run, and unresolved issues.
 
 ## Output

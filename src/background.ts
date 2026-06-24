@@ -1,4 +1,5 @@
 import { seedInitialStateInStorage } from './store/storageMiddleware';
+import './backgroundSettingsRuntime';
 
 // --- Work Hours Reminder Scheduling ---
 const WORK_REMINDER_ALARM_PREFIX = 'work-reminder-';

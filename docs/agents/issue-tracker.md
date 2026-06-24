@@ -17,6 +17,17 @@ Use a short branch name derived from the issue, for example `upgrade-typescript-
 
 Each issue gets its own branch off the latest `main`. Open one pull request per issue.
 
+## Opening pull requests
+
+Before opening a pull request:
+
+1. Run `npm run verify` locally and confirm it passes.
+2. Do not open the pull request while verify is failing; fix failures or report blockers first.
+
+See `docs/toolchain.md` for what verify runs.
+
+After opening the pull request, stop work in the current agent session. The next issue starts in a new session with a cleared context window. Do not continue implementation for another issue in the same conversation.
+
 ## Conventions
 
 - Create issues with `gh issue create`.

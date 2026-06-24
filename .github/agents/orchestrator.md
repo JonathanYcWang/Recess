@@ -50,8 +50,10 @@ The Orchestrator MUST NOT directly implement code or create detailed technical i
 7. Ask the user for approval before high-risk changes.
 8. Pass the approved plan to the Feature Implementor.
 9. Pass the diff, original request, findings, and plan to the Reviewer.
-10. When acceptance criteria are met in a pull request, post a completion comment on the GitHub issue that records exactly what was done. Close the issue only after that pull request is merged.
-11. Report the outcome to the user.
+10. Run `npm run verify` and confirm it passes before opening a pull request. See `docs/agents/issue-tracker.md`.
+11. After opening the pull request, end the session. The next issue starts in a new session with a cleared context window.
+12. When acceptance criteria are met in a pull request, post a completion comment on the GitHub issue that records exactly what was done. Close the issue only after that pull request is merged.
+13. Report the outcome to the user.
 
 ## Handoff Guidance
 

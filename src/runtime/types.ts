@@ -4,6 +4,7 @@ import type {
   VersionedDocument,
 } from '@/modules/persisted-application-state';
 import type { SettingsCommandEnvelope, SettingsCommandError } from './protocol/settingsCommand';
+import type { SettingsRuntimeTransportError } from './messaging/messages';
 import type { RuntimeCommandResponse } from './protocol/types';
 
 export type SettingsSnapshot = VersionedDocument<SettingsValue>;
@@ -13,6 +14,17 @@ export type SettingsCommandResponse = RuntimeCommandResponse<
   SettingsCommandError
 >;
 
+export type SettingsClientError = SettingsCommandError | SettingsRuntimeTransportError;
+
+export type SettingsClientCommandResult = RuntimeCommandResponse<
+  SettingsSnapshot,
+  SettingsClientError
+>;
+
+export type SettingsClientCurrentResult =
+  | SettingsRuntimeResult
+  | { ok: false; error: SettingsRuntimeTransportError };
+
 export type SettingsRuntimeError = SettingsCommandError;
 
 export type SettingsRuntimeResult =
@@ -21,14 +33,16 @@ export type SettingsRuntimeResult =
 
 export interface SettingsCommandHandler {
   current(): SettingsRuntimeResult;
-  execute(envelope: SettingsCommandEnvelope): Promise<SettingsCommandResponse>;
+  execute(envelope: unknown): Promise<SettingsCommandResponse>;
+  subscribe(listener: (snapshot: SettingsSnapshot) => void): () => void;
 }
 
 export interface SettingsClient {
-  current(): Promise<SettingsRuntimeResult>;
-  command(envelope: SettingsCommandEnvelope): Promise<SettingsCommandResponse>;
+  current(): Promise<SettingsClientCurrentResult>;
+  command(envelope: SettingsCommandEnvelope): Promise<SettingsClientCommandResult>;
   setThemePreference(
     preference: ThemePreference,
     options?: { commandId?: string; expectedRevision?: number }
-  ): Promise<SettingsCommandResponse>;
+  ): Promise<SettingsClientCommandResult>;
+  subscribe(listener: (snapshot: SettingsSnapshot) => void): () => void;
 }
