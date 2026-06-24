@@ -92,7 +92,11 @@ export const decideEndWorkSessionEarly = (
       timeOut.originalGoalSeconds - timeOut.settledRemainingWorkSessionSeconds;
 
     const focusBlockFact = createFocusBlockCompletedFact({
-      factId: focusBlockCompletedFactId(timeOut.sessionId, timeOut.focusBlockIndex),
+      factId: focusBlockCompletedFactId(
+        timeOut.sessionId,
+        timeOut.focusBlockIndex,
+        timeOut.settlementSegment
+      ),
       recordedAt: nowEpochMs,
       workSessionId: timeOut.sessionId,
       focusBlockIndex: timeOut.focusBlockIndex,
@@ -157,7 +161,11 @@ export const decideEndWorkSessionEarly = (
   const actualWorkedSeconds = focus.originalGoalSeconds - settledRemainingWorkSessionSeconds;
 
   const focusBlockFact = createFocusBlockCompletedFact({
-    factId: focusBlockCompletedFactId(focus.sessionId, focus.focusBlockIndex),
+    factId: focusBlockCompletedFactId(
+      focus.sessionId,
+      focus.focusBlockIndex,
+      focus.settlementSegment
+    ),
     recordedAt: nowEpochMs,
     workSessionId: focus.sessionId,
     focusBlockIndex: focus.focusBlockIndex,

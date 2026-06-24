@@ -45,16 +45,21 @@ export interface FocusBoundarySettlement {
 
 export const focusBoundarySettlementCommandId = (
   sessionId: string,
-  focusBlockIndex: number
-): string => `settle-${sessionId}-block-${focusBlockIndex}`;
+  focusBlockIndex: number,
+  settlementSegment: number
+): string => `settle-${sessionId}-block-${focusBlockIndex}-seg-${settlementSegment}`;
 
 export const focusBoundaryCoinTransactionId = (
   sessionId: string,
-  focusBlockIndex: number
-): string => `coin-${sessionId}-block-${focusBlockIndex}-focus`;
+  focusBlockIndex: number,
+  settlementSegment: number
+): string => `coin-${sessionId}-block-${focusBlockIndex}-seg-${settlementSegment}-focus`;
 
-export const focusBlockCompletedFactId = (sessionId: string, focusBlockIndex: number): string =>
-  `focus-block-${sessionId}-${focusBlockIndex}`;
+export const focusBlockCompletedFactId = (
+  sessionId: string,
+  focusBlockIndex: number,
+  settlementSegment: number
+): string => `focus-block-${sessionId}-${focusBlockIndex}-seg-${settlementSegment}`;
 
 export const workSessionCompletedFactId = (sessionId: string): string =>
   `work-session-completed-${sessionId}`;
@@ -88,6 +93,7 @@ const toRecessPrompt = (
   momentum: focus.momentum,
   focusBlockStreak,
   completedFocusBlockIndex: focus.focusBlockIndex,
+  lastSettledSegment: focus.settlementSegment,
   deferredRecessCount: 1,
   originalGoalPermanentlyComplete: false,
 });
@@ -117,10 +123,15 @@ export const decideFocusBoundarySettlement = (
   );
   const settlementCommandId = focusBoundarySettlementCommandId(
     focus.sessionId,
-    focus.focusBlockIndex
+    focus.focusBlockIndex,
+    focus.settlementSegment
   );
   const focusBlockFact = createFocusBlockCompletedFact({
-    factId: focusBlockCompletedFactId(focus.sessionId, focus.focusBlockIndex),
+    factId: focusBlockCompletedFactId(
+      focus.sessionId,
+      focus.focusBlockIndex,
+      focus.settlementSegment
+    ),
     recordedAt: nowEpochMs,
     workSessionId: focus.sessionId,
     focusBlockIndex: focus.focusBlockIndex,
@@ -132,7 +143,11 @@ export const decideFocusBoundarySettlement = (
   });
 
   const coinCredit = {
-    transactionId: focusBoundaryCoinTransactionId(focus.sessionId, focus.focusBlockIndex),
+    transactionId: focusBoundaryCoinTransactionId(
+      focus.sessionId,
+      focus.focusBlockIndex,
+      focus.settlementSegment
+    ),
     amount: coinAmount,
     reasonCode,
     recordedAt: nowEpochMs,

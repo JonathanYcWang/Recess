@@ -20,6 +20,7 @@ const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFoc
   wasExtension: false,
   schedulerReasons: [{ code: 'base-cadence', focusDeltaMinutes: 25, recessDeltaMinutes: 5 }],
   focusBlockStreak: 0,
+  settlementSegment: 0,
   ...overrides,
 });
 
@@ -35,6 +36,7 @@ const baseRecessPrompt = (
   momentum: 'steady',
   focusBlockStreak: 0,
   completedFocusBlockIndex: 0,
+  lastSettledSegment: 0,
   deferredRecessCount: 1,
   originalGoalPermanentlyComplete: false,
   ...overrides,

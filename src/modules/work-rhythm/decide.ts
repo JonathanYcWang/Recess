@@ -11,6 +11,7 @@ import {
   isValidWorkSessionGoalSeconds,
   type WorkRhythmValue,
 } from './workRhythmDocument';
+import { decideDeclineRecess } from './declineRecess';
 import { decideEndWorkSessionEarly } from './endWorkSessionEarly';
 import { decideResumeFromTimeOut } from './resumeFromTimeOut';
 import { decideFocusBoundarySettlement } from './settleFocusBoundary';
@@ -24,7 +25,8 @@ export type WorkRhythmCommand =
   | { kind: 'settle-focus-boundary' }
   | { kind: 'end-work-session' }
   | { kind: 'start-time-out' }
-  | { kind: 'resume-from-time-out' };
+  | { kind: 'resume-from-time-out' }
+  | { kind: 'decline-recess' };
 
 export type WorkRhythmDecisionError =
   | { kind: 'invalid-goal' }
@@ -36,7 +38,9 @@ export type WorkRhythmDecisionError =
   | { kind: 'original-goal-already-complete' }
   | { kind: 'invalid-phase-for-time-out' }
   | { kind: 'already-in-time-out' }
-  | { kind: 'not-in-time-out' };
+  | { kind: 'not-in-time-out' }
+  | { kind: 'invalid-phase-for-decline-recess' }
+  | { kind: 'cannot-decline-without-deferred-recess' };
 
 export interface WorkRhythmDecisionContext {
   nowEpochMs: number;
@@ -111,6 +115,7 @@ export const applyWorkRhythmCommand = (
         wasExtension: false,
         schedulerReasons: schedulerDecision.reasons.map((reason) => ({ ...reason })),
         focusBlockStreak: 0,
+        settlementSegment: 0,
       },
     };
   }
@@ -148,6 +153,19 @@ export const applyWorkRhythmCommand = (
       return { ok: false, error: resumed.error };
     }
     return { ok: true, value: resumed.value.nextValue };
+  }
+
+  if (command.kind === 'decline-recess') {
+    const declined = decideDeclineRecess(current, {
+      nowEpochMs: context.nowEpochMs,
+      preferredCadence: context.preferredCadence,
+      selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+      gameBudget: context.gameBudget,
+    });
+    if (!declined.ok) {
+      return { ok: false, error: declined.error };
+    }
+    return { ok: true, value: declined.value.nextValue };
   }
 
   return { ok: false, error: { kind: 'session-already-active' } };

@@ -48,6 +48,7 @@ export const decideResumeFromTimeOut = (
         wasExtension: timeOut.wasExtension,
         schedulerReasons: timeOut.schedulerReasons.map((reason) => ({ ...reason })),
         focusBlockStreak: timeOut.focusBlockStreak,
+        settlementSegment: timeOut.settlementSegment,
       },
     },
   };

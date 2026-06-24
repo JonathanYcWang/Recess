@@ -7,6 +7,7 @@ import {
   DEFAULT_WORK_SESSION_GOAL_SECONDS,
   endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
+  declineRecessCommandId,
   resumeFromTimeOutCommandId,
   startTimeOutCommandId,
 } from '@/modules/work-rhythm';
@@ -204,7 +205,8 @@ describe('workRhythmCommandHandler', () => {
 
     const commandId = focusBoundarySettlementCommandId(
       workRhythmDoc.value.sessionId,
-      workRhythmDoc.value.focusBlockIndex
+      workRhythmDoc.value.focusBlockIndex,
+      workRhythmDoc.value.settlementSegment
     );
     const settled = await handler.execute(
       createWorkRhythmCommandEnvelope({ kind: 'settle-focus-boundary' }, { commandId })
@@ -541,6 +543,7 @@ describe('workRhythmCommandHandler', () => {
         { code: 'base-cadence' as const, focusDeltaMinutes: 25, recessDeltaMinutes: 5 },
       ],
       focusBlockStreak: 2,
+      settlementSegment: 0,
     };
 
     const handler = createWorkRhythmCommandHandler(
@@ -557,7 +560,11 @@ describe('workRhythmCommandHandler', () => {
       }
     );
 
-    const commandId = focusBoundarySettlementCommandId(focus.sessionId, focus.focusBlockIndex);
+    const commandId = focusBoundarySettlementCommandId(
+      focus.sessionId,
+      focus.focusBlockIndex,
+      focus.settlementSegment
+    );
     const settled = await handler.execute(
       createWorkRhythmCommandEnvelope({ kind: 'settle-focus-boundary' }, { commandId })
     );
@@ -583,6 +590,86 @@ describe('workRhythmCommandHandler', () => {
       expect(coinAfter.value.value.transactions).toHaveLength(2);
       expect(coinAfter.value.value.balance).toBe(35);
     }
+  });
+
+  it('declines recess into an extension focus block with idempotent command replay', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+
+    const recess: import('@/modules/work-rhythm').WorkRhythmRecessPrompt = {
+      phase: 'recess-prompt',
+      sessionId: 'ws-decline',
+      originalGoalSeconds: 60 * 60,
+      sessionStartedAtEpochMs: 1_000_000,
+      settledRemainingWorkSessionSeconds: 35 * 60,
+      energy: 'steady',
+      momentum: 'steady',
+      focusBlockStreak: 1,
+      completedFocusBlockIndex: 0,
+      lastSettledSegment: 0,
+      deferredRecessCount: 1,
+      originalGoalPermanentlyComplete: false,
+    };
+
+    await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: hydrated.value.documents['work-rhythm'].revision,
+        value: recess,
+      },
+    ]);
+    const refreshed = await persistence.initialize();
+    if (!refreshed.ok) {
+      throw new Error('expected refresh');
+    }
+    const workRhythmDoc = refreshed.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'recess-prompt') {
+      throw new Error('expected recess prompt');
+    }
+
+    const profile = refreshed.value.documents['workstyle-profile'];
+    await persistence.commit([
+      {
+        document: 'workstyle-profile',
+        expectedRevision: profile.revision,
+        value: {
+          ...profile.value,
+          preferredCadence: '25/5',
+        },
+      },
+    ]);
+
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(1_100_000),
+      alarms: createInMemoryAlarmAdapter(),
+      coinHandler: createCoinCommandHandler(persistence, refreshed.value.documents.coin),
+    });
+
+    const commandId = declineRecessCommandId(
+      workRhythmDoc.value.sessionId,
+      workRhythmDoc.value.completedFocusBlockIndex,
+      workRhythmDoc.value.lastSettledSegment + 1
+    );
+    const declined = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'decline-recess' }, { commandId })
+    );
+    expect(declined.ok).toBe(true);
+    if (declined.ok && declined.snapshot.snapshot.phase === 'focus-block') {
+      expect(declined.snapshot.snapshot).toMatchObject({
+        phase: 'focus-block',
+        focusBlockStreak: 1,
+      });
+    }
+
+    const duplicate = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'decline-recess' }, { commandId })
+    );
+    expect(duplicate).toEqual(declined);
   });
 });
 
@@ -661,6 +748,7 @@ describe('workRhythmCommandHandler clock injection', () => {
               { code: 'base-cadence', focusDeltaMinutes: 25, recessDeltaMinutes: 5 },
             ],
             focusBlockStreak: 0,
+            settlementSegment: 0,
           },
         },
         {

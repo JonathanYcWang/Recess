@@ -6,6 +6,14 @@ export {
   type WorkRhythmDecisionError,
 } from './decide';
 export {
+  decideDeclineRecess,
+  declineRecessCommandId,
+  remainingWorkSessionSecondsAt,
+  type DeclineRecessContext,
+  type DeclineRecessError,
+  type DeclineRecessOutcome,
+} from './declineRecess';
+export {
   blocksUntilNextFocusBlockStreakMilestone,
   focusBlockStreakCoinTransactionId,
   FOCUS_BLOCK_STREAK_MILESTONE_COINS,

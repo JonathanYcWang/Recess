@@ -29,6 +29,7 @@ export interface WorkRhythmFocusBlock {
   wasExtension: boolean;
   schedulerReasons: SchedulerReason[];
   focusBlockStreak: number;
+  settlementSegment: number;
 }
 
 export interface WorkRhythmRecessPrompt {
@@ -41,6 +42,7 @@ export interface WorkRhythmRecessPrompt {
   momentum: MomentumLevel;
   focusBlockStreak: number;
   completedFocusBlockIndex: number;
+  lastSettledSegment: number;
   deferredRecessCount: number;
   originalGoalPermanentlyComplete: boolean;
 }
@@ -59,6 +61,7 @@ export interface WorkRhythmTimeOut {
   wasExtension: boolean;
   schedulerReasons: SchedulerReason[];
   focusBlockStreak: number;
+  settlementSegment: number;
   timeOutStartedAtEpochMs: number;
   lastReportedFiveMinuteBoundary: number;
   momentumLoweredDuringTimeOut: boolean;
@@ -110,5 +113,6 @@ export const cloneWorkRhythmValue = (value: WorkRhythmValue): WorkRhythmValue =>
     wasExtension: value.wasExtension,
     schedulerReasons: value.schedulerReasons.map((reason) => ({ ...reason })),
     focusBlockStreak: value.focusBlockStreak,
+    settlementSegment: value.settlementSegment,
   };
 };

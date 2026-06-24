@@ -6,10 +6,12 @@ import {
   advanceTimeOutBoundaries,
   applyWorkRhythmCommand,
   cloneWorkRhythmValue,
+  decideDeclineRecess,
   decideEndWorkSessionEarly,
   decideFocusBoundarySettlement,
   decideResumeFromTimeOut,
   decideStartTimeOut,
+  declineRecessCommandId,
   endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
   isFocusBoundaryDue,
@@ -481,6 +483,62 @@ export const createWorkRhythmCommandHandler = (
     return toSuccess(snapshot);
   };
 
+  const commitDeclineRecess = async (commandId: string): Promise<WorkRhythmCommandResponse> => {
+    const profile = await persistence.read('workstyle-profile');
+    if (!profile.ok) {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const declined = decideDeclineRecess(currentDocument.value, {
+      nowEpochMs: clock.nowEpochMs(),
+      preferredCadence: profile.value.value.preferredCadence,
+      selectedTaskRemainingMinutes: null,
+      gameBudget: { kind: 'cards' },
+    });
+    if (!declined.ok) {
+      return toFailure(declined.error);
+    }
+    if (commandId !== declined.value.commandId) {
+      return toFailure({
+        kind: 'malformed-command',
+        message: 'decline-recess command id mismatch',
+      });
+    }
+
+    const committed = await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: currentDocument.revision,
+        value: declined.value.nextValue,
+      },
+    ]);
+    if (!committed.ok) {
+      if (committed.error.kind === 'conflict') {
+        return toFailure({
+          kind: 'stale-revision',
+          expectedRevision: currentDocument.revision,
+          actualRevision: committed.error.actualRevision,
+        });
+      }
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const workRhythm = committed.value.documents['work-rhythm'];
+    if (!workRhythm || workRhythm.value.phase !== 'focus-block') {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    await scheduleFocusAlarm(workRhythm.value);
+
+    currentDocument = {
+      revision: workRhythm.revision,
+      value: cloneWorkRhythmValue(workRhythm.value),
+    };
+    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    publish();
+    return toSuccess(snapshot);
+  };
+
   const executeStart = async (
     envelope: WorkRhythmCommandEnvelope
   ): Promise<WorkRhythmCommandResponse> => {
@@ -604,6 +662,24 @@ export const createWorkRhythmCommandHandler = (
       return commitResumeFromTimeOut(envelope.commandId);
     }
 
+    if (envelope.command.kind === 'decline-recess') {
+      if (currentDocument.value.phase !== 'recess-prompt') {
+        return toFailure({ kind: 'invalid-phase-for-decline-recess' });
+      }
+      const expectedCommandId = declineRecessCommandId(
+        currentDocument.value.sessionId,
+        currentDocument.value.completedFocusBlockIndex,
+        currentDocument.value.lastSettledSegment + 1
+      );
+      if (envelope.commandId !== expectedCommandId) {
+        return toFailure({
+          kind: 'malformed-command',
+          message: 'decline-recess command id must match active recess prompt',
+        });
+      }
+      return commitDeclineRecess(envelope.commandId);
+    }
+
     return toFailure({ kind: 'malformed-command', message: 'unsupported command' });
   };
 
@@ -619,7 +695,11 @@ export const createWorkRhythmCommandHandler = (
       if (!isFocusBoundaryDue(focus, clock.nowEpochMs())) {
         return null;
       }
-      const commandId = focusBoundarySettlementCommandId(focus.sessionId, focus.focusBlockIndex);
+      const commandId = focusBoundarySettlementCommandId(
+        focus.sessionId,
+        focus.focusBlockIndex,
+        focus.settlementSegment
+      );
       const cached = ledger.get(commandId);
       if (cached) {
         return cached;

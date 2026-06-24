@@ -86,6 +86,7 @@ const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> =
     'focusDeadlineAtEpochMs',
     'focusDurationSeconds',
     'focusBlockStreak',
+    'settlementSegment',
   ] as const;
   for (const field of numberFields) {
     if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
@@ -134,6 +135,7 @@ const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> =
       wasExtension: value.wasExtension as boolean,
       schedulerReasons,
       focusBlockStreak: value.focusBlockStreak as number,
+      settlementSegment: value.settlementSegment as number,
     },
   };
 };
@@ -151,6 +153,7 @@ const parseRecessPrompt = (value: unknown): Result<WorkRhythmRecessPrompt, strin
     'settledRemainingWorkSessionSeconds',
     'focusBlockStreak',
     'completedFocusBlockIndex',
+    'lastSettledSegment',
     'deferredRecessCount',
   ] as const;
   for (const field of numberFields) {
@@ -179,6 +182,7 @@ const parseRecessPrompt = (value: unknown): Result<WorkRhythmRecessPrompt, strin
       momentum: value.momentum as WorkRhythmRecessPrompt['momentum'],
       focusBlockStreak: value.focusBlockStreak as number,
       completedFocusBlockIndex: value.completedFocusBlockIndex as number,
+      lastSettledSegment: value.lastSettledSegment as number,
       deferredRecessCount: value.deferredRecessCount as number,
       originalGoalPermanentlyComplete: value.originalGoalPermanentlyComplete as boolean,
     },
@@ -199,6 +203,7 @@ const parseTimeOut = (value: unknown): Result<WorkRhythmTimeOut, string> => {
     'focusBlockIndex',
     'focusDurationSeconds',
     'focusBlockStreak',
+    'settlementSegment',
     'timeOutStartedAtEpochMs',
     'lastReportedFiveMinuteBoundary',
   ] as const;
@@ -249,6 +254,7 @@ const parseTimeOut = (value: unknown): Result<WorkRhythmTimeOut, string> => {
       wasExtension: value.wasExtension as boolean,
       schedulerReasons,
       focusBlockStreak: value.focusBlockStreak as number,
+      settlementSegment: value.settlementSegment as number,
       timeOutStartedAtEpochMs: value.timeOutStartedAtEpochMs as number,
       lastReportedFiveMinuteBoundary: value.lastReportedFiveMinuteBoundary as number,
       momentumLoweredDuringTimeOut: value.momentumLoweredDuringTimeOut as boolean,

@@ -54,6 +54,7 @@ export const decideStartTimeOut = (
         wasExtension: focus.wasExtension,
         schedulerReasons: focus.schedulerReasons.map((reason) => ({ ...reason })),
         focusBlockStreak: focus.focusBlockStreak,
+        settlementSegment: focus.settlementSegment,
         timeOutStartedAtEpochMs: nowEpochMs,
         lastReportedFiveMinuteBoundary: 0,
         momentumLoweredDuringTimeOut: false,

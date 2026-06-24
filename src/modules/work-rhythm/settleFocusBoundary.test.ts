@@ -23,6 +23,7 @@ const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFoc
   wasExtension: false,
   schedulerReasons: [{ code: 'base-cadence', focusDeltaMinutes: 25, recessDeltaMinutes: 5 }],
   focusBlockStreak: 0,
+  settlementSegment: 0,
   ...overrides,
 });
 
@@ -41,6 +42,7 @@ describe('settleFocusBoundary', () => {
     expect(settled.value.nextValue).toMatchObject({
       phase: 'recess-prompt',
       deferredRecessCount: 1,
+      lastSettledSegment: 0,
       settledRemainingWorkSessionSeconds: 60 * 60 - 25 * 60,
       focusBlockStreak: 1,
     });
@@ -89,7 +91,7 @@ describe('settleFocusBoundary', () => {
   });
 
   it('awards ten streak coins at the third completed focus block', () => {
-    const focus = baseFocus({ focusBlockStreak: 2, focusBlockIndex: 2 });
+    const focus = baseFocus({ focusBlockStreak: 2, focusBlockIndex: 2, settlementSegment: 0 });
     const settled = decideFocusBoundarySettlement(focus, focus.focusDeadlineAtEpochMs);
     expect(settled.ok).toBe(true);
     if (!settled.ok) {

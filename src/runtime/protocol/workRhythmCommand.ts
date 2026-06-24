@@ -7,7 +7,8 @@ export type WorkRhythmCommand =
   | { kind: 'settle-focus-boundary' }
   | { kind: 'end-work-session' }
   | { kind: 'start-time-out' }
-  | { kind: 'resume-from-time-out' };
+  | { kind: 'resume-from-time-out' }
+  | { kind: 'decline-recess' };
 
 export type WorkRhythmCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -46,6 +47,9 @@ const parseCommand = (command: unknown): WorkRhythmCommand | null => {
   }
   if (command.kind === 'resume-from-time-out') {
     return { kind: 'resume-from-time-out' };
+  }
+  if (command.kind === 'decline-recess') {
+    return { kind: 'decline-recess' };
   }
   return null;
 };
