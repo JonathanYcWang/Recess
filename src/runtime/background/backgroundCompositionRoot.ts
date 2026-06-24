@@ -4,6 +4,7 @@ import {
   type KeyValueStorageAdapter,
 } from '@/modules/persisted-application-state';
 import { createInProcessSettingsClient } from '../client/inProcessSettingsClient';
+import { createCommandOutcomeStore } from '../commandOutcomeStore';
 import type { SettingsClient, SettingsCommandHandler, SettingsRuntimeError } from '../types';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 
@@ -29,7 +30,7 @@ export const createBackgroundCompositionRoot = async (options: {
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
-    { diagnostics }
+    { diagnostics, outcomeStore: createCommandOutcomeStore(options.adapter) }
   );
 
   return {
