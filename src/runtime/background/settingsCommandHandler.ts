@@ -5,6 +5,7 @@ import type {
 } from '@/modules/persisted-application-state';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
+import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import type { EffectExecutor } from '../effects/effectExecutor';
 import { runSettingsEffectTransition } from '../effects/settingsEffectTransition';
 import {
@@ -54,12 +55,28 @@ const toFailure = (error: SettingsCommandError): SettingsCommandResponse => ({
 export const createSettingsCommandHandler = (
   persistence: PersistedApplicationState,
   initialized: VersionedDocument<SettingsValue>,
-  options?: { diagnostics?: DiagnosticRingBuffer; effectExecutor?: EffectExecutor }
+  options?: {
+    diagnostics?: DiagnosticRingBuffer;
+    effectExecutor?: EffectExecutor;
+    outcomeStore?: CommandOutcomeStore<SettingsCommandResponse>;
+  }
 ): SettingsCommandHandler => {
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<SettingsCommandResponse>();
   const diagnostics = options?.diagnostics;
+  const outcomeStore = options?.outcomeStore;
   const listeners = new Set<(snapshot: SettingsSnapshot) => void>();
+
+  const hydrateLedgerFromStore = async (): Promise<void> => {
+    if (!outcomeStore) {
+      return;
+    }
+    const stored = await outcomeStore.list('settings');
+    for (const entry of stored) {
+      ledger.set(entry.commandId, entry.response);
+    }
+  };
+  void hydrateLedgerFromStore();
 
   const notifyListeners = () => {
     const snapshot = cloneSnapshot(current);
@@ -157,14 +174,27 @@ export const createSettingsCommandHandler = (
       if (cached) {
         return cached;
       }
+      if (outcomeStore) {
+        const stored = await outcomeStore.get('settings', envelope.commandId);
+        if (stored) {
+          ledger.set(envelope.commandId, stored);
+          return stored;
+        }
+      }
 
       try {
         const response = await executeFresh(envelope);
         ledger.set(envelope.commandId, response);
+        if (outcomeStore) {
+          await outcomeStore.set('settings', envelope.commandId, response);
+        }
         return response;
       } catch (error) {
         const response = recordUnexpected(envelope.commandId, error);
         ledger.set(envelope.commandId, response);
+        if (outcomeStore) {
+          await outcomeStore.set('settings', envelope.commandId, response);
+        }
         return response;
       }
     },
