@@ -23,6 +23,7 @@ import {
 import blockedSitesReducer from '../store/reducers/blockedSitesReducer';
 import quizReducer from '../store/reducers/quizReducer';
 import routingReducer from '../store/reducers/routingReducer';
+import settingsProjectionReducer from '../store/reducers/settingsProjectionReducer';
 import timerReducer from '../store/reducers/timerReducer';
 import workHoursReducer from '../store/reducers/workHoursReducer';
 import type { Reward } from '../types/reward';
@@ -89,6 +90,7 @@ const createState = (overrides: Partial<RootState['timer']> = {}): RootState => 
   blockedSites: blockedSitesReducer(undefined, setBlockedSites(['youtube.com', 'reddit.com'])),
   routing: routingReducer(undefined, { type: 'test/init' }),
   quiz: quizReducer(undefined, { type: 'test/init' }),
+  settingsProjection: settingsProjectionReducer(undefined, { type: 'test/init' }),
 });
 
 const dispatchedTypes = () => hookMocks.dispatch.mock.calls.map(([action]) => action.type);

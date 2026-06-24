@@ -4,13 +4,17 @@
   "ignoreIssues": {
     "src/modules/**": ["exports", "types"],
     "src/adapters/browser/**": ["exports", "types"],
-    "src/runtime/**": ["exports", "types"]
+    "src/runtime/**": ["exports", "types"],
+    "src/store/selectors/settingsProjectionSelectors.ts": ["exports"],
+    "src/store/settingsClient.ts": ["exports"],
+    "src/store/reducers/settingsProjectionReducer.ts": ["types"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreFiles": [
     "src/components/PrizeWheel/**",
     "src/components/ParticleBurst/**",
-    "src/hooks/useParticles.ts"
+    "src/hooks/useParticles.ts",
+    "src/hooks/useSettings.ts"
   ],
   "vite": {
     "config": ["vite.config.ts", "vite.background.config.ts"]

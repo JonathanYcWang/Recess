@@ -3,6 +3,7 @@ import { SESSION_STATES } from '../../constants/constants';
 import blockedSitesReducer from '../reducers/blockedSitesReducer';
 import quizReducer from '../reducers/quizReducer';
 import routingReducer from '../reducers/routingReducer';
+import settingsProjectionReducer from '../reducers/settingsProjectionReducer';
 import timerReducer from '../reducers/timerReducer';
 import workHoursReducer from '../reducers/workHoursReducer';
 import type { RootState } from '../index';
@@ -58,6 +59,7 @@ const createState = (): RootState => ({
       next: 'Q2',
     })
   ),
+  settingsProjection: settingsProjectionReducer(undefined, { type: 'test/init' }),
 });
 
 describe('Redux selectors', () => {
