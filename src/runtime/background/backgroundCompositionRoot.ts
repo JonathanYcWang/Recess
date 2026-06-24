@@ -5,6 +5,7 @@ import {
 } from '@/modules/persisted-application-state';
 import { createInProcessSettingsClient } from '../client/inProcessSettingsClient';
 import { createInProcessBlockListClient } from '../client/inProcessBlockListClient';
+import { createInProcessWorkstyleProfileClient } from '../client/inProcessWorkstyleProfileClient';
 import { createCommandOutcomeStore } from '../commandOutcomeStore';
 import type {
   BlockListClient,
@@ -17,14 +18,22 @@ import type {
   SettingsCommandResponse,
   SettingsRuntimeError,
 } from '../types';
+import type {
+  WorkstyleProfileClient,
+  WorkstyleProfileCommandHandler,
+  WorkstyleProfileCommandResponse,
+} from '../workstyleProfileTypes';
 import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
+import { createWorkstyleProfileCommandHandler } from './workstyleProfileCommandHandler';
 
 export interface BackgroundCompositionRoot {
   settings: SettingsClient;
   blockList: BlockListClient;
+  workstyleProfile: WorkstyleProfileClient;
   settingsHandler: SettingsCommandHandler;
   blockListHandler: BlockListCommandHandler;
+  workstyleProfileHandler: WorkstyleProfileCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -45,6 +54,9 @@ export const createBackgroundCompositionRoot = async (options: {
   const blockListOutcomeStore = createCommandOutcomeStore<BlockListCommandResponse>(
     options.adapter
   );
+  const workstyleProfileOutcomeStore = createCommandOutcomeStore<WorkstyleProfileCommandResponse>(
+    options.adapter
+  );
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
@@ -55,14 +67,21 @@ export const createBackgroundCompositionRoot = async (options: {
     initialized.value.documents['block-list'],
     { adapter: options.adapter, diagnostics, outcomeStore: blockListOutcomeStore }
   );
+  const workstyleProfileHandler = createWorkstyleProfileCommandHandler(
+    persistence,
+    initialized.value.documents['workstyle-profile'],
+    { diagnostics, outcomeStore: workstyleProfileOutcomeStore }
+  );
 
   return {
     ok: true,
     value: {
       settings: createInProcessSettingsClient(settingsHandler),
       blockList: createInProcessBlockListClient(blockListHandler),
+      workstyleProfile: createInProcessWorkstyleProfileClient(workstyleProfileHandler),
       settingsHandler,
       blockListHandler,
+      workstyleProfileHandler,
     },
   };
 };

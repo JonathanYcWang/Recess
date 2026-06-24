@@ -1,6 +1,6 @@
 export const RUNTIME_PROTOCOL_VERSION = 1;
 
-export type DomainModuleName = 'settings' | 'block-list';
+export type DomainModuleName = 'settings' | 'block-list' | 'workstyle-profile';
 
 export interface RuntimeCommandEnvelope<TCommand> {
   protocolVersion: number;

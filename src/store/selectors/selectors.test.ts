@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SESSION_STATES } from '../../constants/constants';
 import blockedSitesReducer from '../reducers/blockedSitesReducer';
 import blockListProjectionReducer from '../reducers/blockListProjectionReducer';
+import workstyleProfileProjectionReducer from '../reducers/workstyleProfileProjectionReducer';
 import quizReducer from '../reducers/quizReducer';
 import routingReducer from '../reducers/routingReducer';
 import settingsProjectionReducer from '../reducers/settingsProjectionReducer';
@@ -13,7 +14,9 @@ import { selectOption } from '../actions/quizActions';
 import { completeOnboarding } from '../actions/routingActions';
 import { startFocusSession, transitionToRewardSelection } from '../actions/timerActions';
 import { setWorkHours } from '../actions/workHoursActions';
+import { setWorkstyleProfileProjection } from '../actions/workstyleProfileProjectionActions';
 import {
+  selectAssignedPetId,
   selectBlockedSites,
   selectCurrentQuestion,
   selectFatigueScore,
@@ -29,6 +32,8 @@ import {
   selectShownRewardCombinations,
   selectTimerState,
   selectWorkHoursEntries,
+  selectWorkstyleProfileEnergy,
+  selectWorkstyleProfilePreferredCadence,
   setInRewardSelection,
 } from './index';
 
@@ -62,6 +67,7 @@ const createState = (): RootState => ({
   ),
   settingsProjection: settingsProjectionReducer(undefined, { type: 'test/init' }),
   blockListProjection: blockListProjectionReducer(undefined, { type: 'test/init' }),
+  workstyleProfileProjection: workstyleProfileProjectionReducer(undefined, { type: 'test/init' }),
 });
 
 describe('Redux selectors', () => {
@@ -89,5 +95,32 @@ describe('Redux selectors', () => {
     expect(selectIsQuizComplete(state)).toBe(false);
     expect(selectQuizResults(state)).toBeNull();
     expect(selectCurrentQuestion(state)?.id).toBe('Q2');
+  });
+
+  it('selects workstyle profile projection fields', () => {
+    const state = createState();
+    const projected = workstyleProfileProjectionReducer(
+      state.workstyleProfileProjection,
+      setWorkstyleProfileProjection({
+        revision: 2,
+        preferredCadence: '15/5',
+        energy: 'low',
+        momentum: 'building',
+        friction: {
+          emotionalLoad: 'low',
+          motivation: 'low',
+          organization: 'low',
+          distraction: 'high',
+          starting: 'low',
+          fatigue: 'low',
+        },
+        assignedPetId: null,
+      })
+    );
+    const withProfile = { ...state, workstyleProfileProjection: projected };
+
+    expect(selectWorkstyleProfilePreferredCadence(withProfile)).toBe('15/5');
+    expect(selectWorkstyleProfileEnergy(withProfile)).toBe('low');
+    expect(selectAssignedPetId(withProfile)).toBeNull();
   });
 });

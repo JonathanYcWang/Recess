@@ -5,13 +5,16 @@ import type {
   VersionedDocument,
 } from '../types';
 import { blockListCodec } from '@/modules/block-list';
+import { workstyleProfileCodec } from '@/modules/workstyle-profile';
 import { settingsCodec } from '../settings/settingsCodec';
 import type { SettingsValue } from '../settings/settingsDocument';
 import { createDefaultSettingsValue } from '../settings/settingsDocument';
 import type { BlockListValue } from '@/modules/block-list';
+import type { WorkstyleProfileValue } from '@/modules/workstyle-profile';
 
 export const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 export const BLOCK_LIST_DOCUMENT_KEY = '__recess_doc_block_list';
+export const WORKSTYLE_PROFILE_DOCUMENT_KEY = '__recess_doc_workstyle_profile';
 
 export interface DocumentRegistryEntry<T> {
   document: PersistedDocumentName;
@@ -33,14 +36,22 @@ export const documentRegistry = {
     codec: blockListCodec,
     createDefault: () => blockListCodec.createDefault(),
   },
+  'workstyle-profile': {
+    document: 'workstyle-profile',
+    storageKey: WORKSTYLE_PROFILE_DOCUMENT_KEY,
+    codec: workstyleProfileCodec,
+    createDefault: () => workstyleProfileCodec.createDefault(),
+  },
 } as const satisfies {
   settings: DocumentRegistryEntry<SettingsValue>;
   'block-list': DocumentRegistryEntry<BlockListValue>;
+  'workstyle-profile': DocumentRegistryEntry<WorkstyleProfileValue>;
 };
 
 export const registeredDocumentNames = [
   'settings',
   'block-list',
+  'workstyle-profile',
 ] as const satisfies readonly PersistedDocumentName[];
 
 export const allOperationalStorageKeys = (): string[] =>
