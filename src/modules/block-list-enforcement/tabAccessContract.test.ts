@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  addInMemoryTab,
-  createInMemoryTabAccess,
-  createInMemoryTabAccessState,
-} from './inMemoryTabAccess';
+import { addInMemoryTab, createInMemoryTabAccess, createInMemoryTabAccessState } from './index';
 import type { TabAccess } from './types';
 
 export const describeTabAccessContractTests = (
