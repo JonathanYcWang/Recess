@@ -14,21 +14,26 @@ export interface ReminderSchedule {
 
 export type OccurrencePhase = 'planned' | 'active' | 'resolved';
 
+export type OccurrenceOutcome = 'neutral' | 'skipped';
+
 export interface ReminderOccurrence {
   id: string;
   scheduleId: string;
   scheduledEpochMs: number;
   timeZoneId: string;
   phase: OccurrencePhase;
+  outcome?: OccurrenceOutcome;
   alarmName: string;
 }
 
 export interface WorkStartReminderValue {
   schedules: ReminderSchedule[];
   occurrences: ReminderOccurrence[];
+  planningTimeZoneId: string;
 }
 
 export const createDefaultWorkStartReminderValue = (): WorkStartReminderValue => ({
   schedules: [],
   occurrences: [],
+  planningTimeZoneId: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
 });

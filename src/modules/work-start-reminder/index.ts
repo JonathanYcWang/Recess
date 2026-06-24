@@ -5,6 +5,7 @@ export {
 export {
   createDefaultWorkStartReminderValue,
   type LocalClockTime,
+  type OccurrenceOutcome,
   type OccurrencePhase,
   type ReminderOccurrence,
   type ReminderSchedule,
@@ -13,6 +14,7 @@ export {
 } from './workStartReminderDocument';
 export {
   activateOccurrenceByAlarm,
+  applyTimeZoneContext,
   cloneWorkStartReminderValue,
   computeNextOccurrenceEpochMs,
   parseAlarmOccurrenceId,
@@ -24,12 +26,23 @@ export {
 export {
   decideAddSchedule,
   decideDeleteSchedule,
+  decideSkipNext,
   decideToggleScheduleEnabled,
   decideUpdateSchedule,
   formatScheduleTimeForDisplay,
   type ReminderScheduleInput,
   type ScheduleCommandError,
+  type SkipNextCommandError,
 } from './decide';
+export {
+  addCalendarDays,
+  getZonedParts,
+  resolveLocalWallTimeOnDate,
+  weekdayInTimeZone,
+  zonedTimeToUtc,
+  type LocalInstantResolution,
+  type ZonedDateParts,
+} from './localTimeZone';
 export {
   formatDisplayTimeString,
   isLocalClockTime,

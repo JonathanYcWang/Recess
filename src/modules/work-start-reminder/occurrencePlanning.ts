@@ -3,6 +3,8 @@ import type {
   ReminderSchedule,
   WorkStartReminderValue,
 } from './workStartReminderDocument';
+import { addCalendarDays, resolveLocalWallTimeOnDate, weekdayInTimeZone } from './localTimeZone';
+import { getZonedParts } from './localTimeZone';
 
 export const WORK_START_REMINDER_ALARM_PREFIX = 'work-start-reminder-occ-';
 
@@ -22,26 +24,38 @@ export const resolveLocalTimeZoneId = (): string =>
 
 export const computeNextOccurrenceEpochMs = (
   schedule: ReminderSchedule,
-  nowEpochMs: number
+  nowEpochMs: number,
+  timeZoneId: string
 ): number | null => {
   if (!schedule.enabled || !schedule.weekdays.some(Boolean)) {
     return null;
   }
-  const now = new Date(nowEpochMs);
+
+  const nowParts = getZonedParts(nowEpochMs, timeZoneId);
   let best: number | null = null;
+
   for (let dayOffset = 0; dayOffset < 14; dayOffset += 1) {
-    const candidate = new Date(now);
-    candidate.setDate(now.getDate() + dayOffset);
-    const weekday = candidate.getDay();
+    const date = addCalendarDays(nowParts.year, nowParts.month, nowParts.day, dayOffset);
+    const weekday = weekdayInTimeZone(date.year, date.month, date.day, timeZoneId);
     if (!schedule.weekdays[weekday]) {
       continue;
     }
-    candidate.setHours(schedule.localTime.hour, schedule.localTime.minute, 0, 0);
-    const epoch = candidate.getTime();
+    const resolved = resolveLocalWallTimeOnDate(
+      date.year,
+      date.month,
+      date.day,
+      schedule.localTime,
+      timeZoneId
+    );
+    if (!resolved) {
+      continue;
+    }
+    const epoch = resolved.epochMs;
     if (epoch > nowEpochMs && (best === null || epoch < best)) {
       best = epoch;
     }
   }
+
   return best;
 };
 
@@ -54,7 +68,22 @@ export const cloneWorkStartReminderValue = (
     weekdays: [...schedule.weekdays] as ReminderSchedule['weekdays'],
   })),
   occurrences: value.occurrences.map((occurrence) => ({ ...occurrence })),
+  planningTimeZoneId: value.planningTimeZoneId,
 });
+
+export const applyTimeZoneContext = (
+  value: WorkStartReminderValue,
+  timeZoneId: string
+): WorkStartReminderValue => {
+  if (value.planningTimeZoneId === timeZoneId) {
+    return value;
+  }
+  return {
+    ...value,
+    planningTimeZoneId: timeZoneId,
+    occurrences: value.occurrences.filter((occurrence) => occurrence.phase !== 'planned'),
+  };
+};
 
 const retainNonPlannedOccurrences = (occurrences: readonly ReminderOccurrence[]) =>
   occurrences.filter((occurrence) => occurrence.phase !== 'planned');
@@ -62,13 +91,14 @@ const retainNonPlannedOccurrences = (occurrences: readonly ReminderOccurrence[])
 export const replanReminderOccurrences = (
   value: WorkStartReminderValue,
   nowEpochMs: number,
-  createOccurrenceId: () => string
+  createOccurrenceId: () => string,
+  timeZoneId: string = resolveLocalTimeZoneId()
 ): WorkStartReminderValue => {
-  const timeZoneId = resolveLocalTimeZoneId();
-  const retained = retainNonPlannedOccurrences(value.occurrences);
+  const withZone = applyTimeZoneContext(value, timeZoneId);
+  const retained = retainNonPlannedOccurrences(withZone.occurrences);
   const planned: ReminderOccurrence[] = [];
 
-  for (const schedule of value.schedules) {
+  for (const schedule of withZone.schedules) {
     if (!schedule.enabled) {
       continue;
     }
@@ -78,14 +108,18 @@ export const replanReminderOccurrences = (
     if (hasActive) {
       continue;
     }
-    const existingPlanned = value.occurrences.find(
+    const existingPlanned = withZone.occurrences.find(
       (occurrence) => occurrence.scheduleId === schedule.id && occurrence.phase === 'planned'
     );
-    const nextEpoch = computeNextOccurrenceEpochMs(schedule, nowEpochMs);
+    const nextEpoch = computeNextOccurrenceEpochMs(schedule, nowEpochMs, timeZoneId);
     if (nextEpoch === null) {
       continue;
     }
-    if (existingPlanned && existingPlanned.scheduledEpochMs === nextEpoch) {
+    if (
+      existingPlanned &&
+      existingPlanned.scheduledEpochMs === nextEpoch &&
+      existingPlanned.timeZoneId === timeZoneId
+    ) {
       planned.push(existingPlanned);
       continue;
     }
@@ -101,7 +135,8 @@ export const replanReminderOccurrences = (
   }
 
   return {
-    schedules: value.schedules,
+    schedules: withZone.schedules,
+    planningTimeZoneId: timeZoneId,
     occurrences: [...retained, ...planned],
   };
 };
@@ -114,10 +149,12 @@ export const activateOccurrenceByAlarm = (
   if (!occurrenceId) {
     return { value, occurrenceId: null };
   }
-  const index = value.occurrences.findIndex(
-    (occurrence) => occurrence.id === occurrenceId && occurrence.phase === 'planned'
-  );
+  const index = value.occurrences.findIndex((occurrence) => occurrence.id === occurrenceId);
   if (index < 0) {
+    return { value, occurrenceId: null };
+  }
+  const current = value.occurrences[index];
+  if (current.phase !== 'planned') {
     return { value, occurrenceId: null };
   }
   const next = cloneWorkStartReminderValue(value);

@@ -38,4 +38,5 @@ export const createConnectionAwareWorkStartReminderClient = (
   deleteSchedule: (id, options) => guardCommand(() => client.deleteSchedule(id, options)),
   toggleScheduleEnabled: (id, options) =>
     guardCommand(() => client.toggleScheduleEnabled(id, options)),
+  skipNext: (options) => guardCommand(() => client.skipNext(options)),
 });

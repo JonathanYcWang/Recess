@@ -5,7 +5,8 @@ export type WorkStartReminderCommand =
   | { kind: 'add-schedule'; time: unknown; days: unknown; enabled?: unknown }
   | { kind: 'update-schedule'; id: unknown; time: unknown; days: unknown; enabled?: unknown }
   | { kind: 'delete-schedule'; id: unknown }
-  | { kind: 'toggle-schedule-enabled'; id: unknown };
+  | { kind: 'toggle-schedule-enabled'; id: unknown }
+  | { kind: 'skip-next' };
 
 export type WorkStartReminderCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -14,6 +15,7 @@ export type WorkStartReminderCommandError =
   | { kind: 'invalid-time-input' }
   | { kind: 'invalid-weekdays' }
   | { kind: 'schedule-not-found'; id: string }
+  | { kind: 'no-planned-occurrence' }
   | { kind: 'stale-revision'; expectedRevision: number; actualRevision: number }
   | { kind: 'persistence-unavailable' }
   | { kind: 'persistence-failed' }
@@ -25,6 +27,10 @@ export type WorkStartReminderCommandEnvelope = RuntimeCommandEnvelope<WorkStartR
 
 export const mapScheduleCommandError = (
   error: import('@/modules/work-start-reminder').ScheduleCommandError
+): WorkStartReminderCommandError => error;
+
+export const mapSkipNextCommandError = (
+  error: import('@/modules/work-start-reminder').SkipNextCommandError
 ): WorkStartReminderCommandError => error;
 
 export const decodeWorkStartReminderCommandEnvelope = (
@@ -138,6 +144,15 @@ export const decodeWorkStartReminderCommandEnvelope = (
       value: {
         ...base,
         command: { kind: 'toggle-schedule-enabled', id: command.id },
+      },
+    };
+  }
+  if (command.kind === 'skip-next') {
+    return {
+      ok: true,
+      value: {
+        ...base,
+        command: { kind: 'skip-next' },
       },
     };
   }

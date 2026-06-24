@@ -73,6 +73,10 @@ export interface WorkStartReminderClient {
     id: string,
     options?: { commandId?: string; expectedRevision?: number }
   ): Promise<WorkStartReminderClientCommandResult>;
+  skipNext(options?: {
+    commandId?: string;
+    expectedRevision?: number;
+  }): Promise<WorkStartReminderClientCommandResult>;
   subscribe(
     listener: (snapshot: WorkStartReminderPublishedSnapshot) => void,
     options?: WorkStartReminderSubscribeOptions

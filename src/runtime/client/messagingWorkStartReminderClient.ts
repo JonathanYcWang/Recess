@@ -118,6 +118,20 @@ export const createMessagingWorkStartReminderClient = (
         },
       })
     ),
+  skipNext: async (options) =>
+    unwrapCommand(
+      await transport.send({
+        channel: WORK_START_REMINDER_RUNTIME_CHANNEL,
+        action: 'command',
+        envelope: {
+          protocolVersion: RUNTIME_PROTOCOL_VERSION,
+          commandId: options?.commandId ?? createCommandId(),
+          module: 'work-start-reminder',
+          expectedRevision: options?.expectedRevision,
+          command: { kind: 'skip-next' },
+        },
+      })
+    ),
   subscribe(listener, options) {
     const port = transport.connect();
     const removeMessageListener = port.onMessage((message: WorkStartReminderRuntimePortMessage) => {

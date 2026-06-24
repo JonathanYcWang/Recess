@@ -6,15 +6,20 @@ import type {
 import { validateReminderSchedule } from './scheduleValidation';
 import {
   createDefaultWorkStartReminderValue,
+  type OccurrenceOutcome,
   type ReminderOccurrence,
   type WorkStartReminderValue,
 } from './workStartReminderDocument';
-import { WORK_START_REMINDER_ALARM_PREFIX } from './occurrencePlanning';
+import { WORK_START_REMINDER_ALARM_PREFIX, resolveLocalTimeZoneId } from './occurrencePlanning';
 
-export const WORK_START_REMINDER_SCHEMA_VERSION = 1;
+export const WORK_START_REMINDER_SCHEMA_VERSION = 2;
+const SUPPORTED_SCHEMA_VERSIONS = [1, 2] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isOccurrenceOutcome = (value: unknown): value is OccurrenceOutcome =>
+  value === 'neutral' || value === 'skipped';
 
 const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => {
   if (!isRecord(value)) {
@@ -41,6 +46,15 @@ const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => 
   ) {
     return { ok: false, error: 'occurrence alarmName must use the reminder alarm prefix' };
   }
+  if (value.outcome !== undefined && !isOccurrenceOutcome(value.outcome)) {
+    return { ok: false, error: 'occurrence outcome must be neutral or skipped' };
+  }
+  if (value.phase === 'resolved' && value.outcome === undefined) {
+    return { ok: false, error: 'resolved occurrence must include an outcome' };
+  }
+  if (value.phase !== 'resolved' && value.outcome !== undefined) {
+    return { ok: false, error: 'only resolved occurrences may include an outcome' };
+  }
   return {
     ok: true,
     value: {
@@ -49,6 +63,7 @@ const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => 
       scheduledEpochMs: value.scheduledEpochMs,
       timeZoneId: value.timeZoneId,
       phase: value.phase,
+      outcome: value.outcome,
       alarmName: value.alarmName,
     },
   };
@@ -80,7 +95,11 @@ const parseValue = (value: unknown): Result<WorkStartReminderValue, string> => {
     }
     occurrences.push(parsed.value);
   }
-  return { ok: true, value: { schedules, occurrences } };
+  const planningTimeZoneId =
+    typeof value.planningTimeZoneId === 'string' && value.planningTimeZoneId.length > 0
+      ? value.planningTimeZoneId
+      : resolveLocalTimeZoneId();
+  return { ok: true, value: { schedules, occurrences, planningTimeZoneId } };
 };
 
 export const workStartReminderCodec: DocumentCodec<WorkStartReminderValue> = {
@@ -122,7 +141,7 @@ export const workStartReminderCodec: DocumentCodec<WorkStartReminderValue> = {
         },
       };
     }
-    if (wire.schemaVersion !== WORK_START_REMINDER_SCHEMA_VERSION) {
+    if (!SUPPORTED_SCHEMA_VERSIONS.includes(wire.schemaVersion as 1 | 2)) {
       return {
         ok: false as const,
         error: {
@@ -159,7 +178,7 @@ export const workStartReminderCodec: DocumentCodec<WorkStartReminderValue> = {
     return {
       ok: true as const,
       value: {
-        schemaVersion: wire.schemaVersion,
+        schemaVersion: WORK_START_REMINDER_SCHEMA_VERSION,
         revision: wire.revision,
         value: value.value,
       },

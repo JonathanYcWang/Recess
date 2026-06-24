@@ -8,10 +8,12 @@ import {
   cloneWorkStartReminderValue,
   decideAddSchedule,
   decideDeleteSchedule,
+  decideSkipNext,
   decideToggleScheduleEnabled,
   decideUpdateSchedule,
   projectWorkStartReminderSnapshot,
   replanReminderOccurrences,
+  resolveLocalTimeZoneId,
   WORK_START_REMINDER_ALARM_PREFIX,
   type WorkStartReminderValue,
 } from '@/modules/work-start-reminder';
@@ -24,6 +26,7 @@ import type { ReminderNotificationAdapter } from '../notifications/reminderNotif
 import {
   decodeWorkStartReminderCommandEnvelope,
   mapScheduleCommandError,
+  mapSkipNextCommandError,
   type WorkStartReminderCommandEnvelope,
   type WorkStartReminderCommandError,
 } from '../protocol/workStartReminderCommand';
@@ -241,7 +244,12 @@ export const createWorkStartReminderCommandHandler = (
   const commitValue = async (
     nextValue: WorkStartReminderValue
   ): Promise<WorkStartReminderCommandResponse> => {
-    const replanned = replanReminderOccurrences(nextValue, clock.nowEpochMs(), createOccurrenceId);
+    const replanned = replanReminderOccurrences(
+      nextValue,
+      clock.nowEpochMs(),
+      createOccurrenceId,
+      resolveLocalTimeZoneId()
+    );
     const alarmError = await syncReminderAlarms(replanned);
     if (alarmError) {
       return toFailure(alarmError);
@@ -360,6 +368,10 @@ export const createWorkStartReminderCommandHandler = (
       }
       const decided = decideDeleteSchedule(currentDocument.value, command.id);
       return decided.ok ? decided : { ok: false, error: mapScheduleCommandError(decided.error) };
+    }
+    if (command.kind === 'skip-next') {
+      const decided = decideSkipNext(currentDocument.value);
+      return decided.ok ? decided : { ok: false, error: mapSkipNextCommandError(decided.error) };
     }
     if (typeof command.id !== 'string') {
       return { ok: false, error: { kind: 'schedule-not-found', id: '' } };
