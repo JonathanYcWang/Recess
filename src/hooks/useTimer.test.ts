@@ -21,6 +21,7 @@ import {
   updateTimerState,
 } from '../store/actions/timerActions';
 import blockedSitesReducer from '../store/reducers/blockedSitesReducer';
+import blockListProjectionReducer from '../store/reducers/blockListProjectionReducer';
 import quizReducer from '../store/reducers/quizReducer';
 import routingReducer from '../store/reducers/routingReducer';
 import settingsProjectionReducer from '../store/reducers/settingsProjectionReducer';
@@ -91,6 +92,7 @@ const createState = (overrides: Partial<RootState['timer']> = {}): RootState => 
   routing: routingReducer(undefined, { type: 'test/init' }),
   quiz: quizReducer(undefined, { type: 'test/init' }),
   settingsProjection: settingsProjectionReducer(undefined, { type: 'test/init' }),
+  blockListProjection: blockListProjectionReducer(undefined, { type: 'test/init' }),
 });
 
 const dispatchedTypes = () => hookMocks.dispatch.mock.calls.map(([action]) => action.type);

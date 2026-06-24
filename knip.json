@@ -9,6 +9,12 @@
     "src/store/settingsClient.ts": ["exports"],
     "src/store/settingsConnectionAwareClient.ts": ["exports"],
     "src/store/settingsConnectionManager.ts": ["exports"],
+    "src/store/blockListClient.ts": ["exports"],
+    "src/store/blockListConnectionManager.ts": ["exports"],
+    "src/store/blockListProjectionSubscription.ts": ["exports"],
+    "src/store/accessContextSubscription.ts": ["exports"],
+    "src/store/reducers/blockListProjectionReducer.ts": ["types"],
+    "src/store/selectors/blockListProjectionSelectors.ts": ["exports"],
     "src/store/reducers/settingsProjectionReducer.ts": ["types"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],

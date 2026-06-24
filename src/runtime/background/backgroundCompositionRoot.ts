@@ -4,13 +4,27 @@ import {
   type KeyValueStorageAdapter,
 } from '@/modules/persisted-application-state';
 import { createInProcessSettingsClient } from '../client/inProcessSettingsClient';
+import { createInProcessBlockListClient } from '../client/inProcessBlockListClient';
 import { createCommandOutcomeStore } from '../commandOutcomeStore';
-import type { SettingsClient, SettingsCommandHandler, SettingsRuntimeError } from '../types';
+import type {
+  BlockListClient,
+  BlockListCommandHandler,
+  BlockListCommandResponse,
+} from '../blockListTypes';
+import type {
+  SettingsClient,
+  SettingsCommandHandler,
+  SettingsCommandResponse,
+  SettingsRuntimeError,
+} from '../types';
+import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 
 export interface BackgroundCompositionRoot {
   settings: SettingsClient;
-  handler: SettingsCommandHandler;
+  blockList: BlockListClient;
+  settingsHandler: SettingsCommandHandler;
+  blockListHandler: BlockListCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -27,17 +41,28 @@ export const createBackgroundCompositionRoot = async (options: {
     return { ok: false, error: { kind: 'persistence-unavailable' } };
   }
 
+  const settingsOutcomeStore = createCommandOutcomeStore<SettingsCommandResponse>(options.adapter);
+  const blockListOutcomeStore = createCommandOutcomeStore<BlockListCommandResponse>(
+    options.adapter
+  );
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
-    { diagnostics, outcomeStore: createCommandOutcomeStore(options.adapter) }
+    { diagnostics, outcomeStore: settingsOutcomeStore }
+  );
+  const blockListHandler = createBlockListCommandHandler(
+    persistence,
+    initialized.value.documents['block-list'],
+    { adapter: options.adapter, diagnostics, outcomeStore: blockListOutcomeStore }
   );
 
   return {
     ok: true,
     value: {
       settings: createInProcessSettingsClient(settingsHandler),
-      handler: settingsHandler,
+      blockList: createInProcessBlockListClient(blockListHandler),
+      settingsHandler,
+      blockListHandler,
     },
   };
 };

@@ -1,84 +1,92 @@
 import { useState, type KeyboardEvent } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
 import TimesIcon from '../../assets/times.svg?url';
 import styles from './BlockedSites.module.css';
-import { selectBlockedSites } from '../../store/selectors';
-import type { AppDispatch, RootState } from '../../store';
-import { addBlockedSite, removeBlockedSite } from '../../store/actions/blockedSitesActions';
+import {
+  selectBlockListEntries,
+  selectBlockListRevision,
+  selectIsBlockListDisconnected,
+} from '../../store/selectors';
+import type { RootState } from '../../store';
+import { createAppBlockListClient } from '../../store/blockListClient';
+
+const blockListErrorMessage = (error: { kind: string }): string => {
+  switch (error.kind) {
+    case 'invalid-entry-input':
+      return 'Please enter a valid website (e.g., example.com or https://example.com)';
+    case 'duplicate-entry':
+      return 'This website is already on the Block List';
+    case 'entry-not-found':
+      return 'This website is not on the Block List';
+    case 'transport-unavailable':
+      return 'Block List is temporarily unavailable. Try again after reconnecting.';
+    default:
+      return 'Could not update the Block List. Please try again.';
+  }
+};
 
 const BlockedSites = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const sites = useSelector((state: RootState) => selectBlockedSites(state));
+  const entries = useSelector((state: RootState) => selectBlockListEntries(state));
+  const revision = useSelector((state: RootState) => selectBlockListRevision(state));
+  const disconnected = useSelector((state: RootState) => selectIsBlockListDisconnected(state));
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string>('');
 
-  const isValidDomain = (hostname: string): boolean => {
-    // Basic domain validation: must contain at least one dot and valid characters
-    // Matches patterns like: example.com, sub.example.com, example.co.uk
-    const domainPattern = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
-    return domainPattern.test(hostname);
-  };
-
-  const isValidUrl = (urlString: string): boolean => {
-    try {
-      const url = new URL(urlString);
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        return false;
-      }
-      return isValidDomain(url.hostname);
-    } catch {
-      try {
-        const url = new URL(`https://${urlString}`);
-        return isValidDomain(url.hostname);
-      } catch {
-        return false;
-      }
-    }
-  };
-
-  const normalizeUrl = (urlString: string): string => {
-    const trimmed = urlString.trim().toLowerCase();
-    const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
-    return withoutProtocol.replace(/\/$/, '');
-  };
-
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const trimmedValue = inputValue.trim();
     if (!trimmedValue) {
       setError('');
       return;
     }
 
-    const normalizedUrl = normalizeUrl(trimmedValue);
-
-    if (!isValidUrl(trimmedValue)) {
-      setError('Please enter a valid URL format (e.g., example.com or https://example.com)');
+    const client = createAppBlockListClient();
+    if (!client) {
+      setError('Block List is unavailable in this context.');
       return;
     }
 
-    if (sites.includes(normalizedUrl)) {
-      setError('This site is already in the blocked list');
+    const result = await client.addEntry(trimmedValue, {
+      expectedRevision: revision ?? undefined,
+    });
+    if (!result.ok) {
+      setError(blockListErrorMessage(result.error));
       return;
     }
 
-    dispatch(addBlockedSite(normalizedUrl));
     setInputValue('');
     setError('');
   };
 
+  const handleRemove = async (hostname: string) => {
+    const client = createAppBlockListClient();
+    if (!client) {
+      setError('Block List is unavailable in this context.');
+      return;
+    }
+
+    const result = await client.removeEntry(hostname, {
+      expectedRevision: revision ?? undefined,
+    });
+    if (!result.ok) {
+      setError(blockListErrorMessage(result.error));
+    } else {
+      setError('');
+    }
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleAdd();
+      void handleAdd();
     }
   };
 
   return (
     <div className={styles.blockedSites}>
       <div className={styles.headerContainer}>
-        <p className={styles.header}>Blocked Sites</p>
-        <p className={styles.caption}>Manage sites that should be blocked during focus time.</p>
+        <p className={styles.header}>Block List</p>
+        <p className={styles.caption}>Manage websites that should be blocked during focus time.</p>
       </div>
 
       <div className={styles.contentContainer}>
@@ -86,27 +94,28 @@ const BlockedSites = () => {
           <input
             type="text"
             className={styles.input}
-            placeholder="Enter site URL or name"
+            placeholder="Enter website URL or name"
             value={inputValue}
             onChange={(e) => {
               setInputValue(e.target.value);
               setError('');
             }}
             onKeyDown={handleKeyDown}
+            disabled={disconnected}
           />
-          <Button text="Add" onClick={handleAdd} variant="primary" />
+          <Button text="Add" onClick={() => void handleAdd()} variant="primary" />
         </div>
+        {disconnected && (
+          <p className={styles.errorMessage}>
+            Block List is read-only while disconnected from the background runtime.
+          </p>
+        )}
         {error && <p className={styles.errorMessage}>{error}</p>}
         <div className={styles.sitesList}>
-          {sites.map((site) => (
+          {entries.map((site) => (
             <div key={site} className={styles.siteItem}>
               <p className={styles.siteName}>{site}</p>
-              <Icon
-                src={TimesIcon}
-                alt="Remove"
-                size={9}
-                onClick={() => dispatch(removeBlockedSite(site))}
-              />
+              <Icon src={TimesIcon} alt="Remove" size={9} onClick={() => void handleRemove(site)} />
             </div>
           ))}
         </div>

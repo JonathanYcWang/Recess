@@ -1,17 +1,17 @@
 import type { KeyValueStorageAdapter } from '@/modules/persisted-application-state';
 import {
-  SETTINGS_RUNTIME_CHANNEL,
-  SETTINGS_RUNTIME_PORT_NAME,
-  isSettingsRuntimePortMessage,
-  isSettingsRuntimeRequest,
-  type SettingsRuntimeMessageResponse,
-} from '../messaging/messages';
+  BLOCK_LIST_RUNTIME_CHANNEL,
+  BLOCK_LIST_RUNTIME_PORT_NAME,
+  isBlockListRuntimePortMessage,
+  isBlockListRuntimeRequest,
+  type BlockListRuntimeMessageResponse,
+} from '../messaging/blockListMessages';
 import type { ExtensionRuntimePort } from '../messaging/extensionRuntimeApi';
-import type { SettingsCommandHandler } from '../types';
+import type { BlockListCommandHandler } from '../blockListTypes';
 import { getSharedBackgroundCompositionRoot } from './sharedCompositionRoot';
 
 type RuntimeListenerRegistration = {
-  handler: SettingsCommandHandler;
+  handler: BlockListCommandHandler;
 };
 
 let registration: RuntimeListenerRegistration | null = null;
@@ -19,18 +19,18 @@ let listenerRegistered = false;
 let rootReady: Promise<void> = Promise.resolve();
 
 const handleRequest = async (
-  message: Parameters<typeof isSettingsRuntimeRequest>[0]
-): Promise<SettingsRuntimeMessageResponse> => {
-  if (!isSettingsRuntimeRequest(message)) {
+  message: Parameters<typeof isBlockListRuntimeRequest>[0]
+): Promise<BlockListRuntimeMessageResponse> => {
+  if (!isBlockListRuntimeRequest(message)) {
     return {
-      channel: SETTINGS_RUNTIME_CHANNEL,
+      channel: BLOCK_LIST_RUNTIME_CHANNEL,
       ok: false,
       error: { kind: 'malformed-payload' },
     };
   }
   if (!registration) {
     return {
-      channel: SETTINGS_RUNTIME_CHANNEL,
+      channel: BLOCK_LIST_RUNTIME_CHANNEL,
       ok: false,
       error: { kind: 'missing-receiver' },
     };
@@ -39,7 +39,7 @@ const handleRequest = async (
   try {
     if (message.action === 'current') {
       return {
-        channel: SETTINGS_RUNTIME_CHANNEL,
+        channel: BLOCK_LIST_RUNTIME_CHANNEL,
         ok: true,
         action: 'current',
         result: registration.handler.current(),
@@ -47,14 +47,14 @@ const handleRequest = async (
     }
     const result = await registration.handler.execute(message.envelope);
     return {
-      channel: SETTINGS_RUNTIME_CHANNEL,
+      channel: BLOCK_LIST_RUNTIME_CHANNEL,
       ok: true,
       action: 'command',
       result,
     };
   } catch {
     return {
-      channel: SETTINGS_RUNTIME_CHANNEL,
+      channel: BLOCK_LIST_RUNTIME_CHANNEL,
       ok: false,
       error: { kind: 'malformed-payload' },
     };
@@ -62,7 +62,7 @@ const handleRequest = async (
 };
 
 const attachPort = (port: ExtensionRuntimePort) => {
-  if (port.name !== SETTINGS_RUNTIME_PORT_NAME) {
+  if (port.name !== BLOCK_LIST_RUNTIME_PORT_NAME) {
     return;
   }
   if (!registration) {
@@ -77,7 +77,7 @@ const attachPort = (port: ExtensionRuntimePort) => {
     }
     try {
       port.postMessage({
-        channel: SETTINGS_RUNTIME_CHANNEL,
+        channel: BLOCK_LIST_RUNTIME_CHANNEL,
         action: 'snapshot',
         snapshot: current.value,
       });
@@ -91,7 +91,7 @@ const attachPort = (port: ExtensionRuntimePort) => {
   });
 
   const onPortMessage = (message: unknown) => {
-    if (!isSettingsRuntimePortMessage(message) || message.action !== 'subscribe') {
+    if (!isBlockListRuntimePortMessage(message) || message.action !== 'subscribe') {
       return;
     }
     publishCurrent();
@@ -104,7 +104,7 @@ const attachPort = (port: ExtensionRuntimePort) => {
   });
 };
 
-export const registerSettingsRuntimeListener = (options: {
+export const registerBlockListRuntimeListener = (options: {
   adapter: KeyValueStorageAdapter;
   runtime: {
     onMessage: {
@@ -112,7 +112,7 @@ export const registerSettingsRuntimeListener = (options: {
         listener: (
           message: unknown,
           sender: unknown,
-          sendResponse: (response: SettingsRuntimeMessageResponse) => void
+          sendResponse: (response: BlockListRuntimeMessageResponse) => void
         ) => boolean | void
       ): void;
     };
@@ -130,11 +130,11 @@ export const registerSettingsRuntimeListener = (options: {
     if (!root.ok) {
       return;
     }
-    registration = { handler: root.value.settingsHandler };
+    registration = { handler: root.value.blockListHandler };
   });
 
   options.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (!isSettingsRuntimeRequest(message)) {
+    if (!isBlockListRuntimeRequest(message)) {
       return;
     }
     void rootReady.then(() => handleRequest(message)).then(sendResponse);
@@ -148,7 +148,7 @@ export const registerSettingsRuntimeListener = (options: {
   });
 };
 
-export const resetSettingsRuntimeListenerForTests = (): void => {
+export const resetBlockListRuntimeListenerForTests = (): void => {
   registration = null;
   listenerRegistered = false;
   rootReady = Promise.resolve();

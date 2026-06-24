@@ -5,6 +5,7 @@ import blockedSitesReducer from './reducers/blockedSitesReducer';
 import routingReducer from './reducers/routingReducer';
 import quizReducer from './reducers/quizReducer';
 import settingsProjectionReducer from './reducers/settingsProjectionReducer';
+import blockListProjectionReducer from './reducers/blockListProjectionReducer';
 import { storageMiddleware } from './storageMiddleware';
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     routing: routingReducer,
     quiz: quizReducer,
     settingsProjection: settingsProjectionReducer,
+    blockListProjection: blockListProjectionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

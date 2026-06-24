@@ -46,7 +46,9 @@ const createTestClient = async (options?: {
   if (!root.ok) {
     throw new Error('expected runtime initialization');
   }
-  const base = createMessagingSettingsClient(createInProcessRuntimeTransport(root.value.handler));
+  const base = createMessagingSettingsClient(
+    createInProcessRuntimeTransport(root.value.settingsHandler)
+  );
   if (options?.current) {
     base.current = options.current;
   }
