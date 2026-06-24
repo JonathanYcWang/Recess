@@ -31,6 +31,8 @@ import {
   workRhythmFocusAlarmName,
   workRhythmTimeOutReportAlarmName,
   workRhythmWindDownAlarmName,
+  createWorkSessionStartedFact,
+  workSessionStartedFactId,
   type WorkRhythmFocusBlock,
   type WorkRhythmTimeOut,
   type WorkRhythmValue,
@@ -108,6 +110,10 @@ export const createWorkRhythmCommandHandler = (
     diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkRhythmCommandResponse>;
     timeOutReportNotifier?: TimeOutReportNotifier;
+    onWorkSessionStarted?: (input: {
+      workSessionId: string;
+      startedAtEpochMs: number;
+    }) => Promise<void>;
   }
 ): WorkRhythmCommandHandler => {
   let currentDocument = {
@@ -121,6 +127,7 @@ export const createWorkRhythmCommandHandler = (
   const alarms = options.alarms;
   const coinHandler = options.coinHandler;
   const effectExecutor = options.effectExecutor;
+  const onWorkSessionStarted = options.onWorkSessionStarted;
   const timeOutReportNotifier = options.timeOutReportNotifier ?? createNoOpTimeOutReportNotifier();
   const createSessionId =
     options.createSessionId ??
@@ -653,9 +660,11 @@ export const createWorkRhythmCommandHandler = (
       return toFailure({ kind: 'persistence-failed' });
     }
 
+    const sessionId = createSessionId();
+    const nowEpochMs = clock.nowEpochMs();
     const decided = applyWorkRhythmCommand(currentDocument.value, envelope.command, {
-      nowEpochMs: clock.nowEpochMs(),
-      sessionId: createSessionId(),
+      nowEpochMs,
+      sessionId,
       preferredCadence: profile.value.value.preferredCadence,
       selectedTaskRemainingMinutes: null,
       gameBudget: { kind: 'cards' },
@@ -685,6 +694,29 @@ export const createWorkRhythmCommandHandler = (
     const workRhythm = committed.value.documents['work-rhythm'];
     if (!workRhythm || workRhythm.value.phase !== 'focus-block') {
       return toFailure({ kind: 'persistence-failed' });
+    }
+
+    if (effectExecutor) {
+      await runWorkHistoryAppendEffectTransition({
+        executor: effectExecutor,
+        commandId: envelope.commandId,
+        fact: createWorkSessionStartedFact({
+          factId: workSessionStartedFactId(workRhythm.value.sessionId),
+          recordedAt: nowEpochMs,
+          workSessionId: workRhythm.value.sessionId,
+          startedAtEpochMs: workRhythm.value.sessionStartedAtEpochMs,
+          goalSeconds: workRhythm.value.originalGoalSeconds,
+          energy: workRhythm.value.energy,
+        }),
+        outcomeRevision: workRhythm.revision,
+      });
+    }
+
+    if (onWorkSessionStarted) {
+      await onWorkSessionStarted({
+        workSessionId: workRhythm.value.sessionId,
+        startedAtEpochMs: workRhythm.value.sessionStartedAtEpochMs,
+      });
     }
 
     await scheduleFocusAlarm(workRhythm.value);

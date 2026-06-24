@@ -5,6 +5,7 @@ import type {
 } from '@/modules/persisted-application-state';
 import {
   activateOccurrenceByAlarm,
+  applyOccurrenceResolution,
   cloneWorkStartReminderValue,
   decideAddSchedule,
   decideDeleteSchedule,
@@ -247,12 +248,14 @@ export const createWorkStartReminderCommandHandler = (
   };
 
   const commitValue = async (
-    nextValue: WorkStartReminderValue
+    nextValue: WorkStartReminderValue,
+    options?: { workSessionStart?: { workSessionId: string; startedAtEpochMs: number } }
   ): Promise<WorkStartReminderCommandResponse> => {
     const timeZoneId = resolveLocalTimeZoneId();
     const nowEpochMs = clock.nowEpochMs();
+    const resolved = applyOccurrenceResolution(nextValue, nowEpochMs, options?.workSessionStart);
     const recalculated = recalculateAllScheduleOccurrences(
-      nextValue,
+      resolved,
       nowEpochMs,
       timeZoneId,
       createOccurrenceId
@@ -454,15 +457,23 @@ export const createWorkStartReminderCommandHandler = (
         occurrenceId: occurrence.id,
         scheduleId: occurrence.scheduleId,
       });
-      if (!delivered.ok) {
-        return toFailure({ kind: 'notification-delivery-failed' });
-      }
 
       currentDocument = {
         revision: currentDocument.revision,
         value: activated.value,
       };
-      return commitValue(currentDocument.value);
+      const response = await commitValue(currentDocument.value);
+      if (!delivered.ok && response.ok) {
+        return toFailure({ kind: 'notification-delivery-failed' });
+      }
+      return response;
+    },
+
+    async applyWorkSessionStarted(input: {
+      workSessionId: string;
+      startedAtEpochMs: number;
+    }): Promise<WorkStartReminderCommandResponse> {
+      return commitValue(currentDocument.value, { workSessionStart: input });
     },
 
     async execute(envelopeInput: unknown): Promise<WorkStartReminderCommandResponse> {

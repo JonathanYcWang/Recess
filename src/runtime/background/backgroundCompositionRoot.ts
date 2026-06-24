@@ -156,6 +156,19 @@ export const createBackgroundCompositionRoot = async (options: {
     createSafariCompatibleBrowserActivityAdapter() ??
     createInMemoryBrowserActivityAdapter(createInMemoryBrowserActivityState());
 
+  const workStartReminderHandler = createWorkStartReminderCommandHandler(
+    persistence,
+    initialized.value.documents['work-start-reminder'],
+    {
+      clock,
+      alarms,
+      notifications: createSafariCompatibleReminderNotificationAdapter(),
+      adapter: options.adapter,
+      diagnostics,
+      outcomeStore: workStartReminderOutcomeStore,
+    }
+  );
+
   const workRhythmHandler = createWorkRhythmCommandHandler(
     persistence,
     initialized.value.documents['work-rhythm'],
@@ -167,6 +180,9 @@ export const createBackgroundCompositionRoot = async (options: {
       diagnostics,
       outcomeStore: workRhythmOutcomeStore,
       timeOutReportNotifier: createSessionNotificationTimeOutReportNotifier(),
+      onWorkSessionStarted: async (input) => {
+        await workStartReminderHandler.applyWorkSessionStarted(input);
+      },
     }
   );
   await workRhythmHandler.reconcileDueBoundaries();
@@ -192,19 +208,24 @@ export const createBackgroundCompositionRoot = async (options: {
     }
   );
 
-  const workStartReminderHandler = createWorkStartReminderCommandHandler(
-    persistence,
-    initialized.value.documents['work-start-reminder'],
-    {
-      clock,
-      alarms,
-      notifications: createSafariCompatibleReminderNotificationAdapter(),
-      adapter: options.adapter,
-      diagnostics,
-      outcomeStore: workStartReminderOutcomeStore,
-    }
-  );
   await workStartReminderHandler.bootstrapPlanning();
+  const workHistoryFacts = await workHistory.query();
+  if (workHistoryFacts.ok) {
+    for (const fact of workHistoryFacts.value) {
+      if (fact.kind !== 'work-session-started') {
+        continue;
+      }
+      const workSessionId = fact.payload.workSessionId;
+      const startedAtEpochMs = fact.payload.startedAtEpochMs;
+      if (typeof workSessionId !== 'string' || typeof startedAtEpochMs !== 'number') {
+        continue;
+      }
+      await workStartReminderHandler.applyWorkSessionStarted({
+        workSessionId,
+        startedAtEpochMs,
+      });
+    }
+  }
 
   return {
     ok: true,

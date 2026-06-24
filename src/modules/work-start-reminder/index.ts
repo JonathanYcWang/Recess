@@ -65,7 +65,12 @@ export {
   resolveTodayInstantForSchedule,
 } from './occurrenceRecalculation';
 export {
-  isWeekdays,
-  validateReminderSchedule,
-  type ScheduleValidationError,
-} from './scheduleValidation';
+  applyOccurrenceResolution,
+  buildCoalescingGroups,
+  coalescingGroupDeadlineEpochMs,
+  expireUnresolvedOccurrences,
+  isOpenOccurrence,
+  isWorkSessionStartWithinOccurrenceWindow,
+  occurrenceWindowEndEpochMs,
+  resolveOccurrencesOnWorkSessionStart,
+} from './occurrenceResolution';
