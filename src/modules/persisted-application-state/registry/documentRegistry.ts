@@ -6,15 +6,18 @@ import type {
 } from '../types';
 import { blockListCodec } from '@/modules/block-list';
 import { workstyleProfileCodec } from '@/modules/workstyle-profile';
+import { coinCodec } from '@/modules/coin';
 import { settingsCodec } from '../settings/settingsCodec';
 import type { SettingsValue } from '../settings/settingsDocument';
 import { createDefaultSettingsValue } from '../settings/settingsDocument';
 import type { BlockListValue } from '@/modules/block-list';
 import type { WorkstyleProfileValue } from '@/modules/workstyle-profile';
+import type { CoinLedgerValue } from '@/modules/coin';
 
 export const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 export const BLOCK_LIST_DOCUMENT_KEY = '__recess_doc_block_list';
 export const WORKSTYLE_PROFILE_DOCUMENT_KEY = '__recess_doc_workstyle_profile';
+export const COIN_DOCUMENT_KEY = '__recess_doc_coin';
 
 export interface DocumentRegistryEntry<T> {
   document: PersistedDocumentName;
@@ -42,16 +45,24 @@ export const documentRegistry = {
     codec: workstyleProfileCodec,
     createDefault: () => workstyleProfileCodec.createDefault(),
   },
+  coin: {
+    document: 'coin',
+    storageKey: COIN_DOCUMENT_KEY,
+    codec: coinCodec,
+    createDefault: () => coinCodec.createDefault(),
+  },
 } as const satisfies {
   settings: DocumentRegistryEntry<SettingsValue>;
   'block-list': DocumentRegistryEntry<BlockListValue>;
   'workstyle-profile': DocumentRegistryEntry<WorkstyleProfileValue>;
+  coin: DocumentRegistryEntry<CoinLedgerValue>;
 };
 
 export const registeredDocumentNames = [
   'settings',
   'block-list',
   'workstyle-profile',
+  'coin',
 ] as const satisfies readonly PersistedDocumentName[];
 
 export const allOperationalStorageKeys = (): string[] =>

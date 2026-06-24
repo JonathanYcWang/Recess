@@ -23,8 +23,10 @@
   "ignoreFiles": [
     "src/components/PrizeWheel/**",
     "src/components/ParticleBurst/**",
+    "src/components/QuizQuestion/**",
     "src/hooks/useParticles.ts",
-    "src/hooks/useSettings.ts"
+    "src/hooks/useSettings.ts",
+    "src/pages/QuizPage/**"
   ],
   "vite": {
     "config": ["vite.config.ts", "vite.background.config.ts"]
