@@ -5,6 +5,8 @@ import type {
 } from '@/modules/persisted-application-state';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
+import type { EffectExecutor } from '../effects/effectExecutor';
+import { runSettingsEffectTransition } from '../effects/settingsEffectTransition';
 import {
   decodeSettingsCommandEnvelope,
   isThemePreference,
@@ -52,7 +54,7 @@ const toFailure = (error: SettingsCommandError): SettingsCommandResponse => ({
 export const createSettingsCommandHandler = (
   persistence: PersistedApplicationState,
   initialized: VersionedDocument<SettingsValue>,
-  options?: { diagnostics?: DiagnosticRingBuffer }
+  options?: { diagnostics?: DiagnosticRingBuffer; effectExecutor?: EffectExecutor }
 ): SettingsCommandHandler => {
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<SettingsCommandResponse>();
@@ -121,7 +123,17 @@ export const createSettingsCommandHandler = (
     }
     current = cloneSnapshot(settings);
     notifyListeners();
-    return toSuccess(current);
+    const response = toSuccess(current);
+    if (!options?.effectExecutor) {
+      return response;
+    }
+    return runSettingsEffectTransition({
+      executor: options.effectExecutor,
+      commandId: envelope.commandId,
+      preference: envelope.command.preference,
+      outcomeRevision: current.revision,
+      response,
+    });
   };
 
   return {
