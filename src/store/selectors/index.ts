@@ -8,3 +8,4 @@ export * from './settingsProjectionSelectors';
 export * from './blockListProjectionSelectors';
 export * from './workstyleProfileProjectionSelectors';
 export * from './workRhythmProjectionSelectors';
+export * from './taskListProjectionSelectors';

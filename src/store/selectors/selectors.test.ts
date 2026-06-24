@@ -10,6 +10,7 @@ import routingReducer from '../reducers/routingReducer';
 import settingsProjectionReducer from '../reducers/settingsProjectionReducer';
 import timerReducer from '../reducers/timerReducer';
 import workStartReminderProjectionReducer from '../reducers/workStartReminderProjectionReducer';
+import taskListProjectionReducer from '../reducers/taskListProjectionReducer';
 import type { RootState } from '../index';
 import { addBlockedSite } from '../actions/blockedSitesActions';
 import { selectOption } from '../actions/quizActions';
@@ -75,6 +76,7 @@ const createState = (): RootState => ({
   workstyleProfileProjection: workstyleProfileProjectionReducer(undefined, { type: 'test/init' }),
   workRhythmProjection: workRhythmProjectionReducer(undefined, { type: 'test/init' }),
   hallPassProjection: hallPassProjectionReducer(undefined, { type: 'test/init' }),
+  taskListProjection: taskListProjectionReducer(undefined, { type: 'test/init' }),
 });
 
 describe('Redux selectors', () => {

@@ -19,6 +19,8 @@ import { createAppHallPassClient } from './store/hallPassClient';
 import { startHallPassProjectionSubscription } from './store/hallPassProjectionSubscription';
 import { createAppWorkStartReminderClient } from './store/workStartReminderClient';
 import { startWorkStartReminderProjectionSubscription } from './store/workStartReminderProjectionSubscription';
+import { createAppTaskListClient } from './store/taskListClient';
+import { startTaskListProjectionSubscription } from './store/taskListProjectionSubscription';
 import { startAccessContextPublisher } from './store/accessContextSubscription';
 
 // Initialize store from storage
@@ -75,6 +77,14 @@ seedInitialStateInStorage()
     if (workStartReminderClient) {
       startWorkStartReminderProjectionSubscription({
         client: workStartReminderClient,
+        dispatch: store.dispatch,
+      });
+    }
+
+    const taskListClient = createAppTaskListClient();
+    if (taskListClient) {
+      startTaskListProjectionSubscription({
+        client: taskListClient,
         dispatch: store.dispatch,
       });
     }

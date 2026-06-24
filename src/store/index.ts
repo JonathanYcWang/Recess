@@ -9,6 +9,7 @@ import workstyleProfileProjectionReducer from './reducers/workstyleProfileProjec
 import workRhythmProjectionReducer from './reducers/workRhythmProjectionReducer';
 import hallPassProjectionReducer from './reducers/hallPassProjectionReducer';
 import workStartReminderProjectionReducer from './reducers/workStartReminderProjectionReducer';
+import taskListProjectionReducer from './reducers/taskListProjectionReducer';
 import { storageMiddleware } from './storageMiddleware';
 
 export const store = configureStore({
@@ -23,6 +24,7 @@ export const store = configureStore({
     workRhythmProjection: workRhythmProjectionReducer,
     hallPassProjection: hallPassProjectionReducer,
     workStartReminderProjection: workStartReminderProjectionReducer,
+    taskListProjection: taskListProjectionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

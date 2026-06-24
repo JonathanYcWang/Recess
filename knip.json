@@ -32,7 +32,12 @@
     "src/store/workStartReminderConnectionManager.ts": ["exports"],
     "src/store/workStartReminderProjectionSubscription.ts": ["exports"],
     "src/store/reducers/workStartReminderProjectionReducer.ts": ["types"],
-    "src/store/selectors/workStartReminderProjectionSelectors.ts": ["exports"]
+    "src/store/selectors/workStartReminderProjectionSelectors.ts": ["exports"],
+    "src/store/taskListClient.ts": ["exports"],
+    "src/store/taskListConnectionManager.ts": ["exports"],
+    "src/store/taskListProjectionSubscription.ts": ["exports"],
+    "src/store/reducers/taskListProjectionReducer.ts": ["types"],
+    "src/store/selectors/taskListProjectionSelectors.ts": ["exports"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreFiles": [

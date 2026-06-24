@@ -5,6 +5,7 @@ import './backgroundWorkstyleProfileRuntime';
 import './backgroundWorkRhythmRuntime';
 import './backgroundHallPassRuntime';
 import './backgroundWorkStartReminderRuntime';
+import './backgroundTaskListRuntime';
 
 void seedInitialStateInStorage();
 
