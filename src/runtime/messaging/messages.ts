@@ -11,7 +11,8 @@ export type SettingsRuntimeTransportError =
   | { kind: 'missing-receiver' }
   | { kind: 'closed-channel' }
   | { kind: 'malformed-payload' }
-  | { kind: 'extension-shutdown' };
+  | { kind: 'extension-shutdown' }
+  | { kind: 'transport-unavailable' };
 
 export type SettingsRuntimeMessageResponse =
   | {

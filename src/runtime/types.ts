@@ -31,6 +31,10 @@ export type SettingsRuntimeResult =
   | { ok: true; value: SettingsSnapshot }
   | { ok: false; error: SettingsRuntimeError };
 
+export interface SettingsSubscribeOptions {
+  onTransportLoss?: () => void;
+}
+
 export interface SettingsCommandHandler {
   current(): SettingsRuntimeResult;
   execute(envelope: unknown): Promise<SettingsCommandResponse>;
@@ -44,5 +48,8 @@ export interface SettingsClient {
     preference: ThemePreference,
     options?: { commandId?: string; expectedRevision?: number }
   ): Promise<SettingsClientCommandResult>;
-  subscribe(listener: (snapshot: SettingsSnapshot) => void): () => void;
+  subscribe(
+    listener: (snapshot: SettingsSnapshot) => void,
+    options?: SettingsSubscribeOptions
+  ): () => void;
 }

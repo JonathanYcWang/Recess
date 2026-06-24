@@ -58,16 +58,20 @@ export const createMessagingSettingsClient = (
         },
       })
     ),
-  subscribe(listener) {
+  subscribe(listener, options) {
     const port = transport.connect();
     const removeMessageListener = port.onMessage((message: SettingsRuntimePortMessage) => {
       if (message.action === 'snapshot') {
         listener(message.snapshot);
       }
     });
+    const removeDisconnectListener = options?.onTransportLoss
+      ? port.onDisconnect(() => options.onTransportLoss?.())
+      : () => undefined;
     port.postMessage({ channel: SETTINGS_RUNTIME_CHANNEL, action: 'subscribe' });
     return () => {
       removeMessageListener();
+      removeDisconnectListener();
       port.disconnect();
     };
   },
