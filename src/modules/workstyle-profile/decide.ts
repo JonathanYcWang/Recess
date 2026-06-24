@@ -163,6 +163,7 @@ export const applyWorkstyleProfileCommand = (
       next.friction = { ...cloneFrictionProfile(next.friction) };
       const field = frictionDimensionToField(primaryFriction.value);
       next.friction[field] = 'high';
+      next.onboardingCompleted = true;
       return { ok: true, value: next };
     }
     case 'assign-pet': {

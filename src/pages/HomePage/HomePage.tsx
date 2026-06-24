@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
+import { selectOnboardingCompleted } from '../../store/selectors/workstyleProfileProjectionSelectors';
 // import PrizeWheel from '@/components/PrizeWheel/PrizeWheel';
 import FocusPet from '@/components/FocusPet/FocusPet';
 import WorkPage from '@/components/WorkPage/WorkPage';
@@ -87,12 +90,42 @@ const renderSectionContent = (mainContent: MainSectionId) => {
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const onboardingCompleted = useSelector((state: RootState) => selectOnboardingCompleted(state));
+  const [checkedOnboarding, setCheckedOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (onboardingCompleted) {
+      setCheckedOnboarding(true);
+      return;
+    }
+    void chrome.runtime
+      .sendMessage({
+        channel: 'recess.workstyle-profile.runtime.v1',
+        action: 'current',
+      })
+      .then((response) => {
+        const completed = Boolean(
+          response?.ok && response.result?.ok && response.result.value.value.onboardingCompleted
+        );
+        if (!completed) {
+          navigate('/onboarding');
+        }
+        setCheckedOnboarding(true);
+      })
+      .catch(() => {
+        navigate('/onboarding');
+        setCheckedOnboarding(true);
+      });
+  }, [navigate, onboardingCompleted]);
 
   const handleGoHome = () => {
     navigate('/');
   };
 
   const [mainContent, setMainContent] = useState<MainSectionId>('focus');
+  if (!checkedOnboarding && !onboardingCompleted) {
+    return null;
+  }
   return (
     <div className={styles.homePage}>
       <div className={styles.layout}>

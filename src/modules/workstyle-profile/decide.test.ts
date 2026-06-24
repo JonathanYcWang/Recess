@@ -30,6 +30,7 @@ describe('applyWorkstyleProfileCommand', () => {
       expect(initialized.value.momentum).toBe('steady');
       expect(initialized.value.friction.distraction).toBe('high');
       expect(initialized.value.assignedPetId).toBeNull();
+      expect(initialized.value.onboardingCompleted).toBe(true);
     }
   });
 

@@ -20,6 +20,7 @@ export interface WorkstyleProfileProjectionState {
   momentum: MomentumLevel;
   friction: FrictionProfile;
   assignedPetId: string | null;
+  onboardingCompleted: boolean;
   connectionState: WorkstyleProfileConnectionState;
 }
 
@@ -32,6 +33,7 @@ const initialState: WorkstyleProfileProjectionState = {
   momentum: defaults.momentum,
   friction: { ...defaults.friction },
   assignedPetId: defaults.assignedPetId,
+  onboardingCompleted: defaults.onboardingCompleted,
   connectionState: 'connecting',
 };
 
@@ -44,6 +46,7 @@ const workstyleProfileProjectionReducer = createReducer(initialState, (builder) 
       state.momentum = action.payload.momentum;
       state.friction = { ...action.payload.friction };
       state.assignedPetId = action.payload.assignedPetId;
+      state.onboardingCompleted = action.payload.onboardingCompleted;
       state.connectionState = 'connected';
     })
     .addCase(setWorkstyleProfileConnectionState, (state, action) => {

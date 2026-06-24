@@ -35,6 +35,7 @@ export interface WorkstyleProfileValue {
   momentum: MomentumLevel;
   friction: FrictionProfile;
   assignedPetId: string | null;
+  onboardingCompleted: boolean;
 }
 
 const DEFAULT_FRICTION: FrictionProfile = {
@@ -52,6 +53,7 @@ export const createDefaultWorkstyleProfileValue = (): WorkstyleProfileValue => (
   momentum: 'steady',
   friction: { ...DEFAULT_FRICTION },
   assignedPetId: null,
+  onboardingCompleted: false,
 });
 
 export const frictionDimensionToField = (dimension: FrictionDimension): keyof FrictionProfile => {
@@ -88,4 +90,5 @@ export const cloneWorkstyleProfileValue = (
   momentum: value.momentum,
   friction: cloneFrictionProfile(value.friction),
   assignedPetId: value.assignedPetId,
+  onboardingCompleted: value.onboardingCompleted,
 });
