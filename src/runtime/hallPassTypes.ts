@@ -1,7 +1,10 @@
-import type { HallPassSnapshot } from '@/modules/hall-pass';
+import type { VersionedDocument } from '@/modules/persisted-application-state';
+import type { HallPassValue, HallPassSnapshot } from '@/modules/hall-pass';
 import type { HallPassCommandEnvelope, HallPassCommandError } from './protocol/hallPassCommand';
 import type { HallPassRuntimeTransportError } from './messaging/hallPassMessages';
 import type { RuntimeCommandResponse } from './protocol/types';
+
+export type HallPassDocumentSnapshot = VersionedDocument<HallPassValue>;
 
 export type HallPassPublishedSnapshot = {
   revision: number;
@@ -44,6 +47,12 @@ export interface HallPassCommandHandler {
     blockListEntries: readonly string[];
     isTimeOut: boolean;
   }): Promise<HallPassCommandResponse>;
+  settleAtBoundary(input: {
+    blockListEntries: readonly string[];
+    isTimeOut: boolean;
+    nowEpochMs: number;
+  }): Promise<HallPassCommandResponse>;
+  reconcileMeter(input?: { nowEpochMs?: number }): Promise<HallPassCommandResponse>;
 }
 
 export interface HallPassClient {
@@ -55,6 +64,10 @@ export interface HallPassClient {
   ): Promise<HallPassClientCommandResult>;
   cancelPending(
     requestId?: string,
+    options?: { commandId?: string; expectedRevision?: number }
+  ): Promise<HallPassClientCommandResult>;
+  revoke(
+    passId?: string,
     options?: { commandId?: string; expectedRevision?: number }
   ): Promise<HallPassClientCommandResult>;
   subscribe(

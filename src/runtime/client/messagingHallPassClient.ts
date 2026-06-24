@@ -82,6 +82,20 @@ export const createMessagingHallPassClient = (
         },
       })
     ),
+  revoke: async (passId, options) =>
+    unwrapCommand(
+      await transport.send({
+        channel: HALL_PASS_RUNTIME_CHANNEL,
+        action: 'command',
+        envelope: {
+          protocolVersion: RUNTIME_PROTOCOL_VERSION,
+          commandId: options?.commandId ?? createCommandId(),
+          module: 'hall-pass',
+          expectedRevision: options?.expectedRevision,
+          command: { kind: 'revoke', passId },
+        },
+      })
+    ),
   subscribe(listener, options) {
     const port = transport.connect();
     const removeMessageListener = port.onMessage((message: HallPassRuntimePortMessage) => {

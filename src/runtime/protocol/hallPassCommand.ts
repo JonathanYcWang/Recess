@@ -4,7 +4,10 @@ import type { RuntimeCommandEnvelope } from './types';
 export type HallPassCommand =
   | { kind: 'report-blocked-attempt'; url: unknown; requestId: unknown; reportedAtEpochMs: unknown }
   | { kind: 'confirm-grant'; requestId: unknown; passId: unknown; grantedAtEpochMs: unknown }
-  | { kind: 'cancel-pending'; requestId?: unknown };
+  | { kind: 'confirm-replace'; requestId: unknown; passId: unknown; grantedAtEpochMs: unknown }
+  | { kind: 'cancel-pending'; requestId?: unknown }
+  | { kind: 'revoke'; passId?: unknown }
+  | { kind: 'reconcile-meter'; nowEpochMs: unknown };
 
 export type HallPassCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -25,6 +28,7 @@ export type HallPassCommandError =
   | { kind: 'stale-revision'; expectedRevision: number; actualRevision: number }
   | { kind: 'persistence-unavailable' }
   | { kind: 'persistence-failed' }
+  | { kind: 'coin-settlement-failed' }
   | { kind: 'unexpected-runtime'; diagnosticId: string };
 
 export type HallPassCommandEnvelope = RuntimeCommandEnvelope<HallPassCommand>;
@@ -145,12 +149,41 @@ export const decodeHallPassCommandEnvelope = (
           },
         },
       };
+    case 'confirm-replace':
+      return {
+        ok: true,
+        value: {
+          ...base,
+          command: {
+            kind: 'confirm-replace',
+            requestId: command.requestId,
+            passId: command.passId,
+            grantedAtEpochMs: command.grantedAtEpochMs,
+          },
+        },
+      };
     case 'cancel-pending':
       return {
         ok: true,
         value: {
           ...base,
           command: { kind: 'cancel-pending', requestId: command.requestId },
+        },
+      };
+    case 'revoke':
+      return {
+        ok: true,
+        value: {
+          ...base,
+          command: { kind: 'revoke', passId: command.passId },
+        },
+      };
+    case 'reconcile-meter':
+      return {
+        ok: true,
+        value: {
+          ...base,
+          command: { kind: 'reconcile-meter', nowEpochMs: command.nowEpochMs },
         },
       };
     default:

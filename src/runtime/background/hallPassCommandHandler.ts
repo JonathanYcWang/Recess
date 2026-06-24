@@ -5,12 +5,18 @@ import type {
 import {
   cloneHallPassValue,
   decideCancelPending,
+  decideClearForNonTimeOut,
   decideConfirmGrant,
+  decideConfirmReplace,
+  decideMeterActivity,
   decideReportBlockedAttempt,
+  decideRevokePass,
+  decideSettlePassAtBoundary,
   projectHallPassEntry,
   projectHallPassSnapshot,
   type HallPassValue,
 } from '@/modules/hall-pass';
+import type { BrowserActivityAdapter } from '@/modules/browser-activity/types';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
@@ -66,6 +72,7 @@ export const createHallPassCommandHandler = (
   options: {
     clock: Clock;
     coinHandler: CoinCommandHandler;
+    browserActivity: BrowserActivityAdapter;
     phaseContext: HallPassPhaseContextProvider;
     diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<HallPassCommandResponse>;
@@ -81,11 +88,13 @@ export const createHallPassCommandHandler = (
   const outcomeStore = options.outcomeStore;
   const clock = options.clock;
   const coinHandler = options.coinHandler;
+  const browserActivity = options.browserActivity;
   const phaseContext = options.phaseContext;
   const createPassId =
     options.createPassId ??
     (() => `hp-${clock.nowEpochMs()}-${Math.random().toString(36).slice(2, 10)}`);
   const listeners = new Set<(snapshot: HallPassPublishedSnapshot) => void>();
+  let meterReconcileInFlight: Promise<HallPassCommandResponse | null> | null = null;
 
   const hydrateLedgerFromStore = async (): Promise<void> => {
     if (!outcomeStore) {
@@ -148,6 +157,35 @@ export const createHallPassCommandHandler = (
     return toSuccess(publishSnapshot());
   };
 
+  const applyDebits = async (
+    debits: Array<{ transactionId: string; amount: number; minuteOrdinal: number }>,
+    passId: string,
+    nowEpochMs: number
+  ): Promise<HallPassCommandResponse | null> => {
+    for (const debit of debits) {
+      const result = await coinHandler.execute({
+        protocolVersion: RUNTIME_PROTOCOL_VERSION,
+        commandId: debit.transactionId,
+        module: 'coin',
+        command: {
+          kind: 'debit',
+          transactionId: debit.transactionId,
+          amount: debit.amount,
+          recordedAt: nowEpochMs,
+          reasonCode: 'hall-pass',
+          context: { passId, minuteOrdinal: debit.minuteOrdinal },
+        },
+      });
+      if (!result.ok) {
+        if (result.error.kind === 'insufficient-funds') {
+          return toFailure({ kind: 'zero-balance' });
+        }
+        return toFailure({ kind: 'coin-settlement-failed' });
+      }
+    }
+    return null;
+  };
+
   const recordUnexpected = (commandId: string, error: unknown): HallPassCommandResponse => {
     const message = error instanceof Error ? error.message : 'unexpected runtime failure';
     const record = diagnostics?.record({
@@ -159,6 +197,43 @@ export const createHallPassCommandHandler = (
       kind: 'unexpected-runtime',
       diagnosticId: record?.id ?? 'diag-unavailable',
     });
+  };
+
+  const meterContext = async (nowEpochMs: number) => {
+    const activity = await browserActivity.queryState();
+    const context = phaseContext();
+    return {
+      nowEpochMs,
+      coinBalance: readCoinBalance(),
+      focusedWindowId: activity.ok ? activity.value.focusedWindowId : null,
+      activeTab: activity.ok ? activity.value.activeTab : null,
+      context: {
+        isTimeOut: context.isTimeOut,
+        blockListEntries: context.blockListEntries,
+      },
+    };
+  };
+
+  const settleAtBoundaryInternal = async (input: {
+    nowEpochMs: number;
+  }): Promise<HallPassCommandResponse> => {
+    const meterInput = await meterContext(input.nowEpochMs);
+    const decided = decideSettlePassAtBoundary(currentDocument.value, meterInput);
+    if (!decided.ok) {
+      return toFailure(mapDecisionError(decided.error));
+    }
+    if (decided.value.kind === 'meter-updated' && decided.value.debits.length > 0) {
+      const passId = currentDocument.value.activePass?.passId ?? 'unknown';
+      const debitFailure = await applyDebits(decided.value.debits, passId, input.nowEpochMs);
+      if (debitFailure) {
+        return debitFailure;
+      }
+      return (await commitValue(decided.value.value)) as HallPassCommandResponse;
+    }
+    if (decided.value.kind === 'pass-revoked') {
+      return (await commitValue(decided.value.value)) as HallPassCommandResponse;
+    }
+    return toSuccess(publishSnapshot());
   };
 
   const executeFresh = async (
@@ -176,6 +251,7 @@ export const createHallPassCommandHandler = (
     }
 
     const phase = phaseContext();
+    const meterInput = await meterContext(clock.nowEpochMs());
 
     switch (envelope.command.kind) {
       case 'report-blocked-attempt': {
@@ -212,6 +288,22 @@ export const createHallPassCommandHandler = (
         }
         return (await commitValue(decided.value.value)) as HallPassCommandResponse;
       }
+      case 'confirm-replace': {
+        const decided = decideConfirmReplace(currentDocument.value, {
+          requestId: String(envelope.command.requestId),
+          passId: String(envelope.command.passId ?? createPassId()),
+          grantedAtEpochMs: Number(envelope.command.grantedAtEpochMs ?? clock.nowEpochMs()),
+          coinBalance: readCoinBalance(),
+          context: {
+            isTimeOut: phase.isTimeOut,
+            blockListEntries: phase.blockListEntries,
+          },
+        });
+        if (!decided.ok) {
+          return toFailure(mapDecisionError(decided.error));
+        }
+        return (await commitValue(decided.value.value)) as HallPassCommandResponse;
+      }
       case 'cancel-pending': {
         const decided = decideCancelPending(currentDocument.value, {
           requestId:
@@ -228,10 +320,89 @@ export const createHallPassCommandHandler = (
         }
         return (await commitValue(decided.value.value)) as HallPassCommandResponse;
       }
+      case 'revoke': {
+        const decided = decideRevokePass(currentDocument.value, {
+          passId:
+            envelope.command.passId !== undefined ? String(envelope.command.passId) : undefined,
+        });
+        if (!decided.ok) {
+          return toFailure(mapDecisionError(decided.error));
+        }
+        const settled = decideSettlePassAtBoundary(currentDocument.value, meterInput);
+        if (!settled.ok) {
+          return toFailure(mapDecisionError(settled.error));
+        }
+        if (settled.value.kind === 'meter-updated' && settled.value.debits.length > 0) {
+          const passId = currentDocument.value.activePass?.passId ?? 'unknown';
+          const debitFailure = await applyDebits(
+            settled.value.debits,
+            passId,
+            meterInput.nowEpochMs
+          );
+          if (debitFailure) {
+            return debitFailure;
+          }
+        }
+        return (await commitValue(decided.value.value)) as HallPassCommandResponse;
+      }
+      case 'reconcile-meter': {
+        const nowEpochMs = Number(envelope.command.nowEpochMs ?? clock.nowEpochMs());
+        if (!phase.isTimeOut) {
+          if (!currentDocument.value.activePass && !currentDocument.value.pendingRequest) {
+            return toSuccess(publishSnapshot());
+          }
+          if (currentDocument.value.activePass) {
+            return settleAtBoundaryInternal({ nowEpochMs });
+          }
+          const cleared = decideClearForNonTimeOut(currentDocument.value);
+          if (!cleared.ok) {
+            return toFailure(mapDecisionError(cleared.error));
+          }
+          return (await commitValue(cleared.value.value)) as HallPassCommandResponse;
+        }
+        const input = await meterContext(nowEpochMs);
+        const decided = decideMeterActivity(currentDocument.value, input);
+        if (!decided.ok) {
+          return toFailure(mapDecisionError(decided.error));
+        }
+        if (decided.value.kind === 'noop') {
+          return toSuccess(publishSnapshot());
+        }
+        if (decided.value.kind === 'meter-updated') {
+          if (decided.value.debits.length > 0) {
+            const passId = currentDocument.value.activePass?.passId ?? 'unknown';
+            const debitFailure = await applyDebits(decided.value.debits, passId, input.nowEpochMs);
+            if (debitFailure) {
+              return debitFailure;
+            }
+          }
+          return (await commitValue(decided.value.value)) as HallPassCommandResponse;
+        }
+        return toSuccess(publishSnapshot());
+      }
       default:
         return toFailure({ kind: 'malformed-command', message: 'unsupported command' });
     }
   };
+
+  const reconcileMeterInternal = async (nowEpochMs?: number): Promise<HallPassCommandResponse> => {
+    const envelope: HallPassCommandEnvelope = {
+      protocolVersion: RUNTIME_PROTOCOL_VERSION,
+      commandId: `meter-${nowEpochMs ?? clock.nowEpochMs()}`,
+      module: 'hall-pass',
+      command: { kind: 'reconcile-meter', nowEpochMs: nowEpochMs ?? clock.nowEpochMs() },
+    };
+    return executeFresh(envelope);
+  };
+
+  browserActivity.subscribe(() => {
+    if (meterReconcileInFlight) {
+      return;
+    }
+    meterReconcileInFlight = reconcileMeterInternal().finally(() => {
+      meterReconcileInFlight = null;
+    }) as Promise<HallPassCommandResponse | null>;
+  });
 
   return {
     current(): HallPassRuntimeResult {
@@ -279,6 +450,14 @@ export const createHallPassCommandHandler = (
           reportedAtEpochMs: input.reportedAtEpochMs,
         },
       });
+    },
+
+    async settleAtBoundary(input) {
+      return settleAtBoundaryInternal({ nowEpochMs: input.nowEpochMs });
+    },
+
+    reconcileMeter(input) {
+      return reconcileMeterInternal(input?.nowEpochMs);
     },
   };
 };

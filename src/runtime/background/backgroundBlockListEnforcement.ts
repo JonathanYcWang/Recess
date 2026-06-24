@@ -2,11 +2,11 @@ import { createChromiumKeyValueAdapter } from '@/adapters/browser/chromium/chrom
 import { createSafariCompatibleTabAccessAdapter } from '@/adapters/browser/safari/safariTabAccessAdapter';
 import { createBlockListReconciler, type AccessSnapshot } from '@/modules/block-list-enforcement';
 import { ACCESS_CONTEXT_STORAGE_KEY } from '@/runtime/accessContextStorage';
-import { publishAccessContext } from '@/store/accessContextPublisher';
 import { registerBlockListRuntimeListener } from './blockListRuntimeListener';
 import { getSharedBackgroundCompositionRoot } from './sharedCompositionRoot';
 import { createPersistedOwnershipStore } from './persistedOwnershipStore';
 import { projectBackgroundAccessContext } from './backgroundAccessContext';
+import { publishAccessContext } from '@/store/accessContextPublisher';
 
 export const registerBlockListEnforcement = (): void => {
   const adapter = createChromiumKeyValueAdapter();
@@ -108,6 +108,7 @@ export const registerBlockListEnforcement = (): void => {
     });
     root.value.workRhythmHandler.subscribe(() => {
       void reconcileLatest();
+      void root.value.hallPassHandler.reconcileMeter();
     });
     root.value.hallPassHandler.subscribe(() => {
       void reconcileLatest();
