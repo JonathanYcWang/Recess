@@ -7,6 +7,8 @@
     "src/runtime/**": ["exports", "types"],
     "src/store/selectors/settingsProjectionSelectors.ts": ["exports"],
     "src/store/settingsClient.ts": ["exports"],
+    "src/store/settingsConnectionAwareClient.ts": ["exports"],
+    "src/store/settingsConnectionManager.ts": ["exports"],
     "src/store/reducers/settingsProjectionReducer.ts": ["types"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import type { SettingsClient, SettingsSnapshot } from '@/runtime';
 import settingsProjectionReducer from './reducers/settingsProjectionReducer';
+import { resetSettingsConnectionManagerForTests } from './settingsConnectionManager';
 import {
   resetSettingsProjectionSubscriptionForTests,
   startSettingsProjectionSubscription,
@@ -40,15 +41,18 @@ const createMockClient = (): SettingsClient & { subscribe: ReturnType<typeof vi.
 };
 
 describe('settings projection subscription', () => {
-  it('registers only one application-level subscription', () => {
+  it('registers only one application-level subscription', async () => {
     resetSettingsProjectionSubscriptionForTests();
+    resetSettingsConnectionManagerForTests();
     const store = configureStore({ reducer: { settingsProjection: settingsProjectionReducer } });
     const client = createMockClient();
 
     startSettingsProjectionSubscription({ client, dispatch: store.dispatch });
     startSettingsProjectionSubscription({ client, dispatch: store.dispatch });
 
-    expect(client.subscribe).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => {
+      expect(client.subscribe).toHaveBeenCalledTimes(1);
+    });
     expect(store.getState().settingsProjection.themePreference).toBe('dark');
   });
 });

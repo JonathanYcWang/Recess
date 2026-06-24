@@ -3,6 +3,7 @@ import {
   createSafariCompatibleRuntimeTransport,
   type SettingsClient,
 } from '@/runtime';
+import { createConnectionAwareSettingsClient } from './settingsConnectionAwareClient';
 
 let cachedClient: SettingsClient | null = null;
 
@@ -14,7 +15,7 @@ export const createAppSettingsClient = (): SettingsClient | null => {
   if (!transport) {
     return null;
   }
-  cachedClient = createMessagingSettingsClient(transport);
+  cachedClient = createConnectionAwareSettingsClient(createMessagingSettingsClient(transport));
   return cachedClient;
 };
 
