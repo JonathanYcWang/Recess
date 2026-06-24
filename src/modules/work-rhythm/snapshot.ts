@@ -1,6 +1,7 @@
 import type { EnergyLevel, MomentumLevel } from '@/modules/workstyle-profile';
 import type { SchedulerReasonCode } from '@/modules/scheduler';
 import { blocksUntilNextFocusBlockStreakMilestone } from './focusBlockStreak';
+import { remainingWorkSessionExtensionSeconds } from './workSessionExtension';
 import type { WorkRhythmValue } from './workRhythmDocument';
 
 export type WorkRhythmInactiveSnapshot = {
@@ -48,11 +49,25 @@ export type WorkRhythmTimeOutSnapshot = {
   isFinalFocus: boolean;
 };
 
+export type WorkRhythmWorkSessionCompletedSnapshot = {
+  phase: 'work-session-completed';
+  sessionId: string;
+  originalGoalSeconds: number;
+  cumulativeExtensionSeconds: number;
+  extensionCount: number;
+  remainingExtensionAllowanceSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
+};
+
 export type WorkRhythmSnapshot =
   | WorkRhythmInactiveSnapshot
   | WorkRhythmFocusBlockSnapshot
   | WorkRhythmRecessPromptSnapshot
-  | WorkRhythmTimeOutSnapshot;
+  | WorkRhythmTimeOutSnapshot
+  | WorkRhythmWorkSessionCompletedSnapshot;
 
 export const projectWorkRhythmSnapshot = (
   value: WorkRhythmValue,
@@ -84,6 +99,25 @@ export const projectWorkRhythmSnapshot = (
       ),
       deferredRecessCount: value.deferredRecessCount,
       originalGoalPermanentlyComplete: value.originalGoalPermanentlyComplete,
+    };
+  }
+
+  if (value.phase === 'work-session-completed') {
+    return {
+      phase: 'work-session-completed',
+      sessionId: value.sessionId,
+      originalGoalSeconds: value.originalGoalSeconds,
+      cumulativeExtensionSeconds: value.cumulativeExtensionSeconds,
+      extensionCount: value.extensionCount,
+      remainingExtensionAllowanceSeconds: remainingWorkSessionExtensionSeconds(
+        value.cumulativeExtensionSeconds
+      ),
+      energy: value.energy,
+      momentum: value.momentum,
+      focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
     };
   }
 

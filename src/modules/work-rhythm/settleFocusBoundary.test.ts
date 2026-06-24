@@ -24,6 +24,11 @@ const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFoc
   schedulerReasons: [{ code: 'base-cadence', focusDeltaMinutes: 25, recessDeltaMinutes: 5 }],
   focusBlockStreak: 0,
   settlementSegment: 0,
+  originalGoalPermanentlyComplete: false,
+  isWorkSessionExtension: false,
+  extensionTrancheSeconds: 0,
+  extensionBaselineCumulativeSeconds: 0,
+  extensionBaselineCount: 0,
   ...overrides,
 });
 
@@ -65,7 +70,12 @@ describe('settleFocusBoundary', () => {
     if (!settled.ok) {
       return;
     }
-    expect(settled.value.nextValue).toEqual({ phase: 'inactive' });
+    expect(settled.value.nextValue).toMatchObject({
+      phase: 'work-session-completed',
+      cumulativeExtensionSeconds: 0,
+      extensionCount: 0,
+      originalGoalPermanentlyComplete: true,
+    });
     expect(settled.value.workSessionCompletedFact?.kind).toBe('work-session-completed');
     expect(settled.value.workSessionCompletedFact?.payload.originalGoalPermanentlyComplete).toBe(
       true

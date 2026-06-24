@@ -24,6 +24,11 @@ const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFoc
   schedulerReasons: [{ code: 'base-cadence', focusDeltaMinutes: 25, recessDeltaMinutes: 5 }],
   focusBlockStreak: 0,
   settlementSegment: 0,
+  originalGoalPermanentlyComplete: false,
+  isWorkSessionExtension: false,
+  extensionTrancheSeconds: 0,
+  extensionBaselineCumulativeSeconds: 0,
+  extensionBaselineCount: 0,
   ...overrides,
 });
 
@@ -45,6 +50,11 @@ const baseTimeOut = (overrides: Partial<WorkRhythmTimeOut> = {}): WorkRhythmTime
   timeOutStartedAtEpochMs: 2_000_000,
   lastReportedFiveMinuteBoundary: 0,
   momentumLoweredDuringTimeOut: false,
+  originalGoalPermanentlyComplete: false,
+  isWorkSessionExtension: false,
+  extensionTrancheSeconds: 0,
+  extensionBaselineCumulativeSeconds: 0,
+  extensionBaselineCount: 0,
   ...overrides,
 });
 

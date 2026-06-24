@@ -53,6 +53,14 @@ export {
   type FocusBoundarySettlementError,
 } from './settleFocusBoundary';
 export {
+  decideStartWorkSessionExtension,
+  startWorkSessionExtensionCommandId,
+  toWorkSessionCompletedPhase,
+  type StartWorkSessionExtensionContext,
+  type StartWorkSessionExtensionError,
+  type StartWorkSessionExtensionOutcome,
+} from './startWorkSessionExtension';
+export {
   advanceTimeOutBoundaries,
   completedFiveMinuteBoundaries,
   isTimeOutReportDue,
@@ -79,5 +87,14 @@ export {
   type WorkRhythmRecessPrompt,
   type WorkRhythmTimeOut,
   type WorkRhythmValue,
+  type WorkRhythmWorkSessionCompleted,
 } from './workRhythmDocument';
+export {
+  isValidWorkSessionExtensionSeconds,
+  remainingWorkSessionExtensionSeconds,
+  WORK_SESSION_EXTENSION_CUMULATIVE_MAX_SECONDS,
+  WORK_SESSION_EXTENSION_MAX_SECONDS,
+  WORK_SESSION_EXTENSION_MIN_SECONDS,
+  WORK_SESSION_EXTENSION_STEP_SECONDS,
+} from './workSessionExtension';
 export { workRhythmCodec, WORK_RHYTHM_SCHEMA_VERSION } from './workRhythmCodec';

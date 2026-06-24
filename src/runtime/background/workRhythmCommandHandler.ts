@@ -11,6 +11,7 @@ import {
   decideFocusBoundarySettlement,
   decideResumeFromTimeOut,
   decideStartTimeOut,
+  decideStartWorkSessionExtension,
   declineRecessCommandId,
   endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
@@ -20,11 +21,13 @@ import {
   projectWorkRhythmSnapshot,
   resumeFromTimeOutCommandId,
   startTimeOutCommandId,
+  startWorkSessionExtensionCommandId,
   workRhythmFocusAlarmName,
   workRhythmTimeOutReportAlarmName,
   type WorkRhythmFocusBlock,
   type WorkRhythmTimeOut,
   type WorkRhythmValue,
+  type WorkRhythmWorkSessionCompleted,
 } from '@/modules/work-rhythm';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { RUNTIME_PROTOCOL_VERSION } from '../protocol/types';
@@ -58,7 +61,9 @@ const clonePublishedSnapshot = (
   snapshot:
     snapshot.snapshot.phase === 'inactive'
       ? { phase: 'inactive' }
-      : snapshot.snapshot.phase === 'recess-prompt' || snapshot.snapshot.phase === 'time-out'
+      : snapshot.snapshot.phase === 'recess-prompt' ||
+          snapshot.snapshot.phase === 'time-out' ||
+          snapshot.snapshot.phase === 'work-session-completed'
         ? { ...snapshot.snapshot }
         : {
             ...snapshot.snapshot,
@@ -539,6 +544,80 @@ export const createWorkRhythmCommandHandler = (
     return toSuccess(snapshot);
   };
 
+  const commitStartWorkSessionExtension = async (
+    commandId: string,
+    extensionSeconds: unknown
+  ): Promise<WorkRhythmCommandResponse> => {
+    if (currentDocument.value.phase !== 'work-session-completed') {
+      return toFailure({ kind: 'invalid-phase-for-extension' });
+    }
+    const completed = currentDocument.value as WorkRhythmWorkSessionCompleted;
+    const expectedCommandId = startWorkSessionExtensionCommandId(
+      completed.sessionId,
+      completed.extensionCount
+    );
+    if (commandId !== expectedCommandId) {
+      return toFailure({
+        kind: 'malformed-command',
+        message: 'start-work-session-extension command id must match active session',
+      });
+    }
+
+    const profile = await persistence.read('workstyle-profile');
+    if (!profile.ok) {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const extended = decideStartWorkSessionExtension(currentDocument.value, extensionSeconds, {
+      nowEpochMs: clock.nowEpochMs(),
+      preferredCadence: profile.value.value.preferredCadence,
+      selectedTaskRemainingMinutes: null,
+      gameBudget: { kind: 'cards' },
+    });
+    if (!extended.ok) {
+      return toFailure(extended.error);
+    }
+    if (commandId !== extended.value.commandId) {
+      return toFailure({
+        kind: 'malformed-command',
+        message: 'start-work-session-extension command id mismatch',
+      });
+    }
+
+    const committed = await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: currentDocument.revision,
+        value: extended.value.nextValue,
+      },
+    ]);
+    if (!committed.ok) {
+      if (committed.error.kind === 'conflict') {
+        return toFailure({
+          kind: 'stale-revision',
+          expectedRevision: currentDocument.revision,
+          actualRevision: committed.error.actualRevision,
+        });
+      }
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const workRhythm = committed.value.documents['work-rhythm'];
+    if (!workRhythm || workRhythm.value.phase !== 'focus-block') {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    await scheduleFocusAlarm(workRhythm.value);
+
+    currentDocument = {
+      revision: workRhythm.revision,
+      value: cloneWorkRhythmValue(workRhythm.value),
+    };
+    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    publish();
+    return toSuccess(snapshot);
+  };
+
   const executeStart = async (
     envelope: WorkRhythmCommandEnvelope
   ): Promise<WorkRhythmCommandResponse> => {
@@ -678,6 +757,10 @@ export const createWorkRhythmCommandHandler = (
         });
       }
       return commitDeclineRecess(envelope.commandId);
+    }
+
+    if (envelope.command.kind === 'start-work-session-extension') {
+      return commitStartWorkSessionExtension(envelope.commandId, envelope.command.extensionSeconds);
     }
 
     return toFailure({ kind: 'malformed-command', message: 'unsupported command' });

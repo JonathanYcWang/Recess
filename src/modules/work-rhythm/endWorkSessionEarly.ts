@@ -25,7 +25,7 @@ export interface EndWorkSessionEarlyOutcome {
   nextValue: { phase: 'inactive' };
   commandId: string;
   focusBlockFact?: WorkHistoryFact;
-  workSessionCompletedFact: WorkHistoryFact;
+  workSessionCompletedFact?: WorkHistoryFact;
   coinCredit?: {
     transactionId: string;
     amount: number;
@@ -49,6 +49,16 @@ export const decideEndWorkSessionEarly = (
 ): Result<EndWorkSessionEarlyOutcome, EndWorkSessionEarlyError> => {
   if (current.phase === 'inactive') {
     return { ok: false, error: { kind: 'no-active-work-session' } };
+  }
+
+  if (current.phase === 'work-session-completed') {
+    return {
+      ok: true,
+      value: {
+        nextValue: { phase: 'inactive' },
+        commandId: endWorkSessionEarlyCommandId(current.sessionId),
+      },
+    };
   }
 
   if (current.phase === 'recess-prompt') {
@@ -88,8 +98,15 @@ export const decideEndWorkSessionEarly = (
     const reasonCode: 'standard-focus' | 'extension-focus' = timeOut.wasExtension
       ? 'extension-focus'
       : 'standard-focus';
-    const actualWorkedSeconds =
-      timeOut.originalGoalSeconds - timeOut.settledRemainingWorkSessionSeconds;
+    const extensionWorkedSeconds = timeOut.isWorkSessionExtension
+      ? timeOut.extensionTrancheSeconds - timeOut.settledRemainingWorkSessionSeconds
+      : 0;
+    const actualWorkedSeconds = timeOut.originalGoalPermanentlyComplete
+      ? timeOut.originalGoalSeconds +
+        timeOut.extensionBaselineCumulativeSeconds +
+        extensionWorkedSeconds
+      : timeOut.originalGoalSeconds - timeOut.settledRemainingWorkSessionSeconds;
+    const sessionPermanentlyComplete = timeOut.originalGoalPermanentlyComplete;
 
     const focusBlockFact = createFocusBlockCompletedFact({
       factId: focusBlockCompletedFactId(
@@ -112,7 +129,10 @@ export const decideEndWorkSessionEarly = (
       nextValue: { phase: 'inactive' },
       commandId: endWorkSessionEarlyCommandId(timeOut.sessionId),
       focusBlockFact,
-      workSessionCompletedFact: createWorkSessionCompletedFact({
+    };
+
+    if (!sessionPermanentlyComplete) {
+      outcome.workSessionCompletedFact = createWorkSessionCompletedFact({
         factId: workSessionCompletedFactId(timeOut.sessionId),
         recordedAt: nowEpochMs,
         workSessionId: timeOut.sessionId,
@@ -120,8 +140,8 @@ export const decideEndWorkSessionEarly = (
         actualWorkedSeconds,
         completedAt: nowEpochMs,
         originalGoalPermanentlyComplete: false,
-      }),
-    };
+      });
+    }
 
     if (coinAmount > 0) {
       outcome.coinCredit = {
@@ -158,7 +178,13 @@ export const decideEndWorkSessionEarly = (
     0,
     focus.settledRemainingWorkSessionSeconds - actualFocusSeconds
   );
-  const actualWorkedSeconds = focus.originalGoalSeconds - settledRemainingWorkSessionSeconds;
+  const extensionWorkedSeconds = focus.isWorkSessionExtension
+    ? focus.extensionTrancheSeconds - settledRemainingWorkSessionSeconds
+    : 0;
+  const actualWorkedSeconds = focus.originalGoalPermanentlyComplete
+    ? focus.originalGoalSeconds + focus.extensionBaselineCumulativeSeconds + extensionWorkedSeconds
+    : focus.originalGoalSeconds - settledRemainingWorkSessionSeconds;
+  const sessionPermanentlyComplete = focus.originalGoalPermanentlyComplete;
 
   const focusBlockFact = createFocusBlockCompletedFact({
     factId: focusBlockCompletedFactId(
@@ -181,7 +207,10 @@ export const decideEndWorkSessionEarly = (
     nextValue: { phase: 'inactive' },
     commandId: endWorkSessionEarlyCommandId(focus.sessionId),
     focusBlockFact,
-    workSessionCompletedFact: createWorkSessionCompletedFact({
+  };
+
+  if (!sessionPermanentlyComplete) {
+    outcome.workSessionCompletedFact = createWorkSessionCompletedFact({
       factId: workSessionCompletedFactId(focus.sessionId),
       recordedAt: nowEpochMs,
       workSessionId: focus.sessionId,
@@ -189,8 +218,8 @@ export const decideEndWorkSessionEarly = (
       actualWorkedSeconds,
       completedAt: nowEpochMs,
       originalGoalPermanentlyComplete: false,
-    }),
-  };
+    });
+  }
 
   if (coinAmount > 0) {
     outcome.coinCredit = {

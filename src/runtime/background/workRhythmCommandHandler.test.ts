@@ -10,6 +10,7 @@ import {
   declineRecessCommandId,
   resumeFromTimeOutCommandId,
   startTimeOutCommandId,
+  startWorkSessionExtensionCommandId,
 } from '@/modules/work-rhythm';
 import { createNoOpTimeOutReportNotifier } from '../timeOut/timeOutReportNotifier';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
@@ -544,6 +545,11 @@ describe('workRhythmCommandHandler', () => {
       ],
       focusBlockStreak: 2,
       settlementSegment: 0,
+      originalGoalPermanentlyComplete: false,
+      isWorkSessionExtension: false,
+      extensionTrancheSeconds: 0,
+      extensionBaselineCumulativeSeconds: 0,
+      extensionBaselineCount: 0,
     };
 
     const handler = createWorkRhythmCommandHandler(
@@ -613,6 +619,10 @@ describe('workRhythmCommandHandler', () => {
       lastSettledSegment: 0,
       deferredRecessCount: 1,
       originalGoalPermanentlyComplete: false,
+      isWorkSessionExtension: false,
+      extensionTrancheSeconds: 0,
+      extensionBaselineCumulativeSeconds: 0,
+      extensionBaselineCount: 0,
     };
 
     await persistence.commit([
@@ -670,6 +680,95 @@ describe('workRhythmCommandHandler', () => {
       createWorkRhythmCommandEnvelope({ kind: 'decline-recess' }, { commandId })
     );
     expect(duplicate).toEqual(declined);
+  });
+
+  it('starts a work session extension from work-session-completed and schedules focus alarm', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+
+    const completed: import('@/modules/work-rhythm').WorkRhythmWorkSessionCompleted = {
+      phase: 'work-session-completed',
+      sessionId: 'ws-ext',
+      originalGoalSeconds: 60 * 60,
+      cumulativeExtensionSeconds: 0,
+      extensionCount: 0,
+      energy: 'steady',
+      momentum: 'steady',
+      focusBlockStreak: 2,
+      lastCompletedFocusBlockIndex: 1,
+      originalGoalPermanentlyComplete: true,
+      sessionCompletedAtEpochMs: 4_000_000,
+    };
+
+    await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: hydrated.value.documents['work-rhythm'].revision,
+        value: completed,
+      },
+    ]);
+    const refreshed = await persistence.initialize();
+    if (!refreshed.ok) {
+      throw new Error('expected refresh');
+    }
+    const workRhythmDoc = refreshed.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'work-session-completed') {
+      throw new Error('expected work session completed');
+    }
+
+    const profile = refreshed.value.documents['workstyle-profile'];
+    await persistence.commit([
+      {
+        document: 'workstyle-profile',
+        expectedRevision: profile.revision,
+        value: {
+          ...profile.value,
+          preferredCadence: '25/5',
+        },
+      },
+    ]);
+
+    const alarms = createInMemoryAlarmAdapter();
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+      clock: createFixedClock(5_000_000),
+      alarms,
+      coinHandler: createCoinCommandHandler(persistence, refreshed.value.documents.coin),
+    });
+
+    const commandId = startWorkSessionExtensionCommandId('ws-ext', 0);
+    const extended = await handler.execute(
+      createWorkRhythmCommandEnvelope(
+        { kind: 'start-work-session-extension', extensionSeconds: 30 * 60 },
+        { commandId }
+      )
+    );
+    expect(extended.ok).toBe(true);
+    if (extended.ok && extended.snapshot.snapshot.phase === 'focus-block') {
+      expect(extended.snapshot.snapshot).toMatchObject({
+        phase: 'focus-block',
+        sessionId: 'ws-ext',
+        originalGoalSeconds: 60 * 60,
+        remainingWorkSessionSeconds: 30 * 60,
+      });
+      const scheduled = alarms.getScheduled();
+      expect(scheduled).toHaveLength(1);
+      expect(scheduled[0]?.whenEpochMs).toBe(
+        5_000_000 + extended.snapshot.snapshot.remainingFocusSeconds * 1000
+      );
+    }
+
+    const duplicate = await handler.execute(
+      createWorkRhythmCommandEnvelope(
+        { kind: 'start-work-session-extension', extensionSeconds: 30 * 60 },
+        { commandId }
+      )
+    );
+    expect(duplicate).toEqual(extended);
   });
 });
 
@@ -749,6 +848,11 @@ describe('workRhythmCommandHandler clock injection', () => {
             ],
             focusBlockStreak: 0,
             settlementSegment: 0,
+            originalGoalPermanentlyComplete: false,
+            isWorkSessionExtension: false,
+            extensionTrancheSeconds: 0,
+            extensionBaselineCumulativeSeconds: 0,
+            extensionBaselineCount: 0,
           },
         },
         {

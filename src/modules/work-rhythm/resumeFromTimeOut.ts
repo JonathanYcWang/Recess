@@ -49,6 +49,11 @@ export const decideResumeFromTimeOut = (
         schedulerReasons: timeOut.schedulerReasons.map((reason) => ({ ...reason })),
         focusBlockStreak: timeOut.focusBlockStreak,
         settlementSegment: timeOut.settlementSegment,
+        originalGoalPermanentlyComplete: timeOut.originalGoalPermanentlyComplete,
+        isWorkSessionExtension: timeOut.isWorkSessionExtension,
+        extensionTrancheSeconds: timeOut.extensionTrancheSeconds,
+        extensionBaselineCumulativeSeconds: timeOut.extensionBaselineCumulativeSeconds,
+        extensionBaselineCount: timeOut.extensionBaselineCount,
       },
     },
   };

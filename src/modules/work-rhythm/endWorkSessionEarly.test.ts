@@ -21,6 +21,11 @@ const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFoc
   schedulerReasons: [{ code: 'base-cadence', focusDeltaMinutes: 25, recessDeltaMinutes: 5 }],
   focusBlockStreak: 0,
   settlementSegment: 0,
+  originalGoalPermanentlyComplete: false,
+  isWorkSessionExtension: false,
+  extensionTrancheSeconds: 0,
+  extensionBaselineCumulativeSeconds: 0,
+  extensionBaselineCount: 0,
   ...overrides,
 });
 
@@ -39,6 +44,10 @@ const baseRecessPrompt = (
   lastSettledSegment: 0,
   deferredRecessCount: 1,
   originalGoalPermanentlyComplete: false,
+  isWorkSessionExtension: false,
+  extensionTrancheSeconds: 0,
+  extensionBaselineCumulativeSeconds: 0,
+  extensionBaselineCount: 0,
   ...overrides,
 });
 
@@ -56,7 +65,7 @@ describe('decideEndWorkSessionEarly', () => {
       actualFocusSeconds: 10 * 60,
       completed: false,
     });
-    expect(ended.value.workSessionCompletedFact.payload).toMatchObject({
+    expect(ended.value.workSessionCompletedFact?.payload).toMatchObject({
       actualWorkedSeconds: 10 * 60,
       originalGoalPermanentlyComplete: false,
     });
@@ -93,7 +102,7 @@ describe('decideEndWorkSessionEarly', () => {
     expect(ended.value.nextValue).toEqual({ phase: 'inactive' });
     expect(ended.value.focusBlockFact).toBeUndefined();
     expect(ended.value.coinCredit).toBeUndefined();
-    expect(ended.value.workSessionCompletedFact.payload).toMatchObject({
+    expect(ended.value.workSessionCompletedFact?.payload).toMatchObject({
       actualWorkedSeconds: 25 * 60,
       originalGoalPermanentlyComplete: false,
     });

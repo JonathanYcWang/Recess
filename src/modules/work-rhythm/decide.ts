@@ -16,6 +16,7 @@ import { decideEndWorkSessionEarly } from './endWorkSessionEarly';
 import { decideResumeFromTimeOut } from './resumeFromTimeOut';
 import { decideFocusBoundarySettlement } from './settleFocusBoundary';
 import { decideStartTimeOut } from './startTimeOut';
+import { decideStartWorkSessionExtension } from './startWorkSessionExtension';
 
 const includes = <T extends string>(values: readonly T[], candidate: string): candidate is T =>
   (values as readonly string[]).includes(candidate);
@@ -26,7 +27,8 @@ export type WorkRhythmCommand =
   | { kind: 'end-work-session' }
   | { kind: 'start-time-out' }
   | { kind: 'resume-from-time-out' }
-  | { kind: 'decline-recess' };
+  | { kind: 'decline-recess' }
+  | { kind: 'start-work-session-extension'; extensionSeconds: unknown };
 
 export type WorkRhythmDecisionError =
   | { kind: 'invalid-goal' }
@@ -40,7 +42,10 @@ export type WorkRhythmDecisionError =
   | { kind: 'already-in-time-out' }
   | { kind: 'not-in-time-out' }
   | { kind: 'invalid-phase-for-decline-recess' }
-  | { kind: 'cannot-decline-without-deferred-recess' };
+  | { kind: 'cannot-decline-without-deferred-recess' }
+  | { kind: 'invalid-phase-for-extension' }
+  | { kind: 'invalid-extension-goal' }
+  | { kind: 'extension-limit-exceeded' };
 
 export interface WorkRhythmDecisionContext {
   nowEpochMs: number;
@@ -116,6 +121,11 @@ export const applyWorkRhythmCommand = (
         schedulerReasons: schedulerDecision.reasons.map((reason) => ({ ...reason })),
         focusBlockStreak: 0,
         settlementSegment: 0,
+        originalGoalPermanentlyComplete: false,
+        isWorkSessionExtension: false,
+        extensionTrancheSeconds: 0,
+        extensionBaselineCumulativeSeconds: 0,
+        extensionBaselineCount: 0,
       },
     };
   }
@@ -166,6 +176,19 @@ export const applyWorkRhythmCommand = (
       return { ok: false, error: declined.error };
     }
     return { ok: true, value: declined.value.nextValue };
+  }
+
+  if (command.kind === 'start-work-session-extension') {
+    const extended = decideStartWorkSessionExtension(current, command.extensionSeconds, {
+      nowEpochMs: context.nowEpochMs,
+      preferredCadence: context.preferredCadence,
+      selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+      gameBudget: context.gameBudget,
+    });
+    if (!extended.ok) {
+      return { ok: false, error: extended.error };
+    }
+    return { ok: true, value: extended.value.nextValue };
   }
 
   return { ok: false, error: { kind: 'session-already-active' } };

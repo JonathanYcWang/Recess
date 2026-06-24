@@ -58,6 +58,11 @@ export const decideStartTimeOut = (
         timeOutStartedAtEpochMs: nowEpochMs,
         lastReportedFiveMinuteBoundary: 0,
         momentumLoweredDuringTimeOut: false,
+        originalGoalPermanentlyComplete: focus.originalGoalPermanentlyComplete,
+        isWorkSessionExtension: focus.isWorkSessionExtension,
+        extensionTrancheSeconds: focus.extensionTrancheSeconds,
+        extensionBaselineCumulativeSeconds: focus.extensionBaselineCumulativeSeconds,
+        extensionBaselineCount: focus.extensionBaselineCount,
       },
     },
   };

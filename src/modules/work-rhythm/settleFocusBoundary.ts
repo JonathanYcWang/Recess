@@ -11,6 +11,7 @@ import {
   nextFocusBlockStreakAfterCompletion,
   shouldAwardFocusBlockStreakMilestone,
 } from './focusBlockStreak';
+import { toWorkSessionCompletedPhase } from './startWorkSessionExtension';
 import { createWorkSessionCompletedFact } from './workSessionCompleted';
 import type {
   WorkRhythmFocusBlock,
@@ -95,7 +96,11 @@ const toRecessPrompt = (
   completedFocusBlockIndex: focus.focusBlockIndex,
   lastSettledSegment: focus.settlementSegment,
   deferredRecessCount: 1,
-  originalGoalPermanentlyComplete: false,
+  originalGoalPermanentlyComplete: focus.originalGoalPermanentlyComplete,
+  isWorkSessionExtension: focus.isWorkSessionExtension,
+  extensionTrancheSeconds: focus.extensionTrancheSeconds,
+  extensionBaselineCumulativeSeconds: focus.extensionBaselineCumulativeSeconds,
+  extensionBaselineCount: focus.extensionBaselineCount,
 });
 
 export const decideFocusBoundarySettlement = (
@@ -178,6 +183,19 @@ export const decideFocusBoundarySettlement = (
     : undefined;
 
   if (focus.isFinalFocus) {
+    if (focus.isWorkSessionExtension) {
+      return {
+        ok: true,
+        value: {
+          nextValue: toWorkSessionCompletedPhase(focus, nowEpochMs),
+          settlementCommandId,
+          focusBlockFact,
+          coinCredit,
+          streakCoinCredit,
+        },
+      };
+    }
+
     const actualWorkedSeconds = focus.originalGoalSeconds - settledRemainingWorkSessionSeconds;
     const workSessionCompletedFact = createWorkSessionCompletedFact({
       factId: workSessionCompletedFactId(focus.sessionId),
@@ -191,7 +209,7 @@ export const decideFocusBoundarySettlement = (
     return {
       ok: true,
       value: {
-        nextValue: { phase: 'inactive' },
+        nextValue: toWorkSessionCompletedPhase(focus, nowEpochMs),
         settlementCommandId,
         focusBlockFact,
         workSessionCompletedFact,

@@ -8,7 +8,8 @@ export type WorkRhythmCommand =
   | { kind: 'end-work-session' }
   | { kind: 'start-time-out' }
   | { kind: 'resume-from-time-out' }
-  | { kind: 'decline-recess' };
+  | { kind: 'decline-recess' }
+  | { kind: 'start-work-session-extension'; extensionSeconds: unknown };
 
 export type WorkRhythmCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -50,6 +51,12 @@ const parseCommand = (command: unknown): WorkRhythmCommand | null => {
   }
   if (command.kind === 'decline-recess') {
     return { kind: 'decline-recess' };
+  }
+  if (command.kind === 'start-work-session-extension') {
+    return {
+      kind: 'start-work-session-extension',
+      extensionSeconds: command.extensionSeconds,
+    };
   }
   return null;
 };

@@ -99,6 +99,11 @@ export const decideDeclineRecess = (
         schedulerReasons: schedulerDecision.reasons.map((reason) => ({ ...reason })),
         focusBlockStreak: recess.focusBlockStreak,
         settlementSegment,
+        originalGoalPermanentlyComplete: recess.originalGoalPermanentlyComplete,
+        isWorkSessionExtension: recess.isWorkSessionExtension,
+        extensionTrancheSeconds: recess.extensionTrancheSeconds,
+        extensionBaselineCumulativeSeconds: recess.extensionBaselineCumulativeSeconds,
+        extensionBaselineCount: recess.extensionBaselineCount,
       },
     },
   };
