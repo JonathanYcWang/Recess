@@ -19,7 +19,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const isOccurrenceOutcome = (value: unknown): value is OccurrenceOutcome =>
-  value === 'neutral' || value === 'skipped';
+  value === 'neutral' || value === 'skipped' || value === 'missed';
 
 const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => {
   if (!isRecord(value)) {
@@ -47,7 +47,7 @@ const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => 
     return { ok: false, error: 'occurrence alarmName must use the reminder alarm prefix' };
   }
   if (value.outcome !== undefined && !isOccurrenceOutcome(value.outcome)) {
-    return { ok: false, error: 'occurrence outcome must be neutral or skipped' };
+    return { ok: false, error: 'occurrence outcome must be neutral, skipped, or missed' };
   }
   if (value.phase === 'resolved' && value.outcome === undefined) {
     return { ok: false, error: 'resolved occurrence must include an outcome' };

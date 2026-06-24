@@ -56,6 +56,15 @@ export {
   type WorkStartReminderSnapshot,
 } from './snapshot';
 export {
+  OCCURRENCE_ELIGIBILITY_WINDOW_MS,
+  isSameLocalDay,
+  neutralizeOpenTodayOccurrences,
+  occurrenceNeedsAlarm,
+  recalculateAllScheduleOccurrences,
+  recalculateScheduleOccurrences,
+  resolveTodayInstantForSchedule,
+} from './occurrenceRecalculation';
+export {
   isWeekdays,
   validateReminderSchedule,
   type ScheduleValidationError,

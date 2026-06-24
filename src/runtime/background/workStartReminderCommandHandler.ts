@@ -11,7 +11,9 @@ import {
   decideSkipNext,
   decideToggleScheduleEnabled,
   decideUpdateSchedule,
+  occurrenceNeedsAlarm,
   projectWorkStartReminderSnapshot,
+  recalculateAllScheduleOccurrences,
   replanReminderOccurrences,
   resolveLocalTimeZoneId,
   WORK_START_REMINDER_ALARM_PREFIX,
@@ -196,7 +198,10 @@ export const createWorkStartReminderCommandHandler = (
   const syncReminderAlarms = async (
     value: WorkStartReminderValue
   ): Promise<WorkStartReminderCommandError | null> => {
-    const planned = value.occurrences.filter((occurrence) => occurrence.phase === 'planned');
+    const nowEpochMs = clock.nowEpochMs();
+    const planned = value.occurrences.filter((occurrence) =>
+      occurrenceNeedsAlarm(occurrence, nowEpochMs)
+    );
     const listed = await alarms.listAll();
     if (!listed.ok) {
       return { kind: 'alarm-schedule-failed' };
@@ -244,11 +249,19 @@ export const createWorkStartReminderCommandHandler = (
   const commitValue = async (
     nextValue: WorkStartReminderValue
   ): Promise<WorkStartReminderCommandResponse> => {
-    const replanned = replanReminderOccurrences(
+    const timeZoneId = resolveLocalTimeZoneId();
+    const nowEpochMs = clock.nowEpochMs();
+    const recalculated = recalculateAllScheduleOccurrences(
       nextValue,
-      clock.nowEpochMs(),
+      nowEpochMs,
+      timeZoneId,
+      createOccurrenceId
+    );
+    const replanned = replanReminderOccurrences(
+      recalculated,
+      nowEpochMs,
       createOccurrenceId,
-      resolveLocalTimeZoneId()
+      timeZoneId
     );
     const alarmError = await syncReminderAlarms(replanned);
     if (alarmError) {
@@ -366,7 +379,10 @@ export const createWorkStartReminderCommandHandler = (
       if (typeof command.id !== 'string') {
         return { ok: false, error: { kind: 'schedule-not-found', id: '' } };
       }
-      const decided = decideDeleteSchedule(currentDocument.value, command.id);
+      const decided = decideDeleteSchedule(currentDocument.value, command.id, {
+        nowEpochMs: clock.nowEpochMs(),
+        timeZoneId: resolveLocalTimeZoneId(),
+      });
       return decided.ok ? decided : { ok: false, error: mapScheduleCommandError(decided.error) };
     }
     if (command.kind === 'skip-next') {

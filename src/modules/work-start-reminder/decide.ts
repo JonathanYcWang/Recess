@@ -1,4 +1,5 @@
 import { formatDisplayTimeString, parseDisplayTimeString } from './localTime';
+import { neutralizeOpenTodayOccurrences } from './occurrenceRecalculation';
 import { isWeekdays, validateReminderSchedule } from './scheduleValidation';
 import type {
   ReminderSchedule,
@@ -86,17 +87,26 @@ export const decideUpdateSchedule = (
 
 export const decideDeleteSchedule = (
   value: WorkStartReminderValue,
-  id: string
+  id: string,
+  options: { nowEpochMs: number; timeZoneId: string }
 ): { ok: true; value: WorkStartReminderValue } | { ok: false; error: ScheduleCommandError } => {
   if (!value.schedules.some((schedule) => schedule.id === id)) {
     return { ok: false, error: { kind: 'schedule-not-found', id } };
   }
+  const neutralized = neutralizeOpenTodayOccurrences(
+    value,
+    id,
+    options.nowEpochMs,
+    options.timeZoneId
+  );
   return {
     ok: true,
     value: {
-      schedules: value.schedules.filter((schedule) => schedule.id !== id),
-      occurrences: value.occurrences.filter((occurrence) => occurrence.scheduleId !== id),
-      planningTimeZoneId: value.planningTimeZoneId,
+      schedules: neutralized.schedules.filter((schedule) => schedule.id !== id),
+      occurrences: neutralized.occurrences.filter(
+        (occurrence) => occurrence.scheduleId !== id || occurrence.phase === 'resolved'
+      ),
+      planningTimeZoneId: neutralized.planningTimeZoneId,
     },
   };
 };

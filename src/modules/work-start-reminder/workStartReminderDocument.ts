@@ -14,7 +14,7 @@ export interface ReminderSchedule {
 
 export type OccurrencePhase = 'planned' | 'active' | 'resolved';
 
-export type OccurrenceOutcome = 'neutral' | 'skipped';
+export type OccurrenceOutcome = 'neutral' | 'skipped' | 'missed';
 
 export interface ReminderOccurrence {
   id: string;
