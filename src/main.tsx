@@ -14,6 +14,7 @@ import { createAppSettingsClient } from './store/settingsClient';
 import { startSettingsProjectionSubscription } from './store/settingsProjectionSubscription';
 import { createAppBlockListClient } from './store/blockListClient';
 import { startBlockListProjectionSubscription } from './store/blockListProjectionSubscription';
+import { startAccessContextPublisher } from './store/accessContextSubscription';
 
 // Initialize store from storage
 seedInitialStateInStorage()
@@ -51,6 +52,11 @@ seedInitialStateInStorage()
         dispatch: store.dispatch,
       });
     }
+
+    startAccessContextPublisher({
+      getState: () => store.getState(),
+      subscribe: (listener) => store.subscribe(listener),
+    });
   });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
