@@ -7,6 +7,7 @@ import { createInProcessSettingsClient } from '../client/inProcessSettingsClient
 import { createInProcessBlockListClient } from '../client/inProcessBlockListClient';
 import { createInProcessWorkstyleProfileClient } from '../client/inProcessWorkstyleProfileClient';
 import { createInProcessCoinClient } from '../client/inProcessCoinClient';
+import { createInProcessWorkRhythmClient } from '../client/inProcessWorkRhythmClient';
 import { createCommandOutcomeStore } from '../commandOutcomeStore';
 import type {
   BlockListClient,
@@ -25,20 +26,37 @@ import type {
   WorkstyleProfileCommandResponse,
 } from '../workstyleProfileTypes';
 import type { CoinClient, CoinCommandHandler, CoinCommandResponse } from '../coinTypes';
+import type {
+  WorkRhythmClient,
+  WorkRhythmCommandHandler,
+  WorkRhythmCommandResponse,
+} from '../workRhythmTypes';
 import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 import { createWorkstyleProfileCommandHandler } from './workstyleProfileCommandHandler';
 import { createCoinCommandHandler } from './coinCommandHandler';
+import { createWorkRhythmCommandHandler } from './workRhythmCommandHandler';
+import { createSystemClock } from '../clock';
+import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
+import { createSafariCompatibleAlarmAdapter } from '../alarms/chromiumAlarmAdapter';
+import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
+import { createWorkHistoryService } from '@/modules/work-history';
+import { createEffectExecutor } from '../effects/effectExecutor';
+import { createEffectOutcomeStore } from '../effects/effectOutcomeStore';
+import { createWorkHistoryEffectAdapter } from '../effects/workHistoryEffectAdapter';
+import type { AlarmAdapter } from '../alarms/types';
 
 export interface BackgroundCompositionRoot {
   settings: SettingsClient;
   blockList: BlockListClient;
   workstyleProfile: WorkstyleProfileClient;
   coin: CoinClient;
+  workRhythm: WorkRhythmClient;
   settingsHandler: SettingsCommandHandler;
   blockListHandler: BlockListCommandHandler;
   workstyleProfileHandler: WorkstyleProfileCommandHandler;
   coinHandler: CoinCommandHandler;
+  workRhythmHandler: WorkRhythmCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -63,6 +81,9 @@ export const createBackgroundCompositionRoot = async (options: {
     options.adapter
   );
   const coinOutcomeStore = createCommandOutcomeStore<CoinCommandResponse>(options.adapter);
+  const workRhythmOutcomeStore = createCommandOutcomeStore<WorkRhythmCommandResponse>(
+    options.adapter
+  );
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
@@ -83,6 +104,35 @@ export const createBackgroundCompositionRoot = async (options: {
     outcomeStore: coinOutcomeStore,
   });
 
+  const workHistory = createWorkHistoryService(createInMemoryWorkHistoryAdapter());
+  const effectExecutor = createEffectExecutor({
+    store: createEffectOutcomeStore(options.adapter),
+    adapters: [
+      createWorkHistoryEffectAdapter({
+        append: async (facts) => {
+          const result = await workHistory.append(facts);
+          return result.ok ? { ok: true } : { ok: false, error: 'append-failed' };
+        },
+      }),
+    ],
+  });
+
+  const alarms: AlarmAdapter = createSafariCompatibleAlarmAdapter() ?? createInMemoryAlarmAdapter();
+
+  const workRhythmHandler = createWorkRhythmCommandHandler(
+    persistence,
+    initialized.value.documents['work-rhythm'],
+    {
+      clock: createSystemClock(),
+      alarms,
+      coinHandler,
+      effectExecutor,
+      diagnostics,
+      outcomeStore: workRhythmOutcomeStore,
+    }
+  );
+  await workRhythmHandler.reconcileDueBoundaries();
+
   return {
     ok: true,
     value: {
@@ -90,10 +140,12 @@ export const createBackgroundCompositionRoot = async (options: {
       blockList: createInProcessBlockListClient(blockListHandler),
       workstyleProfile: createInProcessWorkstyleProfileClient(workstyleProfileHandler),
       coin: createInProcessCoinClient(coinHandler),
+      workRhythm: createInProcessWorkRhythmClient(workRhythmHandler),
       settingsHandler,
       blockListHandler,
       workstyleProfileHandler,
       coinHandler,
+      workRhythmHandler,
     },
   };
 };

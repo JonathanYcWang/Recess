@@ -11,6 +11,7 @@ describe('Redux store', () => {
       'settingsProjection',
       'timer',
       'workHours',
+      'workRhythmProjection',
       'workstyleProfileProjection',
     ]);
   });

@@ -7,3 +7,4 @@ export * from './quizSelectors';
 export * from './settingsProjectionSelectors';
 export * from './blockListProjectionSelectors';
 export * from './workstyleProfileProjectionSelectors';
+export * from './workRhythmProjectionSelectors';
