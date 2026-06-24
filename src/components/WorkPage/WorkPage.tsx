@@ -1,3 +1,4 @@
+import WorkRhythmProjectionView from '@/components/WorkRhythmProjection/WorkRhythmProjectionView';
 import { useTimer } from '../../hooks/useTimer';
 import BeforeWorkSessionView from '../../views/BeforeWorkSessionView/BeforeWorkSessionView';
 import OngoingFocusSessionView from '../../views/OngoingFocusSessionView/OngoingFocusSessionView';
@@ -83,7 +84,12 @@ const WorkPage = () => {
     }
   };
 
-  return <div className={styles.workPage}>{renderContent()}</div>;
+  return (
+    <div className={styles.workPage}>
+      <WorkRhythmProjectionView />
+      {renderContent()}
+    </div>
+  );
 };
 
 export default WorkPage;
