@@ -1,17 +1,12 @@
 import { createChromiumKeyValueAdapter } from '@/adapters/browser/chromium/chromiumKeyValueAdapter';
 import { createSafariCompatibleTabAccessAdapter } from '@/adapters/browser/safari/safariTabAccessAdapter';
-import type { AccessContext } from '@/modules/block-list';
 import { createBlockListReconciler, type AccessSnapshot } from '@/modules/block-list-enforcement';
 import { ACCESS_CONTEXT_STORAGE_KEY } from '@/runtime/accessContextStorage';
+import { publishAccessContext } from '@/store/accessContextPublisher';
 import { registerBlockListRuntimeListener } from './blockListRuntimeListener';
 import { getSharedBackgroundCompositionRoot } from './sharedCompositionRoot';
 import { createPersistedOwnershipStore } from './persistedOwnershipStore';
-
-const readPublishedAccessContext = async (): Promise<AccessContext | null> => {
-  const data = await chrome.storage.local.get([ACCESS_CONTEXT_STORAGE_KEY]);
-  const context = data[ACCESS_CONTEXT_STORAGE_KEY] as AccessContext | undefined;
-  return context ?? null;
-};
+import { projectBackgroundAccessContext } from './backgroundAccessContext';
 
 export const registerBlockListEnforcement = (): void => {
   const adapter = createChromiumKeyValueAdapter();
@@ -40,10 +35,18 @@ export const registerBlockListEnforcement = (): void => {
     if (!current.ok) {
       return null;
     }
-    const accessContext = await readPublishedAccessContext();
-    if (!accessContext) {
+    const workRhythm = root.value.workRhythmHandler.current();
+    if (!workRhythm.ok) {
       return null;
     }
+    const hallPass = root.value.hallPassHandler.current();
+    const hallPassEntry = hallPass.ok ? hallPass.value.hallPassEntry : null;
+    const accessContext = projectBackgroundAccessContext({
+      workRhythmSnapshot: workRhythm.value.snapshot,
+      blockListEntries: current.value.value.entries,
+      hallPassEntry,
+    });
+    void publishAccessContext(accessContext);
     const remembered = await ownershipStore.read();
     return {
       revision: current.value.revision,
@@ -64,7 +67,22 @@ export const registerBlockListEnforcement = (): void => {
         pending = false;
         const snapshot = await buildSnapshot();
         if (snapshot) {
-          await reconciler.reconcile(snapshot);
+          const result = await reconciler.reconcile(snapshot);
+          if (result.blockedAttempts.length > 0) {
+            const root = await getSharedBackgroundCompositionRoot(adapter);
+            if (root.ok) {
+              const now = Date.now();
+              for (const attempt of result.blockedAttempts) {
+                void root.value.hallPassHandler.reportBlockedAttempt({
+                  url: attempt.url,
+                  requestId: `blocked-${attempt.destination}-${now}`,
+                  reportedAtEpochMs: now,
+                  blockListEntries: snapshot.blockListEntries,
+                  isTimeOut: snapshot.accessContext.phase === 'time-out',
+                });
+              }
+            }
+          }
         }
       } while (pending);
     } finally {
@@ -86,6 +104,12 @@ export const registerBlockListEnforcement = (): void => {
       return;
     }
     root.value.blockListHandler.subscribe(() => {
+      void reconcileLatest();
+    });
+    root.value.workRhythmHandler.subscribe(() => {
+      void reconcileLatest();
+    });
+    root.value.hallPassHandler.subscribe(() => {
       void reconcileLatest();
     });
     void reconcileLatest();

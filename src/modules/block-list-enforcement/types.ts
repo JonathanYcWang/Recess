@@ -43,5 +43,16 @@ export interface AccessSnapshot {
 }
 
 export type EnforcementResult =
-  | { kind: 'converged'; closed: number; restored: number }
-  | { kind: 'partial'; closed: number; restored: number; error: TabAccessError };
+  | { kind: 'converged'; closed: number; restored: number; blockedAttempts: BlockedAttemptReport[] }
+  | {
+      kind: 'partial';
+      closed: number;
+      restored: number;
+      blockedAttempts: BlockedAttemptReport[];
+      error: TabAccessError;
+    };
+
+export interface BlockedAttemptReport {
+  destination: string;
+  url: string;
+}

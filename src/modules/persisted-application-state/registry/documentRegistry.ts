@@ -17,6 +17,8 @@ import { workRhythmCodec } from '@/modules/work-rhythm';
 import type { WorkRhythmValue } from '@/modules/work-rhythm';
 import { rewardGameCodec } from '@/modules/reward-game';
 import type { RewardGameValue } from '@/modules/reward-game';
+import { hallPassCodec } from '@/modules/hall-pass';
+import type { HallPassValue } from '@/modules/hall-pass';
 
 export const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 export const BLOCK_LIST_DOCUMENT_KEY = '__recess_doc_block_list';
@@ -24,6 +26,7 @@ export const WORKSTYLE_PROFILE_DOCUMENT_KEY = '__recess_doc_workstyle_profile';
 export const COIN_DOCUMENT_KEY = '__recess_doc_coin';
 export const WORK_RHYTHM_DOCUMENT_KEY = '__recess_doc_work_rhythm';
 export const REWARD_GAME_DOCUMENT_KEY = '__recess_doc_reward_game';
+export const HALL_PASS_DOCUMENT_KEY = '__recess_doc_hall_pass';
 
 export interface DocumentRegistryEntry<T> {
   document: PersistedDocumentName;
@@ -69,6 +72,12 @@ export const documentRegistry = {
     codec: rewardGameCodec,
     createDefault: () => rewardGameCodec.createDefault(),
   },
+  'hall-pass': {
+    document: 'hall-pass',
+    storageKey: HALL_PASS_DOCUMENT_KEY,
+    codec: hallPassCodec,
+    createDefault: () => hallPassCodec.createDefault(),
+  },
 } as const satisfies {
   settings: DocumentRegistryEntry<SettingsValue>;
   'block-list': DocumentRegistryEntry<BlockListValue>;
@@ -76,6 +85,7 @@ export const documentRegistry = {
   coin: DocumentRegistryEntry<CoinLedgerValue>;
   'work-rhythm': DocumentRegistryEntry<WorkRhythmValue>;
   'reward-game': DocumentRegistryEntry<RewardGameValue>;
+  'hall-pass': DocumentRegistryEntry<HallPassValue>;
 };
 
 export const registeredDocumentNames = [
@@ -85,6 +95,7 @@ export const registeredDocumentNames = [
   'coin',
   'work-rhythm',
   'reward-game',
+  'hall-pass',
 ] as const satisfies readonly PersistedDocumentName[];
 
 export const allOperationalStorageKeys = (): string[] =>

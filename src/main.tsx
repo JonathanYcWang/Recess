@@ -16,6 +16,8 @@ import { createAppBlockListClient } from './store/blockListClient';
 import { startBlockListProjectionSubscription } from './store/blockListProjectionSubscription';
 import { startWorkRhythmProjectionSubscription } from './store/workRhythmProjectionSubscription';
 import { createAppWorkRhythmClient } from './store/workRhythmClient';
+import { createAppHallPassClient } from './store/hallPassClient';
+import { startHallPassProjectionSubscription } from './store/hallPassProjectionSubscription';
 import { startAccessContextPublisher } from './store/accessContextSubscription';
 
 // Initialize store from storage
@@ -59,6 +61,14 @@ seedInitialStateInStorage()
     if (workRhythmClient) {
       startWorkRhythmProjectionSubscription({
         client: workRhythmClient,
+        dispatch: store.dispatch,
+      });
+    }
+
+    const hallPassClient = createAppHallPassClient();
+    if (hallPassClient) {
+      startHallPassProjectionSubscription({
+        client: hallPassClient,
         dispatch: store.dispatch,
       });
     }

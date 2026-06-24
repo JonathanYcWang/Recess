@@ -37,11 +37,15 @@ export const projectAccessContextFromState = (state: RootState): AccessContext =
     state.workRhythmProjection.connectionState === 'connected' &&
     state.workRhythmProjection.snapshot.phase === 'time-out'
   ) {
+    const hallPassEntry =
+      state.hallPassProjection.connectionState === 'connected'
+        ? state.hallPassProjection.hallPassEntry
+        : null;
     return {
       phase: 'time-out',
       blockListEntries,
       recessPassEntry: null,
-      hallPassEntry: null,
+      hallPassEntry,
     };
   }
 

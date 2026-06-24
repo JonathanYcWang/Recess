@@ -22,7 +22,12 @@
     "src/store/reducers/workRhythmProjectionReducer.ts": ["types"],
     "src/store/workRhythmClient.ts": ["exports"],
     "src/store/workRhythmConnectionManager.ts": ["exports"],
-    "src/store/workRhythmProjectionSubscription.ts": ["exports"]
+    "src/store/workRhythmProjectionSubscription.ts": ["exports"],
+    "src/store/hallPassClient.ts": ["exports"],
+    "src/store/hallPassConnectionManager.ts": ["exports"],
+    "src/store/hallPassProjectionSubscription.ts": ["exports"],
+    "src/store/reducers/hallPassProjectionReducer.ts": ["types"],
+    "src/store/selectors/hallPassProjectionSelectors.ts": ["exports"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreFiles": [
