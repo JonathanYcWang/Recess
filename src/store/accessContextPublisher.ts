@@ -33,6 +33,18 @@ export const projectAccessContextFromState = (state: RootState): AccessContext =
     };
   }
 
+  if (
+    state.workRhythmProjection.connectionState === 'connected' &&
+    state.workRhythmProjection.snapshot.phase === 'time-out'
+  ) {
+    return {
+      phase: 'time-out',
+      blockListEntries,
+      recessPassEntry: null,
+      hallPassEntry: null,
+    };
+  }
+
   const timer = state.timer;
 
   return mapLegacyTimerToAccessContext(

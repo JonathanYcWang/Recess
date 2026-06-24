@@ -29,6 +29,7 @@ const cloneSettingsValue = (value: SettingsValue): SettingsValue => ({
   })),
   blockedSites: [...value.blockedSites],
   hasOnboarded: value.hasOnboarded,
+  windDownSoundEnabled: value.windDownSoundEnabled,
   quiz: {
     ...value.quiz,
     selectedChoices: value.quiz.selectedChoices.map((choice) => ({ ...choice })),

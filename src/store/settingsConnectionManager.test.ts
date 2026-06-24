@@ -24,6 +24,7 @@ const snapshot = (revision: number, theme: 'light' | 'dark' = 'light'): Settings
     workHours: [],
     blockedSites: [],
     hasOnboarded: false,
+    windDownSoundEnabled: false,
     quiz: {
       currentQuestionId: 'Q1',
       selectedChoices: [],

@@ -136,6 +136,15 @@ const parseSettingsValue = (value: unknown): Result<SettingsValue, string> => {
   if (!quiz.ok) {
     return { ok: false, error: quiz.error };
   }
+  const windDownSoundEnabled =
+    value.windDownSoundEnabled === undefined
+      ? false
+      : typeof value.windDownSoundEnabled === 'boolean'
+        ? value.windDownSoundEnabled
+        : null;
+  if (windDownSoundEnabled === null) {
+    return { ok: false, error: 'windDownSoundEnabled must be a boolean' };
+  }
   return {
     ok: true,
     value: {
@@ -144,6 +153,7 @@ const parseSettingsValue = (value: unknown): Result<SettingsValue, string> => {
       blockedSites: value.blockedSites,
       hasOnboarded: value.hasOnboarded,
       quiz: quiz.value,
+      windDownSoundEnabled,
     },
   };
 };

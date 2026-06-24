@@ -44,7 +44,10 @@ import { createWorkHistoryService } from '@/modules/work-history';
 import { createEffectExecutor } from '../effects/effectExecutor';
 import { createEffectOutcomeStore } from '../effects/effectOutcomeStore';
 import { createWorkHistoryEffectAdapter } from '../effects/workHistoryEffectAdapter';
+import { createChromiumWindDownNotificationAdapter } from '../windDown/windDownNotificationAdapter';
+import { createChromiumWindDownSoundAdapter } from '../windDown/windDownSoundAdapter';
 import type { AlarmAdapter } from '../alarms/types';
+import { createSessionNotificationTimeOutReportNotifier } from '../timeOut/timeOutReportNotifier';
 
 export interface BackgroundCompositionRoot {
   settings: SettingsClient;
@@ -114,6 +117,8 @@ export const createBackgroundCompositionRoot = async (options: {
           return result.ok ? { ok: true } : { ok: false, error: 'append-failed' };
         },
       }),
+      createChromiumWindDownNotificationAdapter(),
+      createChromiumWindDownSoundAdapter(),
     ],
   });
 
@@ -129,9 +134,12 @@ export const createBackgroundCompositionRoot = async (options: {
       effectExecutor,
       diagnostics,
       outcomeStore: workRhythmOutcomeStore,
+      timeOutReportNotifier: createSessionNotificationTimeOutReportNotifier(),
     }
   );
   await workRhythmHandler.reconcileDueBoundaries();
+  await workRhythmHandler.reconcileTimeOutReports();
+  await workRhythmHandler.reconcileWindDownSignals();
 
   return {
     ok: true,

@@ -5,6 +5,13 @@ import {
 } from '@/modules/coin/duration';
 import type { WorkHistoryFact } from '@/modules/work-history';
 import { createFocusBlockCompletedFact } from './focusBlockCompleted';
+import {
+  focusBlockStreakCoinTransactionId,
+  FOCUS_BLOCK_STREAK_MILESTONE_COINS,
+  nextFocusBlockStreakAfterCompletion,
+  shouldAwardFocusBlockStreakMilestone,
+} from './focusBlockStreak';
+import { toWorkSessionCompletedPhase } from './startWorkSessionExtension';
 import { createWorkSessionCompletedFact } from './workSessionCompleted';
 import type {
   WorkRhythmFocusBlock,
@@ -28,20 +35,32 @@ export interface FocusBoundarySettlement {
     recordedAt: number;
     context: Record<string, string | number | boolean | null>;
   };
+  streakCoinCredit?: {
+    transactionId: string;
+    amount: number;
+    reasonCode: 'focus-block-streak';
+    recordedAt: number;
+    context: Record<string, string | number | boolean | null>;
+  };
 }
 
 export const focusBoundarySettlementCommandId = (
   sessionId: string,
-  focusBlockIndex: number
-): string => `settle-${sessionId}-block-${focusBlockIndex}`;
+  focusBlockIndex: number,
+  settlementSegment: number
+): string => `settle-${sessionId}-block-${focusBlockIndex}-seg-${settlementSegment}`;
 
 export const focusBoundaryCoinTransactionId = (
   sessionId: string,
-  focusBlockIndex: number
-): string => `coin-${sessionId}-block-${focusBlockIndex}-focus`;
+  focusBlockIndex: number,
+  settlementSegment: number
+): string => `coin-${sessionId}-block-${focusBlockIndex}-seg-${settlementSegment}-focus`;
 
-export const focusBlockCompletedFactId = (sessionId: string, focusBlockIndex: number): string =>
-  `focus-block-${sessionId}-${focusBlockIndex}`;
+export const focusBlockCompletedFactId = (
+  sessionId: string,
+  focusBlockIndex: number,
+  settlementSegment: number
+): string => `focus-block-${sessionId}-${focusBlockIndex}-seg-${settlementSegment}`;
 
 export const workSessionCompletedFactId = (sessionId: string): string =>
   `work-session-completed-${sessionId}`;
@@ -63,7 +82,8 @@ export const computeActualFocusSeconds = (
 
 const toRecessPrompt = (
   focus: WorkRhythmFocusBlock,
-  settledRemainingWorkSessionSeconds: number
+  settledRemainingWorkSessionSeconds: number,
+  focusBlockStreak: number
 ): WorkRhythmRecessPrompt => ({
   phase: 'recess-prompt',
   sessionId: focus.sessionId,
@@ -72,10 +92,15 @@ const toRecessPrompt = (
   settledRemainingWorkSessionSeconds,
   energy: focus.energy,
   momentum: focus.momentum,
-  focusBlockStreak: focus.focusBlockStreak,
+  focusBlockStreak,
   completedFocusBlockIndex: focus.focusBlockIndex,
+  lastSettledSegment: focus.settlementSegment,
   deferredRecessCount: 1,
-  originalGoalPermanentlyComplete: false,
+  originalGoalPermanentlyComplete: focus.originalGoalPermanentlyComplete,
+  isWorkSessionExtension: focus.isWorkSessionExtension,
+  extensionTrancheSeconds: focus.extensionTrancheSeconds,
+  extensionBaselineCumulativeSeconds: focus.extensionBaselineCumulativeSeconds,
+  extensionBaselineCount: focus.extensionBaselineCount,
 });
 
 export const decideFocusBoundarySettlement = (
@@ -103,10 +128,15 @@ export const decideFocusBoundarySettlement = (
   );
   const settlementCommandId = focusBoundarySettlementCommandId(
     focus.sessionId,
-    focus.focusBlockIndex
+    focus.focusBlockIndex,
+    focus.settlementSegment
   );
   const focusBlockFact = createFocusBlockCompletedFact({
-    factId: focusBlockCompletedFactId(focus.sessionId, focus.focusBlockIndex),
+    factId: focusBlockCompletedFactId(
+      focus.sessionId,
+      focus.focusBlockIndex,
+      focus.settlementSegment
+    ),
     recordedAt: nowEpochMs,
     workSessionId: focus.sessionId,
     focusBlockIndex: focus.focusBlockIndex,
@@ -118,7 +148,11 @@ export const decideFocusBoundarySettlement = (
   });
 
   const coinCredit = {
-    transactionId: focusBoundaryCoinTransactionId(focus.sessionId, focus.focusBlockIndex),
+    transactionId: focusBoundaryCoinTransactionId(
+      focus.sessionId,
+      focus.focusBlockIndex,
+      focus.settlementSegment
+    ),
     amount: coinAmount,
     reasonCode,
     recordedAt: nowEpochMs,
@@ -130,7 +164,38 @@ export const decideFocusBoundarySettlement = (
     },
   };
 
+  const nextFocusBlockStreak = nextFocusBlockStreakAfterCompletion(
+    focus.focusBlockStreak,
+    focus.wasExtension
+  );
+  const streakCoinCredit = shouldAwardFocusBlockStreakMilestone(nextFocusBlockStreak)
+    ? {
+        transactionId: focusBlockStreakCoinTransactionId(focus.sessionId, nextFocusBlockStreak),
+        amount: FOCUS_BLOCK_STREAK_MILESTONE_COINS,
+        reasonCode: 'focus-block-streak' as const,
+        recordedAt: nowEpochMs,
+        context: {
+          workSessionId: focus.sessionId,
+          focusBlockStreak: nextFocusBlockStreak,
+          focusBlockIndex: focus.focusBlockIndex,
+        },
+      }
+    : undefined;
+
   if (focus.isFinalFocus) {
+    if (focus.isWorkSessionExtension) {
+      return {
+        ok: true,
+        value: {
+          nextValue: toWorkSessionCompletedPhase(focus, nowEpochMs),
+          settlementCommandId,
+          focusBlockFact,
+          coinCredit,
+          streakCoinCredit,
+        },
+      };
+    }
+
     const actualWorkedSeconds = focus.originalGoalSeconds - settledRemainingWorkSessionSeconds;
     const workSessionCompletedFact = createWorkSessionCompletedFact({
       factId: workSessionCompletedFactId(focus.sessionId),
@@ -144,11 +209,12 @@ export const decideFocusBoundarySettlement = (
     return {
       ok: true,
       value: {
-        nextValue: { phase: 'inactive' },
+        nextValue: toWorkSessionCompletedPhase(focus, nowEpochMs),
         settlementCommandId,
         focusBlockFact,
         workSessionCompletedFact,
         coinCredit,
+        streakCoinCredit,
       },
     };
   }
@@ -156,10 +222,11 @@ export const decideFocusBoundarySettlement = (
   return {
     ok: true,
     value: {
-      nextValue: toRecessPrompt(focus, settledRemainingWorkSessionSeconds),
+      nextValue: toRecessPrompt(focus, settledRemainingWorkSessionSeconds, nextFocusBlockStreak),
       settlementCommandId,
       focusBlockFact,
       coinCredit,
+      streakCoinCredit,
     },
   };
 };

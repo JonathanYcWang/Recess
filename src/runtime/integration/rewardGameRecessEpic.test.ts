@@ -29,8 +29,13 @@ const recessPrompt = (): WorkRhythmRecessPrompt => ({
   momentum: 'steady',
   focusBlockStreak: 1,
   completedFocusBlockIndex: 0,
+  lastSettledSegment: 0,
   deferredRecessCount: 1,
   originalGoalPermanentlyComplete: false,
+  isWorkSessionExtension: false,
+  extensionTrancheSeconds: 0,
+  extensionBaselineCumulativeSeconds: 0,
+  extensionBaselineCount: 0,
 });
 
 describe('reward game and recess epic integration', () => {

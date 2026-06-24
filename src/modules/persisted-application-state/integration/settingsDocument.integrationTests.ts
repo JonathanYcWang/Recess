@@ -28,6 +28,7 @@ export const describeSettingsDocumentIntegrationTests = (
         workHours: [],
         blockedSites: ['example.com'],
         hasOnboarded: true,
+        windDownSoundEnabled: false,
         quiz: {
           currentQuestionId: 'Q1',
           selectedChoices: [],
@@ -69,6 +70,7 @@ export const describeSettingsDocumentIntegrationTests = (
             workHours: [],
             blockedSites: [],
             hasOnboarded: true,
+            windDownSoundEnabled: false,
             quiz: {
               currentQuestionId: 'Q1',
               selectedChoices: [],
@@ -88,6 +90,7 @@ export const describeSettingsDocumentIntegrationTests = (
             workHours: [],
             blockedSites: [],
             hasOnboarded: false,
+            windDownSoundEnabled: false,
             quiz: {
               currentQuestionId: 'Q1',
               selectedChoices: [],

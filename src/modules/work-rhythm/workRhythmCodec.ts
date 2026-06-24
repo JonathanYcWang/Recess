@@ -14,7 +14,9 @@ import {
   type WorkRhythmRewardGame,
   type WorkRhythmRecess,
   type WorkRhythmBackToWorkCountdown,
+  type WorkRhythmTimeOut,
   type WorkRhythmValue,
+  type WorkRhythmWorkSessionCompleted,
 } from './workRhythmDocument';
 
 export const WORK_RHYTHM_SCHEMA_VERSION = 1;
@@ -68,6 +70,34 @@ const parseSchedulerReason = (
   };
 };
 
+const parseBooleanField = (
+  value: unknown,
+  field: string,
+  defaultValue: boolean
+): Result<boolean, string> => {
+  if (value === undefined) {
+    return { ok: true, value: defaultValue };
+  }
+  if (typeof value !== 'boolean') {
+    return { ok: false, error: `${field} must be a boolean` };
+  }
+  return { ok: true, value };
+};
+
+const parseNumberField = (
+  value: unknown,
+  field: string,
+  defaultValue: number
+): Result<number, string> => {
+  if (value === undefined) {
+    return { ok: true, value: defaultValue };
+  }
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return { ok: false, error: `${field} must be a finite number` };
+  }
+  return { ok: true, value };
+};
+
 const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> => {
   if (!isRecord(value) || value.phase !== 'focus-block') {
     return { ok: false, error: 'focus block value must have phase focus-block' };
@@ -88,6 +118,7 @@ const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> =
     'focusDeadlineAtEpochMs',
     'focusDurationSeconds',
     'focusBlockStreak',
+    'settlementSegment',
   ] as const;
   for (const field of numberFields) {
     if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
@@ -117,6 +148,46 @@ const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> =
     }
     schedulerReasons.push(parsed.value);
   }
+  const originalGoalPermanentlyComplete = parseBooleanField(
+    value.originalGoalPermanentlyComplete,
+    'originalGoalPermanentlyComplete',
+    false
+  );
+  if (!originalGoalPermanentlyComplete.ok) {
+    return { ok: false, error: originalGoalPermanentlyComplete.error };
+  }
+  const isWorkSessionExtension = parseBooleanField(
+    value.isWorkSessionExtension,
+    'isWorkSessionExtension',
+    false
+  );
+  if (!isWorkSessionExtension.ok) {
+    return { ok: false, error: isWorkSessionExtension.error };
+  }
+  const extensionTrancheSeconds = parseNumberField(
+    value.extensionTrancheSeconds,
+    'extensionTrancheSeconds',
+    0
+  );
+  if (!extensionTrancheSeconds.ok) {
+    return { ok: false, error: extensionTrancheSeconds.error };
+  }
+  const extensionBaselineCumulativeSeconds = parseNumberField(
+    value.extensionBaselineCumulativeSeconds,
+    'extensionBaselineCumulativeSeconds',
+    0
+  );
+  if (!extensionBaselineCumulativeSeconds.ok) {
+    return { ok: false, error: extensionBaselineCumulativeSeconds.error };
+  }
+  const extensionBaselineCount = parseNumberField(
+    value.extensionBaselineCount,
+    'extensionBaselineCount',
+    0
+  );
+  if (!extensionBaselineCount.ok) {
+    return { ok: false, error: extensionBaselineCount.error };
+  }
   return {
     ok: true,
     value: {
@@ -136,6 +207,12 @@ const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> =
       wasExtension: value.wasExtension as boolean,
       schedulerReasons,
       focusBlockStreak: value.focusBlockStreak as number,
+      settlementSegment: value.settlementSegment as number,
+      originalGoalPermanentlyComplete: originalGoalPermanentlyComplete.value,
+      isWorkSessionExtension: isWorkSessionExtension.value,
+      extensionTrancheSeconds: extensionTrancheSeconds.value,
+      extensionBaselineCumulativeSeconds: extensionBaselineCumulativeSeconds.value,
+      extensionBaselineCount: extensionBaselineCount.value,
     },
   };
 };
@@ -153,6 +230,7 @@ const parseRecessPrompt = (value: unknown): Result<WorkRhythmRecessPrompt, strin
     'settledRemainingWorkSessionSeconds',
     'focusBlockStreak',
     'completedFocusBlockIndex',
+    'lastSettledSegment',
     'deferredRecessCount',
   ] as const;
   for (const field of numberFields) {
@@ -169,6 +247,38 @@ const parseRecessPrompt = (value: unknown): Result<WorkRhythmRecessPrompt, strin
   if (typeof value.originalGoalPermanentlyComplete !== 'boolean') {
     return { ok: false, error: 'originalGoalPermanentlyComplete must be a boolean' };
   }
+  const isWorkSessionExtension = parseBooleanField(
+    value.isWorkSessionExtension,
+    'isWorkSessionExtension',
+    false
+  );
+  if (!isWorkSessionExtension.ok) {
+    return { ok: false, error: isWorkSessionExtension.error };
+  }
+  const extensionTrancheSeconds = parseNumberField(
+    value.extensionTrancheSeconds,
+    'extensionTrancheSeconds',
+    0
+  );
+  if (!extensionTrancheSeconds.ok) {
+    return { ok: false, error: extensionTrancheSeconds.error };
+  }
+  const extensionBaselineCumulativeSeconds = parseNumberField(
+    value.extensionBaselineCumulativeSeconds,
+    'extensionBaselineCumulativeSeconds',
+    0
+  );
+  if (!extensionBaselineCumulativeSeconds.ok) {
+    return { ok: false, error: extensionBaselineCumulativeSeconds.error };
+  }
+  const extensionBaselineCount = parseNumberField(
+    value.extensionBaselineCount,
+    'extensionBaselineCount',
+    0
+  );
+  if (!extensionBaselineCount.ok) {
+    return { ok: false, error: extensionBaselineCount.error };
+  }
   return {
     ok: true,
     value: {
@@ -181,8 +291,183 @@ const parseRecessPrompt = (value: unknown): Result<WorkRhythmRecessPrompt, strin
       momentum: value.momentum as WorkRhythmRecessPrompt['momentum'],
       focusBlockStreak: value.focusBlockStreak as number,
       completedFocusBlockIndex: value.completedFocusBlockIndex as number,
+      lastSettledSegment: value.lastSettledSegment as number,
       deferredRecessCount: value.deferredRecessCount as number,
       originalGoalPermanentlyComplete: value.originalGoalPermanentlyComplete as boolean,
+      isWorkSessionExtension: isWorkSessionExtension.value,
+      extensionTrancheSeconds: extensionTrancheSeconds.value,
+      extensionBaselineCumulativeSeconds: extensionBaselineCumulativeSeconds.value,
+      extensionBaselineCount: extensionBaselineCount.value,
+    },
+  };
+};
+
+const parseTimeOut = (value: unknown): Result<WorkRhythmTimeOut, string> => {
+  if (!isRecord(value) || value.phase !== 'time-out') {
+    return { ok: false, error: 'time out value must have phase time-out' };
+  }
+  if (typeof value.sessionId !== 'string' || value.sessionId.length === 0) {
+    return { ok: false, error: 'sessionId must be a non-empty string' };
+  }
+  const numberFields = [
+    'originalGoalSeconds',
+    'settledRemainingWorkSessionSeconds',
+    'settledRemainingFocusSeconds',
+    'focusBlockIndex',
+    'focusDurationSeconds',
+    'focusBlockStreak',
+    'settlementSegment',
+    'timeOutStartedAtEpochMs',
+    'lastReportedFiveMinuteBoundary',
+  ] as const;
+  for (const field of numberFields) {
+    if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
+      return { ok: false, error: `${field} must be a finite number` };
+    }
+  }
+  if (typeof value.energy !== 'string' || !includes(ENERGY_LEVELS, value.energy)) {
+    return { ok: false, error: 'energy must be low, steady, or high' };
+  }
+  if (typeof value.momentum !== 'string' || !includes(MOMENTUM_LEVELS, value.momentum)) {
+    return { ok: false, error: 'momentum must be a valid momentum level' };
+  }
+  if (typeof value.isFinalFocus !== 'boolean') {
+    return { ok: false, error: 'isFinalFocus must be a boolean' };
+  }
+  if (typeof value.wasExtension !== 'boolean') {
+    return { ok: false, error: 'wasExtension must be a boolean' };
+  }
+  if (typeof value.momentumLoweredDuringTimeOut !== 'boolean') {
+    return { ok: false, error: 'momentumLoweredDuringTimeOut must be a boolean' };
+  }
+  if (!Array.isArray(value.schedulerReasons)) {
+    return { ok: false, error: 'schedulerReasons must be an array' };
+  }
+  const schedulerReasons: WorkRhythmTimeOut['schedulerReasons'] = [];
+  for (const reason of value.schedulerReasons) {
+    const parsed = parseSchedulerReason(reason);
+    if (!parsed.ok) {
+      return { ok: false, error: parsed.error };
+    }
+    schedulerReasons.push(parsed.value);
+  }
+  const originalGoalPermanentlyComplete = parseBooleanField(
+    value.originalGoalPermanentlyComplete,
+    'originalGoalPermanentlyComplete',
+    false
+  );
+  if (!originalGoalPermanentlyComplete.ok) {
+    return { ok: false, error: originalGoalPermanentlyComplete.error };
+  }
+  const isWorkSessionExtension = parseBooleanField(
+    value.isWorkSessionExtension,
+    'isWorkSessionExtension',
+    false
+  );
+  if (!isWorkSessionExtension.ok) {
+    return { ok: false, error: isWorkSessionExtension.error };
+  }
+  const extensionTrancheSeconds = parseNumberField(
+    value.extensionTrancheSeconds,
+    'extensionTrancheSeconds',
+    0
+  );
+  if (!extensionTrancheSeconds.ok) {
+    return { ok: false, error: extensionTrancheSeconds.error };
+  }
+  const extensionBaselineCumulativeSeconds = parseNumberField(
+    value.extensionBaselineCumulativeSeconds,
+    'extensionBaselineCumulativeSeconds',
+    0
+  );
+  if (!extensionBaselineCumulativeSeconds.ok) {
+    return { ok: false, error: extensionBaselineCumulativeSeconds.error };
+  }
+  const extensionBaselineCount = parseNumberField(
+    value.extensionBaselineCount,
+    'extensionBaselineCount',
+    0
+  );
+  if (!extensionBaselineCount.ok) {
+    return { ok: false, error: extensionBaselineCount.error };
+  }
+  return {
+    ok: true,
+    value: {
+      phase: 'time-out',
+      sessionId: value.sessionId as string,
+      originalGoalSeconds: value.originalGoalSeconds as number,
+      settledRemainingWorkSessionSeconds: value.settledRemainingWorkSessionSeconds as number,
+      settledRemainingFocusSeconds: value.settledRemainingFocusSeconds as number,
+      energy: value.energy as WorkRhythmTimeOut['energy'],
+      momentum: value.momentum as WorkRhythmTimeOut['momentum'],
+      focusBlockIndex: value.focusBlockIndex as number,
+      focusDurationSeconds: value.focusDurationSeconds as number,
+      isFinalFocus: value.isFinalFocus as boolean,
+      wasExtension: value.wasExtension as boolean,
+      schedulerReasons,
+      focusBlockStreak: value.focusBlockStreak as number,
+      settlementSegment: value.settlementSegment as number,
+      timeOutStartedAtEpochMs: value.timeOutStartedAtEpochMs as number,
+      lastReportedFiveMinuteBoundary: value.lastReportedFiveMinuteBoundary as number,
+      momentumLoweredDuringTimeOut: value.momentumLoweredDuringTimeOut as boolean,
+      originalGoalPermanentlyComplete: originalGoalPermanentlyComplete.value,
+      isWorkSessionExtension: isWorkSessionExtension.value,
+      extensionTrancheSeconds: extensionTrancheSeconds.value,
+      extensionBaselineCumulativeSeconds: extensionBaselineCumulativeSeconds.value,
+      extensionBaselineCount: extensionBaselineCount.value,
+    },
+  };
+};
+
+const parseWorkSessionCompleted = (
+  value: unknown
+): Result<WorkRhythmWorkSessionCompleted, string> => {
+  if (!isRecord(value) || value.phase !== 'work-session-completed') {
+    return {
+      ok: false,
+      error: 'work session completed value must have phase work-session-completed',
+    };
+  }
+  if (typeof value.sessionId !== 'string' || value.sessionId.length === 0) {
+    return { ok: false, error: 'sessionId must be a non-empty string' };
+  }
+  const numberFields = [
+    'originalGoalSeconds',
+    'cumulativeExtensionSeconds',
+    'extensionCount',
+    'focusBlockStreak',
+    'lastCompletedFocusBlockIndex',
+    'sessionCompletedAtEpochMs',
+  ] as const;
+  for (const field of numberFields) {
+    if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
+      return { ok: false, error: `${field} must be a finite number` };
+    }
+  }
+  if (typeof value.energy !== 'string' || !includes(ENERGY_LEVELS, value.energy)) {
+    return { ok: false, error: 'energy must be low, steady, or high' };
+  }
+  if (typeof value.momentum !== 'string' || !includes(MOMENTUM_LEVELS, value.momentum)) {
+    return { ok: false, error: 'momentum must be a valid momentum level' };
+  }
+  if (value.originalGoalPermanentlyComplete !== true) {
+    return { ok: false, error: 'originalGoalPermanentlyComplete must be true' };
+  }
+  return {
+    ok: true,
+    value: {
+      phase: 'work-session-completed',
+      sessionId: value.sessionId as string,
+      originalGoalSeconds: value.originalGoalSeconds as number,
+      cumulativeExtensionSeconds: value.cumulativeExtensionSeconds as number,
+      extensionCount: value.extensionCount as number,
+      energy: value.energy as WorkRhythmWorkSessionCompleted['energy'],
+      momentum: value.momentum as WorkRhythmWorkSessionCompleted['momentum'],
+      focusBlockStreak: value.focusBlockStreak as number,
+      lastCompletedFocusBlockIndex: value.lastCompletedFocusBlockIndex as number,
+      originalGoalPermanentlyComplete: true,
+      sessionCompletedAtEpochMs: value.sessionCompletedAtEpochMs as number,
     },
   };
 };
@@ -370,10 +655,16 @@ const parseWorkRhythmValue = (value: unknown): Result<WorkRhythmValue, string> =
   if (value.phase === 'back-to-work-countdown') {
     return parseCountdown(value);
   }
+  if (value.phase === 'time-out') {
+    return parseTimeOut(value);
+  }
+  if (value.phase === 'work-session-completed') {
+    return parseWorkSessionCompleted(value);
+  }
   return {
     ok: false,
     error:
-      'phase must be inactive, focus-block, recess-prompt, reward-game, recess, or back-to-work-countdown',
+      'phase must be inactive, focus-block, recess-prompt, time-out, work-session-completed, reward-game, recess, or back-to-work-countdown',
   };
 };
 

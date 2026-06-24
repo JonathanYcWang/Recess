@@ -31,6 +31,7 @@ export interface SettingsValue {
   blockedSites: string[];
   hasOnboarded: boolean;
   quiz: QuizState;
+  windDownSoundEnabled: boolean;
 }
 
 const DEFAULT_BLOCKED_SITES = [
@@ -58,4 +59,5 @@ export const createDefaultSettingsValue = (): SettingsValue => ({
     isComplete: false,
     results: null,
   },
+  windDownSoundEnabled: false,
 });

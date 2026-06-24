@@ -10,6 +10,8 @@ export type WorkRhythmPhase =
   | 'inactive'
   | 'focus-block'
   | 'recess-prompt'
+  | 'time-out'
+  | 'work-session-completed'
   | 'reward-game'
   | 'recess'
   | 'back-to-work-countdown';
@@ -35,6 +37,26 @@ export interface WorkRhythmFocusBlock {
   wasExtension: boolean;
   schedulerReasons: SchedulerReason[];
   focusBlockStreak: number;
+  settlementSegment: number;
+  originalGoalPermanentlyComplete: boolean;
+  isWorkSessionExtension: boolean;
+  extensionTrancheSeconds: number;
+  extensionBaselineCumulativeSeconds: number;
+  extensionBaselineCount: number;
+}
+
+export interface WorkRhythmWorkSessionCompleted {
+  phase: 'work-session-completed';
+  sessionId: string;
+  originalGoalSeconds: number;
+  cumulativeExtensionSeconds: number;
+  extensionCount: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  lastCompletedFocusBlockIndex: number;
+  originalGoalPermanentlyComplete: true;
+  sessionCompletedAtEpochMs: number;
 }
 
 export interface WorkRhythmRecessPrompt {
@@ -47,8 +69,38 @@ export interface WorkRhythmRecessPrompt {
   momentum: MomentumLevel;
   focusBlockStreak: number;
   completedFocusBlockIndex: number;
+  lastSettledSegment: number;
   deferredRecessCount: number;
   originalGoalPermanentlyComplete: boolean;
+  isWorkSessionExtension: boolean;
+  extensionTrancheSeconds: number;
+  extensionBaselineCumulativeSeconds: number;
+  extensionBaselineCount: number;
+}
+
+export interface WorkRhythmTimeOut {
+  phase: 'time-out';
+  sessionId: string;
+  originalGoalSeconds: number;
+  settledRemainingWorkSessionSeconds: number;
+  settledRemainingFocusSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockIndex: number;
+  focusDurationSeconds: number;
+  isFinalFocus: boolean;
+  wasExtension: boolean;
+  schedulerReasons: SchedulerReason[];
+  focusBlockStreak: number;
+  settlementSegment: number;
+  timeOutStartedAtEpochMs: number;
+  lastReportedFiveMinuteBoundary: number;
+  momentumLoweredDuringTimeOut: boolean;
+  originalGoalPermanentlyComplete: boolean;
+  isWorkSessionExtension: boolean;
+  extensionTrancheSeconds: number;
+  extensionBaselineCumulativeSeconds: number;
+  extensionBaselineCount: number;
 }
 
 export interface WorkRhythmRewardGame {
@@ -99,6 +151,8 @@ export type WorkRhythmValue =
   | WorkRhythmInactive
   | WorkRhythmFocusBlock
   | WorkRhythmRecessPrompt
+  | WorkRhythmTimeOut
+  | WorkRhythmWorkSessionCompleted
   | WorkRhythmRewardGame
   | WorkRhythmRecess
   | WorkRhythmBackToWorkCountdown;
@@ -121,12 +175,13 @@ export const cloneWorkRhythmValue = (value: WorkRhythmValue): WorkRhythmValue =>
   }
   if (
     value.phase === 'recess-prompt' ||
+    value.phase === 'work-session-completed' ||
     value.phase === 'reward-game' ||
     value.phase === 'back-to-work-countdown'
   ) {
     return { ...value };
   }
-  if (value.phase === 'recess') {
+  if (value.phase === 'time-out' || value.phase === 'recess') {
     return {
       ...value,
       schedulerReasons: value.schedulerReasons.map((reason) => ({ ...reason })),
@@ -149,5 +204,11 @@ export const cloneWorkRhythmValue = (value: WorkRhythmValue): WorkRhythmValue =>
     wasExtension: value.wasExtension,
     schedulerReasons: value.schedulerReasons.map((reason) => ({ ...reason })),
     focusBlockStreak: value.focusBlockStreak,
+    settlementSegment: value.settlementSegment,
+    originalGoalPermanentlyComplete: value.originalGoalPermanentlyComplete,
+    isWorkSessionExtension: value.isWorkSessionExtension,
+    extensionTrancheSeconds: value.extensionTrancheSeconds,
+    extensionBaselineCumulativeSeconds: value.extensionBaselineCumulativeSeconds,
+    extensionBaselineCount: value.extensionBaselineCount,
   };
 };
