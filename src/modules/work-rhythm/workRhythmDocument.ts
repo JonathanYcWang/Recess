@@ -6,7 +6,13 @@ export const WORK_SESSION_GOAL_MAX_SECONDS = 8 * 60 * 60;
 export const WORK_SESSION_GOAL_STEP_SECONDS = 15 * 60;
 export const DEFAULT_WORK_SESSION_GOAL_SECONDS = 3 * 60 * 60;
 
-export type WorkRhythmPhase = 'inactive' | 'focus-block' | 'recess-prompt';
+export type WorkRhythmPhase =
+  | 'inactive'
+  | 'focus-block'
+  | 'recess-prompt'
+  | 'reward-game'
+  | 'recess'
+  | 'back-to-work-countdown';
 
 export interface WorkRhythmInactive {
   phase: 'inactive';
@@ -45,7 +51,59 @@ export interface WorkRhythmRecessPrompt {
   originalGoalPermanentlyComplete: boolean;
 }
 
-export type WorkRhythmValue = WorkRhythmInactive | WorkRhythmFocusBlock | WorkRhythmRecessPrompt;
+export interface WorkRhythmRewardGame {
+  phase: 'reward-game';
+  sessionId: string;
+  originalGoalSeconds: number;
+  sessionStartedAtEpochMs: number;
+  settledRemainingWorkSessionSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  completedFocusBlockIndex: number;
+  roundId: string;
+}
+
+export interface WorkRhythmRecess {
+  phase: 'recess';
+  sessionId: string;
+  originalGoalSeconds: number;
+  sessionStartedAtEpochMs: number;
+  settledRemainingWorkSessionSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  nextFocusBlockIndex: number;
+  recessPassDestination: string | null;
+  recessStartedAtEpochMs: number;
+  recessDeadlineAtEpochMs: number;
+  recessDurationSeconds: number;
+  schedulerReasons: SchedulerReason[];
+}
+
+export interface WorkRhythmBackToWorkCountdown {
+  phase: 'back-to-work-countdown';
+  sessionId: string;
+  originalGoalSeconds: number;
+  sessionStartedAtEpochMs: number;
+  settledRemainingWorkSessionSeconds: number;
+  energy: EnergyLevel;
+  momentum: MomentumLevel;
+  focusBlockStreak: number;
+  nextFocusBlockIndex: number;
+  countdownStartedAtEpochMs: number;
+  countdownDeadlineAtEpochMs: number;
+}
+
+export type WorkRhythmValue =
+  | WorkRhythmInactive
+  | WorkRhythmFocusBlock
+  | WorkRhythmRecessPrompt
+  | WorkRhythmRewardGame
+  | WorkRhythmRecess
+  | WorkRhythmBackToWorkCountdown;
+
+export const BACK_TO_WORK_COUNTDOWN_SECONDS = 10;
 
 export const createDefaultWorkRhythmValue = (): WorkRhythmInactive => ({
   phase: 'inactive',
@@ -61,8 +119,18 @@ export const cloneWorkRhythmValue = (value: WorkRhythmValue): WorkRhythmValue =>
   if (value.phase === 'inactive') {
     return { phase: 'inactive' };
   }
-  if (value.phase === 'recess-prompt') {
+  if (
+    value.phase === 'recess-prompt' ||
+    value.phase === 'reward-game' ||
+    value.phase === 'back-to-work-countdown'
+  ) {
     return { ...value };
+  }
+  if (value.phase === 'recess') {
+    return {
+      ...value,
+      schedulerReasons: value.schedulerReasons.map((reason) => ({ ...reason })),
+    };
   }
   return {
     phase: 'focus-block',

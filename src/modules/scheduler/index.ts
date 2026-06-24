@@ -16,3 +16,8 @@ export {
   type RewardGameBudget,
   type RewardGameKind,
 } from './cadence';
+export {
+  decidePostGameRecess,
+  type PostGameRecessDecision,
+  type PostGameRecessInput,
+} from './postGameRecess';
