@@ -47,6 +47,13 @@ const FocusTaskSelection = () => {
     void client.setActiveTask(taskId, { expectedRevision: revision ?? undefined });
   };
 
+  const completeTask = (taskId: string) => {
+    if (!client || disconnected) {
+      return;
+    }
+    void client.completeTask(taskId, { expectedRevision: revision ?? undefined });
+  };
+
   return (
     <section className={styles.root} aria-label="Focus task selection">
       <p className={styles.header}>Focus tasks</p>
@@ -67,14 +74,24 @@ const FocusTaskSelection = () => {
                 <span>{task.title}</span>
               </label>
               {selected ? (
-                <button
-                  type="button"
-                  className={active ? styles.activeButton : styles.activateButton}
-                  disabled={disconnected || active}
-                  onClick={() => activateTask(task.id)}
-                >
-                  {active ? 'Active' : 'Activate'}
-                </button>
+                <div className={styles.taskActions}>
+                  <button
+                    type="button"
+                    className={active ? styles.activeButton : styles.activateButton}
+                    disabled={disconnected || active}
+                    onClick={() => activateTask(task.id)}
+                  >
+                    {active ? 'Active' : 'Activate'}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.completeButton}
+                    disabled={disconnected}
+                    onClick={() => completeTask(task.id)}
+                  >
+                    Complete
+                  </button>
+                </div>
               ) : null}
             </li>
           );

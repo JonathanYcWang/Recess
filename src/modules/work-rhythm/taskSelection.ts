@@ -1,5 +1,6 @@
 import type { Result } from '@/modules/persisted-application-state/types';
 import {
+  applyTaskListCommand,
   computeIntervalElapsedSeconds,
   decideActivateTask,
   decideAttributeFocusedTime,
@@ -291,6 +292,116 @@ export const decideSetActiveTask = (
   const nextValue: TaskSelectionPhaseValue = {
     ...current,
     activeTaskId: taskId.value,
+    activeTaskIntervalStartedAtEpochMs,
+  };
+
+  return { ok: true, value: { nextValue, nextTaskList, attribution } };
+};
+
+export const findNextIncompleteSelectedTaskId = (
+  taskList: TaskListValue,
+  selectedTaskIds: readonly string[],
+  afterTaskId?: string
+): string | null => {
+  const startAt = afterTaskId === undefined ? 0 : selectedTaskIds.indexOf(afterTaskId) + 1;
+  if (startAt < 0) {
+    return null;
+  }
+  for (let index = startAt; index < selectedTaskIds.length; index += 1) {
+    const candidateId = selectedTaskIds[index];
+    const task = taskList.tasks.find((entry) => entry.id === candidateId);
+    if (task && isIncompleteTask(task)) {
+      return candidateId;
+    }
+  }
+  return null;
+};
+
+export const decideCompleteTask = (
+  current: WorkRhythmValue,
+  taskList: TaskListValue,
+  taskIdInput: unknown,
+  nowEpochMs: number
+): Result<
+  {
+    nextValue: TaskSelectionPhaseValue;
+    nextTaskList: TaskListValue;
+    attribution: TaskAttribution | null;
+  },
+  TaskSelectionError
+> => {
+  if (!hasTaskSelection(current)) {
+    return { ok: false, error: { kind: 'invalid-phase-for-task-selection' } };
+  }
+
+  const taskId = parseActiveTaskId(taskIdInput);
+  if (!taskId.ok || taskId.value === null) {
+    return { ok: false, error: { kind: 'invalid-active-task' } };
+  }
+
+  if (!current.selectedTaskIds.includes(taskId.value)) {
+    return { ok: false, error: { kind: 'task-not-selected', taskId: taskId.value } };
+  }
+
+  const existing = taskList.tasks.find((entry) => entry.id === taskId.value);
+  if (!existing) {
+    return { ok: false, error: { kind: 'task-not-found', taskId: taskId.value } };
+  }
+  if (!isIncompleteTask(existing)) {
+    return { ok: false, error: { kind: 'task-not-incomplete', taskId: taskId.value } };
+  }
+
+  const isActive = current.activeTaskId === taskId.value;
+  let nextTaskList = taskList;
+  let attribution: TaskAttribution | null = null;
+
+  if (isActive) {
+    const settled = settleActiveTaskInterval(current, nextTaskList, nowEpochMs);
+    if (!settled.ok) {
+      return settled;
+    }
+    nextTaskList = settled.value.nextTaskList;
+    attribution = settled.value.attribution;
+  }
+
+  const completed = applyTaskListCommand(
+    nextTaskList,
+    { kind: 'complete-task', taskId: taskId.value },
+    { nowEpochMs }
+  );
+  if (!completed.ok) {
+    if (completed.error.kind === 'task-not-found') {
+      return { ok: false, error: completed.error };
+    }
+    return { ok: false, error: { kind: 'task-not-incomplete', taskId: taskId.value } };
+  }
+  nextTaskList = completed.value;
+
+  const remainingSelectedIds = current.selectedTaskIds.filter((id) => id !== taskId.value);
+  let activeTaskId = current.activeTaskId;
+  let activeTaskIntervalStartedAtEpochMs = current.activeTaskIntervalStartedAtEpochMs;
+
+  if (isActive) {
+    const nextActiveId = findNextIncompleteSelectedTaskId(nextTaskList, remainingSelectedIds);
+    activeTaskId = nextActiveId;
+    activeTaskIntervalStartedAtEpochMs = null;
+    if (nextActiveId !== null && current.phase === 'focus-block') {
+      activeTaskIntervalStartedAtEpochMs = nowEpochMs;
+      const activated = decideActivateTask(nextTaskList, nextActiveId, nowEpochMs);
+      if (!activated.ok) {
+        if (activated.error.kind === 'task-not-found') {
+          return { ok: false, error: activated.error };
+        }
+        return { ok: false, error: { kind: 'task-not-incomplete', taskId: nextActiveId } };
+      }
+      nextTaskList = activated.value;
+    }
+  }
+
+  const nextValue: TaskSelectionPhaseValue = {
+    ...current,
+    selectedTaskIds: remainingSelectedIds,
+    activeTaskId,
     activeTaskIntervalStartedAtEpochMs,
   };
 

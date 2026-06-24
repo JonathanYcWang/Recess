@@ -155,9 +155,11 @@ export {
   type TaskFocusedTimeAttributedContext,
 } from './taskFocusedTimeAttributed';
 export {
+  decideCompleteTask,
   decideSelectTasks,
   decideSetActiveTask,
   emptyTaskSelection,
+  findNextIncompleteSelectedTaskId,
   hasTaskSelection,
   preparePhaseAfterTaskSettlement,
   settleActiveTaskInterval,

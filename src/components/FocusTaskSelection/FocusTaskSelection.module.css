@@ -32,6 +32,12 @@
   gap: 0.75rem;
 }
 
+.taskActions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
 .checkboxLabel {
   display: flex;
   align-items: center;
@@ -39,12 +45,17 @@
 }
 
 .activateButton,
-.activeButton {
+.activeButton,
+.completeButton {
   border: 1px solid var(--border-subtle, #d8d8d8);
   border-radius: 6px;
   padding: 0.25rem 0.5rem;
   background: transparent;
   font-size: 0.8125rem;
+}
+
+.completeButton {
+  color: var(--text-secondary, #555);
 }
 
 .activeButton {

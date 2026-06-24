@@ -7,6 +7,7 @@ import {
   applyWorkRhythmCommand,
   cloneWorkRhythmValue,
   decideDeclineRecess,
+  decideCompleteTask,
   decideEndWorkSessionEarly,
   decideFocusBoundarySettlement,
   decideResumeFromTimeOut,
@@ -996,6 +997,22 @@ export const createWorkRhythmCommandHandler = (
     return commitTaskSelectionChange(envelope, decided.value);
   };
 
+  const commitCompleteTask = async (
+    envelope: WorkRhythmCommandEnvelope
+  ): Promise<WorkRhythmCommandResponse> => {
+    const taskListDoc = taskListHandler.getDocument();
+    const decided = decideCompleteTask(
+      currentDocument.value,
+      taskListDoc.value,
+      envelope.command.kind === 'complete-task' ? envelope.command.taskId : null,
+      clock.nowEpochMs()
+    );
+    if (!decided.ok) {
+      return toFailure(decided.error);
+    }
+    return commitTaskSelectionChange(envelope, decided.value);
+  };
+
   const executeFresh = async (
     envelope: WorkRhythmCommandEnvelope
   ): Promise<WorkRhythmCommandResponse> => {
@@ -1094,6 +1111,10 @@ export const createWorkRhythmCommandHandler = (
 
     if (envelope.command.kind === 'set-active-task') {
       return commitSetActiveTask(envelope);
+    }
+
+    if (envelope.command.kind === 'complete-task') {
+      return commitCompleteTask(envelope);
     }
 
     return toFailure({ kind: 'malformed-command', message: 'unsupported command' });

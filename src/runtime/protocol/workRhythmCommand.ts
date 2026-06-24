@@ -11,7 +11,8 @@ export type WorkRhythmCommand =
   | { kind: 'decline-recess' }
   | { kind: 'start-work-session-extension'; extensionSeconds: unknown }
   | { kind: 'select-tasks'; taskIds: unknown }
-  | { kind: 'set-active-task'; taskId: unknown };
+  | { kind: 'set-active-task'; taskId: unknown }
+  | { kind: 'complete-task'; taskId: unknown };
 
 export type WorkRhythmCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -69,6 +70,12 @@ const parseCommand = (command: unknown): WorkRhythmCommand | null => {
   if (command.kind === 'set-active-task') {
     return {
       kind: 'set-active-task',
+      taskId: command.taskId,
+    };
+  }
+  if (command.kind === 'complete-task') {
+    return {
+      kind: 'complete-task',
       taskId: command.taskId,
     };
   }

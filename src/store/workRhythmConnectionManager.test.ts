@@ -38,6 +38,7 @@ describe('WorkRhythmConnectionManager', () => {
       command: async () => ({ ok: true, revision: snapshot.revision, snapshot }),
       selectTasks: async () => ({ ok: true, revision: snapshot.revision, snapshot }),
       setActiveTask: async () => ({ ok: true, revision: snapshot.revision, snapshot }),
+      completeTask: async () => ({ ok: true, revision: snapshot.revision, snapshot }),
       subscribe(listener) {
         listener(snapshot);
         return () => undefined;

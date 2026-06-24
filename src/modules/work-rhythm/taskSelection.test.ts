@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { applyTaskListCommand } from '@/modules/task-list';
 import { createDefaultTaskListValue } from '@/modules/task-list/taskListDocument';
 import { emptyTaskSelectionState } from './workRhythmDocument';
-import { decideSelectTasks, decideSetActiveTask, settleActiveTaskInterval } from './taskSelection';
+import {
+  decideCompleteTask,
+  decideSelectTasks,
+  decideSetActiveTask,
+  settleActiveTaskInterval,
+} from './taskSelection';
 import type { WorkRhythmFocusBlock } from './workRhythmDocument';
 
 const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFocusBlock => ({
@@ -116,5 +121,80 @@ describe('taskSelection decisions', () => {
     if (settled.ok) {
       expect(settled.value.attribution).toBeNull();
     }
+  });
+
+  it('completing the active task settles, removes it, and advances', () => {
+    const focus = baseFocus({
+      selectedTaskIds: ['task-a', 'task-b'],
+      activeTaskId: 'task-a',
+      activeTaskIntervalStartedAtEpochMs: 1_000_000,
+    });
+    const completed = decideCompleteTask(focus, taskListWithTasks(), 'task-a', 1_030_000);
+    expect(completed.ok).toBe(true);
+    if (completed.ok) {
+      expect(completed.value.attribution?.seconds).toBe(30);
+      expect(completed.value.nextValue.selectedTaskIds).toEqual(['task-b']);
+      expect(completed.value.nextValue.activeTaskId).toBe('task-b');
+      expect(completed.value.nextValue.activeTaskIntervalStartedAtEpochMs).toBe(1_030_000);
+      expect(completed.value.nextTaskList.tasks.find((task) => task.id === 'task-a')?.status).toBe(
+        'completed'
+      );
+      expect(completed.value.nextTaskList.tasks.find((task) => task.id === 'task-b')?.status).toBe(
+        'in-progress'
+      );
+    }
+  });
+
+  it('completing a selected inactive task does not disturb the active interval', () => {
+    const focus = baseFocus({
+      selectedTaskIds: ['task-a', 'task-b'],
+      activeTaskId: 'task-a',
+      activeTaskIntervalStartedAtEpochMs: 1_000_000,
+    });
+    const completed = decideCompleteTask(focus, taskListWithTasks(), 'task-b', 1_020_000);
+    expect(completed.ok).toBe(true);
+    if (completed.ok) {
+      expect(completed.value.attribution).toBeNull();
+      expect(completed.value.nextValue.activeTaskId).toBe('task-a');
+      expect(completed.value.nextValue.activeTaskIntervalStartedAtEpochMs).toBe(1_000_000);
+      expect(completed.value.nextValue.selectedTaskIds).toEqual(['task-a']);
+      expect(completed.value.nextTaskList.tasks.find((task) => task.id === 'task-b')?.status).toBe(
+        'completed'
+      );
+    }
+  });
+
+  it('clears active task when no incomplete selected task remains', () => {
+    const focus = baseFocus({
+      selectedTaskIds: ['task-a'],
+      activeTaskId: 'task-a',
+      activeTaskIntervalStartedAtEpochMs: 1_000_000,
+    });
+    const completed = decideCompleteTask(focus, taskListWithTasks(), 'task-a', 1_015_000);
+    expect(completed.ok).toBe(true);
+    if (completed.ok) {
+      expect(completed.value.nextValue.selectedTaskIds).toEqual([]);
+      expect(completed.value.nextValue.activeTaskId).toBeNull();
+      expect(completed.value.nextValue.activeTaskIntervalStartedAtEpochMs).toBeNull();
+    }
+  });
+
+  it('rejects duplicate completion', () => {
+    let taskList = taskListWithTasks();
+    const completedOnce = applyTaskListCommand(
+      taskList,
+      { kind: 'complete-task', taskId: 'task-a' },
+      { nowEpochMs: 1_000 }
+    );
+    if (!completedOnce.ok) {
+      throw new Error('expected completion');
+    }
+    taskList = completedOnce.value;
+    const focus = baseFocus({ selectedTaskIds: ['task-a', 'task-b'], activeTaskId: 'task-b' });
+    const duplicate = decideCompleteTask(focus, taskList, 'task-a', 1_010_000);
+    expect(duplicate).toEqual({
+      ok: false,
+      error: { kind: 'task-not-incomplete', taskId: 'task-a' },
+    });
   });
 });

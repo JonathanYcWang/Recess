@@ -31,7 +31,8 @@ export type WorkRhythmCommand =
   | { kind: 'decline-recess' }
   | { kind: 'start-work-session-extension'; extensionSeconds: unknown }
   | { kind: 'select-tasks'; taskIds: unknown }
-  | { kind: 'set-active-task'; taskId: unknown };
+  | { kind: 'set-active-task'; taskId: unknown }
+  | { kind: 'complete-task'; taskId: unknown };
 
 export type WorkRhythmDecisionError =
   | { kind: 'invalid-goal' }

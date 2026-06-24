@@ -47,4 +47,15 @@ export const createConnectionAwareWorkRhythmClient = (
     }
     return result;
   },
+  completeTask: async (taskId, options) => {
+    const manager = getWorkRhythmConnectionManager();
+    if (manager?.getConnectionState() === 'disconnected') {
+      return transportUnavailable();
+    }
+    const result = await client.completeTask(taskId, options);
+    if (!result.ok && isWorkRhythmTransportError(result.error)) {
+      manager?.markDisconnected();
+    }
+    return result;
+  },
 });
