@@ -38,11 +38,12 @@ export type CommitError =
   | { kind: 'codec'; error: CodecError }
   | { kind: 'serialization'; message: string };
 
-export type PersistedDocumentName = 'settings' | 'block-list';
+export type PersistedDocumentName = 'settings' | 'block-list' | 'workstyle-profile';
 
 export interface PersistedDocuments {
   settings: import('./settings/settingsDocument').SettingsValue;
   'block-list': import('@/modules/block-list').BlockListValue;
+  'workstyle-profile': import('@/modules/workstyle-profile').WorkstyleProfileValue;
 }
 
 export type PersistedMutation<K extends PersistedDocumentName = PersistedDocumentName> = {
