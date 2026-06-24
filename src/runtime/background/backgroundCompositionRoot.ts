@@ -163,6 +163,8 @@ export const createBackgroundCompositionRoot = async (options: {
       clock,
       alarms,
       notifications: createSafariCompatibleReminderNotificationAdapter(),
+      coinHandler,
+      streakInitialized: initialized.value.documents['work-session-streak'],
       adapter: options.adapter,
       diagnostics,
       outcomeStore: workStartReminderOutcomeStore,

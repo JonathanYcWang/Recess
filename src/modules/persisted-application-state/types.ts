@@ -46,7 +46,8 @@ export type PersistedDocumentName =
   | 'work-rhythm'
   | 'reward-game'
   | 'hall-pass'
-  | 'work-start-reminder';
+  | 'work-start-reminder'
+  | 'work-session-streak';
 
 export interface PersistedDocuments {
   settings: import('./settings/settingsDocument').SettingsValue;
@@ -57,6 +58,7 @@ export interface PersistedDocuments {
   'reward-game': import('@/modules/reward-game').RewardGameValue;
   'hall-pass': import('@/modules/hall-pass').HallPassValue;
   'work-start-reminder': import('@/modules/work-start-reminder').WorkStartReminderValue;
+  'work-session-streak': import('@/modules/work-session-streak').WorkSessionStreakValue;
 }
 
 export type PersistedMutation<K extends PersistedDocumentName = PersistedDocumentName> = {

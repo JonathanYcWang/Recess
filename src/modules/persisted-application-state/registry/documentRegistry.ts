@@ -21,6 +21,8 @@ import { hallPassCodec } from '@/modules/hall-pass';
 import type { HallPassValue } from '@/modules/hall-pass';
 import { workStartReminderCodec } from '@/modules/work-start-reminder';
 import type { WorkStartReminderValue } from '@/modules/work-start-reminder';
+import { workSessionStreakCodec } from '@/modules/work-session-streak';
+import type { WorkSessionStreakValue } from '@/modules/work-session-streak';
 
 export const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 export const BLOCK_LIST_DOCUMENT_KEY = '__recess_doc_block_list';
@@ -30,6 +32,7 @@ export const WORK_RHYTHM_DOCUMENT_KEY = '__recess_doc_work_rhythm';
 export const REWARD_GAME_DOCUMENT_KEY = '__recess_doc_reward_game';
 export const HALL_PASS_DOCUMENT_KEY = '__recess_doc_hall_pass';
 export const WORK_START_REMINDER_DOCUMENT_KEY = '__recess_doc_work_start_reminder';
+export const WORK_SESSION_STREAK_DOCUMENT_KEY = '__recess_doc_work_session_streak';
 
 export interface DocumentRegistryEntry<T> {
   document: PersistedDocumentName;
@@ -87,6 +90,12 @@ export const documentRegistry = {
     codec: workStartReminderCodec,
     createDefault: () => workStartReminderCodec.createDefault(),
   },
+  'work-session-streak': {
+    document: 'work-session-streak',
+    storageKey: WORK_SESSION_STREAK_DOCUMENT_KEY,
+    codec: workSessionStreakCodec,
+    createDefault: () => workSessionStreakCodec.createDefault(),
+  },
 } as const satisfies {
   settings: DocumentRegistryEntry<SettingsValue>;
   'block-list': DocumentRegistryEntry<BlockListValue>;
@@ -96,6 +105,7 @@ export const documentRegistry = {
   'reward-game': DocumentRegistryEntry<RewardGameValue>;
   'hall-pass': DocumentRegistryEntry<HallPassValue>;
   'work-start-reminder': DocumentRegistryEntry<WorkStartReminderValue>;
+  'work-session-streak': DocumentRegistryEntry<WorkSessionStreakValue>;
 };
 
 export const registeredDocumentNames = [
@@ -107,6 +117,7 @@ export const registeredDocumentNames = [
   'reward-game',
   'hall-pass',
   'work-start-reminder',
+  'work-session-streak',
 ] as const satisfies readonly PersistedDocumentName[];
 
 export const allOperationalStorageKeys = (): string[] =>
