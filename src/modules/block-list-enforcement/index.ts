@@ -1,5 +1,6 @@
 export type {
   AccessSnapshot,
+  BlockedAttemptReport,
   CloseTabsResult,
   EnforcementResult,
   OpenTabResult,

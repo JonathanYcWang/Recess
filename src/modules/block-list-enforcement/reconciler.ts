@@ -1,6 +1,7 @@
-import { decideAccess, parseDestination } from '@/modules/block-list';
+import { decideAccess, parseDestination, findMatchingBlockListEntry } from '@/modules/block-list';
 import type {
   AccessSnapshot,
+  BlockedAttemptReport,
   EnforcementResult,
   RememberedOwnership,
   TabAccess,
@@ -38,6 +39,27 @@ const shouldBlockTab = (snapshot: AccessSnapshot, tab: TabIdentity): boolean => 
 const findTabsToClose = (snapshot: AccessSnapshot, tabs: TabIdentity[]): TabIdentity[] =>
   tabs.filter((tab) => shouldBlockTab(snapshot, tab));
 
+const toBlockedAttempt = (
+  snapshot: AccessSnapshot,
+  tab: TabIdentity
+): BlockedAttemptReport | null => {
+  const destination = parseDestination(tab.url);
+  if (destination.kind !== 'website') {
+    return null;
+  }
+  const entry = findMatchingBlockListEntry(destination.hostname, snapshot.blockListEntries);
+  if (!entry) {
+    return null;
+  }
+  if (snapshot.accessContext.phase !== 'time-out') {
+    return null;
+  }
+  if (snapshot.accessContext.hallPassEntry === entry) {
+    return null;
+  }
+  return { destination: entry, url: tab.url };
+};
+
 const findUrlsToRestore = (snapshot: AccessSnapshot, remembered: RememberedOwnership): string[] =>
   remembered.rememberedUrls.filter((url) => {
     const destination = parseDestination(url);
@@ -56,10 +78,11 @@ export const createBlockListReconciler = (options: {
   const runOnce = async (snapshot: AccessSnapshot): Promise<EnforcementResult> => {
     let closed = 0;
     let restored = 0;
+    const blockedAttempts: BlockedAttemptReport[] = [];
 
     const query = await options.tabAccess.queryEligibleTabs();
     if (!query.ok) {
-      return { kind: 'partial', closed, restored, error: query.error };
+      return { kind: 'partial', closed, restored, blockedAttempts, error: query.error };
     }
 
     const tabsToClose = findTabsToClose(snapshot, query.value);
@@ -70,9 +93,16 @@ export const createBlockListReconciler = (options: {
       };
       await options.ownershipStore.commit(nextRemembered);
 
+      for (const tab of tabsToClose) {
+        const attempt = toBlockedAttempt(snapshot, tab);
+        if (attempt) {
+          blockedAttempts.push(attempt);
+        }
+      }
+
       const closeResult = await options.tabAccess.closeTabs(tabsToClose);
       if (!closeResult.ok) {
-        return { kind: 'partial', closed, restored, error: closeResult.error };
+        return { kind: 'partial', closed, restored, blockedAttempts, error: closeResult.error };
       }
       closed = closeResult.value.closed.length;
     }
@@ -87,14 +117,14 @@ export const createBlockListReconciler = (options: {
       }
       const openResult = await options.tabAccess.openInactiveTab(url);
       if (!openResult.ok) {
-        return { kind: 'partial', closed, restored, error: openResult.error };
+        return { kind: 'partial', closed, restored, blockedAttempts, error: openResult.error };
       }
       remaining.splice(index, 1);
       restored += 1;
     }
     await options.ownershipStore.commit({ rememberedUrls: remaining });
 
-    return { kind: 'converged', closed, restored };
+    return { kind: 'converged', closed, restored, blockedAttempts };
   };
 
   const reconcile = async (snapshot: AccessSnapshot): Promise<EnforcementResult> => {
@@ -107,12 +137,17 @@ export const createBlockListReconciler = (options: {
       if (pendingSnapshot) {
         return reconcile(pendingSnapshot);
       }
-      return { kind: 'converged', closed: 0, restored: 0 };
+      return { kind: 'converged', closed: 0, restored: 0, blockedAttempts: [] };
     }
 
     reconciling = true;
     try {
-      let result: EnforcementResult = { kind: 'converged', closed: 0, restored: 0 };
+      let result: EnforcementResult = {
+        kind: 'converged',
+        closed: 0,
+        restored: 0,
+        blockedAttempts: [],
+      };
       do {
         pendingSnapshot = null;
         const active = latestSnapshot ?? snapshot;

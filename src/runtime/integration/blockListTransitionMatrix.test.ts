@@ -18,6 +18,25 @@ const transitionCases: Array<{
   expectClosed: number;
 }> = [
   {
+    name: 'grants hall pass restoration',
+    from: {
+      phase: 'time-out',
+      blockListEntries: ['blocked.test'],
+      recessPassEntry: null,
+      hallPassEntry: null,
+    },
+    to: {
+      phase: 'time-out',
+      blockListEntries: ['blocked.test'],
+      recessPassEntry: null,
+      hallPassEntry: 'blocked.test',
+    },
+    remembered: ['https://blocked.test/a'],
+    openUrls: [],
+    expectRestored: 1,
+    expectClosed: 0,
+  },
+  {
     name: 'grants recess pass restoration',
     from: {
       phase: 'focus-block',

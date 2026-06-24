@@ -33,7 +33,7 @@ describe('createBlockListReconciler', () => {
     });
 
     const result = await reconciler.reconcile(focusSnapshot(['blocked.test']));
-    expect(result).toEqual({ kind: 'converged', closed: 2, restored: 0 });
+    expect(result).toEqual({ kind: 'converged', closed: 2, restored: 0, blockedAttempts: [] });
     const remembered = await ownershipStore.read();
     expect(remembered.rememberedUrls).toEqual([
       'https://blocked.test/path',
@@ -67,7 +67,7 @@ describe('createBlockListReconciler', () => {
       },
       remembered: { rememberedUrls: [] },
     });
-    expect(result).toEqual({ kind: 'converged', closed: 0, restored: 2 });
+    expect(result).toEqual({ kind: 'converged', closed: 0, restored: 2, blockedAttempts: [] });
     const remembered = await ownershipStore.read();
     expect(remembered.rememberedUrls).toEqual([]);
   });

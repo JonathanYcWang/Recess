@@ -8,6 +8,7 @@ import { createInProcessBlockListClient } from '../client/inProcessBlockListClie
 import { createInProcessWorkstyleProfileClient } from '../client/inProcessWorkstyleProfileClient';
 import { createInProcessCoinClient } from '../client/inProcessCoinClient';
 import { createInProcessWorkRhythmClient } from '../client/inProcessWorkRhythmClient';
+import { createInProcessHallPassClient } from '../client/inProcessHallPassClient';
 import { createCommandOutcomeStore } from '../commandOutcomeStore';
 import type {
   BlockListClient,
@@ -31,11 +32,17 @@ import type {
   WorkRhythmCommandHandler,
   WorkRhythmCommandResponse,
 } from '../workRhythmTypes';
+import type {
+  HallPassClient,
+  HallPassCommandHandler,
+  HallPassCommandResponse,
+} from '../hallPassTypes';
 import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 import { createWorkstyleProfileCommandHandler } from './workstyleProfileCommandHandler';
 import { createCoinCommandHandler } from './coinCommandHandler';
 import { createWorkRhythmCommandHandler } from './workRhythmCommandHandler';
+import { createHallPassCommandHandler } from './hallPassCommandHandler';
 import { createSystemClock } from '../clock';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
 import { createSafariCompatibleAlarmAdapter } from '../alarms/chromiumAlarmAdapter';
@@ -55,11 +62,13 @@ export interface BackgroundCompositionRoot {
   workstyleProfile: WorkstyleProfileClient;
   coin: CoinClient;
   workRhythm: WorkRhythmClient;
+  hallPass: HallPassClient;
   settingsHandler: SettingsCommandHandler;
   blockListHandler: BlockListCommandHandler;
   workstyleProfileHandler: WorkstyleProfileCommandHandler;
   coinHandler: CoinCommandHandler;
   workRhythmHandler: WorkRhythmCommandHandler;
+  hallPassHandler: HallPassCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -87,6 +96,7 @@ export const createBackgroundCompositionRoot = async (options: {
   const workRhythmOutcomeStore = createCommandOutcomeStore<WorkRhythmCommandResponse>(
     options.adapter
   );
+  const hallPassOutcomeStore = createCommandOutcomeStore<HallPassCommandResponse>(options.adapter);
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
@@ -123,12 +133,13 @@ export const createBackgroundCompositionRoot = async (options: {
   });
 
   const alarms: AlarmAdapter = createSafariCompatibleAlarmAdapter() ?? createInMemoryAlarmAdapter();
+  const clock = createSystemClock();
 
   const workRhythmHandler = createWorkRhythmCommandHandler(
     persistence,
     initialized.value.documents['work-rhythm'],
     {
-      clock: createSystemClock(),
+      clock,
       alarms,
       coinHandler,
       effectExecutor,
@@ -141,6 +152,24 @@ export const createBackgroundCompositionRoot = async (options: {
   await workRhythmHandler.reconcileTimeOutReports();
   await workRhythmHandler.reconcileWindDownSignals();
 
+  const hallPassHandler = createHallPassCommandHandler(
+    persistence,
+    initialized.value.documents['hall-pass'],
+    {
+      clock,
+      coinHandler,
+      diagnostics,
+      outcomeStore: hallPassOutcomeStore,
+      phaseContext: () => {
+        const current = workRhythmHandler.current();
+        const blockList = blockListHandler.current();
+        const isTimeOut = current.ok && current.value.snapshot.phase === 'time-out';
+        const blockListEntries = blockList.ok ? blockList.value.value.entries : [];
+        return { isTimeOut, blockListEntries };
+      },
+    }
+  );
+
   return {
     ok: true,
     value: {
@@ -149,11 +178,13 @@ export const createBackgroundCompositionRoot = async (options: {
       workstyleProfile: createInProcessWorkstyleProfileClient(workstyleProfileHandler),
       coin: createInProcessCoinClient(coinHandler),
       workRhythm: createInProcessWorkRhythmClient(workRhythmHandler),
+      hallPass: createInProcessHallPassClient(hallPassHandler),
       settingsHandler,
       blockListHandler,
       workstyleProfileHandler,
       coinHandler,
       workRhythmHandler,
+      hallPassHandler,
     },
   };
 };

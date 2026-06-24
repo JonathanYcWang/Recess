@@ -6,6 +6,7 @@ describe('Redux store', () => {
     expect(Object.keys(store.getState()).sort()).toEqual([
       'blockListProjection',
       'blockedSites',
+      'hallPassProjection',
       'quiz',
       'routing',
       'settingsProjection',

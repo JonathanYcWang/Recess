@@ -44,7 +44,8 @@ export type PersistedDocumentName =
   | 'workstyle-profile'
   | 'coin'
   | 'work-rhythm'
-  | 'reward-game';
+  | 'reward-game'
+  | 'hall-pass';
 
 export interface PersistedDocuments {
   settings: import('./settings/settingsDocument').SettingsValue;
@@ -53,6 +54,7 @@ export interface PersistedDocuments {
   coin: import('@/modules/coin').CoinLedgerValue;
   'work-rhythm': import('@/modules/work-rhythm').WorkRhythmValue;
   'reward-game': import('@/modules/reward-game').RewardGameValue;
+  'hall-pass': import('@/modules/hall-pass').HallPassValue;
 }
 
 export type PersistedMutation<K extends PersistedDocumentName = PersistedDocumentName> = {

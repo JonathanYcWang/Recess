@@ -3,6 +3,7 @@ import './backgroundSettingsRuntime';
 import './backgroundBlockListEnforcement';
 import './backgroundWorkstyleProfileRuntime';
 import './backgroundWorkRhythmRuntime';
+import './backgroundHallPassRuntime';
 
 // --- Work Hours Reminder Scheduling ---
 const WORK_REMINDER_ALARM_PREFIX = 'work-reminder-';
