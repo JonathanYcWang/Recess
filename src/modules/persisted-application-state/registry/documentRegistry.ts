@@ -15,12 +15,15 @@ import type { WorkstyleProfileValue } from '@/modules/workstyle-profile';
 import type { CoinLedgerValue } from '@/modules/coin';
 import { workRhythmCodec } from '@/modules/work-rhythm';
 import type { WorkRhythmValue } from '@/modules/work-rhythm';
+import { rewardGameCodec } from '@/modules/reward-game';
+import type { RewardGameValue } from '@/modules/reward-game';
 
 export const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 export const BLOCK_LIST_DOCUMENT_KEY = '__recess_doc_block_list';
 export const WORKSTYLE_PROFILE_DOCUMENT_KEY = '__recess_doc_workstyle_profile';
 export const COIN_DOCUMENT_KEY = '__recess_doc_coin';
 export const WORK_RHYTHM_DOCUMENT_KEY = '__recess_doc_work_rhythm';
+export const REWARD_GAME_DOCUMENT_KEY = '__recess_doc_reward_game';
 
 export interface DocumentRegistryEntry<T> {
   document: PersistedDocumentName;
@@ -60,12 +63,19 @@ export const documentRegistry = {
     codec: workRhythmCodec,
     createDefault: () => workRhythmCodec.createDefault(),
   },
+  'reward-game': {
+    document: 'reward-game',
+    storageKey: REWARD_GAME_DOCUMENT_KEY,
+    codec: rewardGameCodec,
+    createDefault: () => rewardGameCodec.createDefault(),
+  },
 } as const satisfies {
   settings: DocumentRegistryEntry<SettingsValue>;
   'block-list': DocumentRegistryEntry<BlockListValue>;
   'workstyle-profile': DocumentRegistryEntry<WorkstyleProfileValue>;
   coin: DocumentRegistryEntry<CoinLedgerValue>;
   'work-rhythm': DocumentRegistryEntry<WorkRhythmValue>;
+  'reward-game': DocumentRegistryEntry<RewardGameValue>;
 };
 
 export const registeredDocumentNames = [
@@ -74,6 +84,7 @@ export const registeredDocumentNames = [
   'workstyle-profile',
   'coin',
   'work-rhythm',
+  'reward-game',
 ] as const satisfies readonly PersistedDocumentName[];
 
 export const allOperationalStorageKeys = (): string[] =>

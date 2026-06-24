@@ -5,7 +5,8 @@ export type DomainModuleName =
   | 'block-list'
   | 'workstyle-profile'
   | 'coin'
-  | 'work-rhythm';
+  | 'work-rhythm'
+  | 'reward-game';
 
 export interface RuntimeCommandEnvelope<TCommand> {
   protocolVersion: number;
