@@ -10,6 +10,7 @@ describe('Redux store', () => {
       'quiz',
       'routing',
       'settingsProjection',
+      'taskListProjection',
       'timer',
       'workRhythmProjection',
       'workStartReminderProjection',

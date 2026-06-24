@@ -6,6 +6,7 @@ import {
   describeSettingsDocumentIntegrationTests,
   settingsCodec,
 } from '@/modules/persisted-application-state';
+import { describeTaskListDocumentIntegrationTests } from '@/modules/persisted-application-state/integration/taskListDocument.integrationTests';
 import { createDefaultSettingsValue } from '@/modules/persisted-application-state/settings/settingsDocument';
 import {
   clearJournalEntry,
@@ -16,6 +17,7 @@ import {
 import { SETTINGS_DOCUMENT_KEY } from '@/modules/persisted-application-state/registry/documentRegistry';
 
 describeSettingsDocumentIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');
+describeTaskListDocumentIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');
 
 describe('settings codec', () => {
   it('accepts valid documents and rejects unsupported versions', () => {

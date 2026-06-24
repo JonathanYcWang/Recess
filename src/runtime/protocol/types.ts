@@ -8,7 +8,8 @@ export type DomainModuleName =
   | 'work-rhythm'
   | 'reward-game'
   | 'hall-pass'
-  | 'work-start-reminder';
+  | 'work-start-reminder'
+  | 'task-list';
 
 export interface RuntimeCommandEnvelope<TCommand> {
   protocolVersion: number;

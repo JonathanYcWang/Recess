@@ -23,6 +23,8 @@ import { workStartReminderCodec } from '@/modules/work-start-reminder';
 import type { WorkStartReminderValue } from '@/modules/work-start-reminder';
 import { workSessionStreakCodec } from '@/modules/work-session-streak';
 import type { WorkSessionStreakValue } from '@/modules/work-session-streak';
+import { taskListCodec } from '@/modules/task-list';
+import type { TaskListValue } from '@/modules/task-list';
 
 export const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 export const BLOCK_LIST_DOCUMENT_KEY = '__recess_doc_block_list';
@@ -33,6 +35,7 @@ export const REWARD_GAME_DOCUMENT_KEY = '__recess_doc_reward_game';
 export const HALL_PASS_DOCUMENT_KEY = '__recess_doc_hall_pass';
 export const WORK_START_REMINDER_DOCUMENT_KEY = '__recess_doc_work_start_reminder';
 export const WORK_SESSION_STREAK_DOCUMENT_KEY = '__recess_doc_work_session_streak';
+export const TASK_LIST_DOCUMENT_KEY = '__recess_doc_task_list';
 
 export interface DocumentRegistryEntry<T> {
   document: PersistedDocumentName;
@@ -96,6 +99,12 @@ export const documentRegistry = {
     codec: workSessionStreakCodec,
     createDefault: () => workSessionStreakCodec.createDefault(),
   },
+  'task-list': {
+    document: 'task-list',
+    storageKey: TASK_LIST_DOCUMENT_KEY,
+    codec: taskListCodec,
+    createDefault: () => taskListCodec.createDefault(),
+  },
 } as const satisfies {
   settings: DocumentRegistryEntry<SettingsValue>;
   'block-list': DocumentRegistryEntry<BlockListValue>;
@@ -106,6 +115,7 @@ export const documentRegistry = {
   'hall-pass': DocumentRegistryEntry<HallPassValue>;
   'work-start-reminder': DocumentRegistryEntry<WorkStartReminderValue>;
   'work-session-streak': DocumentRegistryEntry<WorkSessionStreakValue>;
+  'task-list': DocumentRegistryEntry<TaskListValue>;
 };
 
 export const registeredDocumentNames = [
@@ -118,6 +128,7 @@ export const registeredDocumentNames = [
   'hall-pass',
   'work-start-reminder',
   'work-session-streak',
+  'task-list',
 ] as const satisfies readonly PersistedDocumentName[];
 
 export const allOperationalStorageKeys = (): string[] =>

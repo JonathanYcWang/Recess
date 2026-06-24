@@ -10,6 +10,7 @@ import { createInProcessCoinClient } from '../client/inProcessCoinClient';
 import { createInProcessWorkRhythmClient } from '../client/inProcessWorkRhythmClient';
 import { createInProcessHallPassClient } from '../client/inProcessHallPassClient';
 import { createInProcessWorkStartReminderClient } from '../client/inProcessWorkStartReminderClient';
+import { createInProcessTaskListClient } from '../client/inProcessTaskListClient';
 import { createCommandOutcomeStore } from '../commandOutcomeStore';
 import type {
   BlockListClient,
@@ -43,6 +44,11 @@ import type {
   WorkStartReminderCommandHandler,
   WorkStartReminderCommandResponse,
 } from '../workStartReminderTypes';
+import type {
+  TaskListClient,
+  TaskListCommandHandler,
+  TaskListCommandResponse,
+} from '../taskListTypes';
 import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 import { createWorkstyleProfileCommandHandler } from './workstyleProfileCommandHandler';
@@ -50,6 +56,7 @@ import { createCoinCommandHandler } from './coinCommandHandler';
 import { createWorkRhythmCommandHandler } from './workRhythmCommandHandler';
 import { createHallPassCommandHandler } from './hallPassCommandHandler';
 import { createWorkStartReminderCommandHandler } from './workStartReminderCommandHandler';
+import { createTaskListCommandHandler } from './taskListCommandHandler';
 import { createSystemClock } from '../clock';
 import { createInMemoryAlarmAdapter } from '../alarms/inMemoryAlarmAdapter';
 import { createSafariCompatibleAlarmAdapter } from '../alarms/chromiumAlarmAdapter';
@@ -77,6 +84,7 @@ export interface BackgroundCompositionRoot {
   workRhythm: WorkRhythmClient;
   hallPass: HallPassClient;
   workStartReminder: WorkStartReminderClient;
+  taskList: TaskListClient;
   settingsHandler: SettingsCommandHandler;
   blockListHandler: BlockListCommandHandler;
   workstyleProfileHandler: WorkstyleProfileCommandHandler;
@@ -84,6 +92,7 @@ export interface BackgroundCompositionRoot {
   workRhythmHandler: WorkRhythmCommandHandler;
   hallPassHandler: HallPassCommandHandler;
   workStartReminderHandler: WorkStartReminderCommandHandler;
+  taskListHandler: TaskListCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -115,6 +124,7 @@ export const createBackgroundCompositionRoot = async (options: {
   const workStartReminderOutcomeStore = createCommandOutcomeStore<WorkStartReminderCommandResponse>(
     options.adapter
   );
+  const taskListOutcomeStore = createCommandOutcomeStore<TaskListCommandResponse>(options.adapter);
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
@@ -168,6 +178,16 @@ export const createBackgroundCompositionRoot = async (options: {
       adapter: options.adapter,
       diagnostics,
       outcomeStore: workStartReminderOutcomeStore,
+    }
+  );
+
+  const taskListHandler = createTaskListCommandHandler(
+    persistence,
+    initialized.value.documents['task-list'],
+    {
+      clock,
+      diagnostics,
+      outcomeStore: taskListOutcomeStore,
     }
   );
 
@@ -239,6 +259,7 @@ export const createBackgroundCompositionRoot = async (options: {
       workRhythm: createInProcessWorkRhythmClient(workRhythmHandler),
       hallPass: createInProcessHallPassClient(hallPassHandler),
       workStartReminder: createInProcessWorkStartReminderClient(workStartReminderHandler),
+      taskList: createInProcessTaskListClient(taskListHandler),
       settingsHandler,
       blockListHandler,
       workstyleProfileHandler,
@@ -246,6 +267,7 @@ export const createBackgroundCompositionRoot = async (options: {
       workRhythmHandler,
       hallPassHandler,
       workStartReminderHandler,
+      taskListHandler,
     },
   };
 };
