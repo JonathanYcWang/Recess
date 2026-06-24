@@ -10,12 +10,15 @@ import {
   decideEndWorkSessionEarly,
   decideFocusBoundarySettlement,
   decideResumeFromTimeOut,
+  decideSelectTasks,
+  decideSetActiveTask,
   decideStartTimeOut,
   decideStartWorkSessionExtension,
   declineRecessCommandId,
   endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
   focusBlockWindDownContext,
+  hasTaskSelection,
   isFocusBoundaryDue,
   isTimeOutReportDue,
   isWindDownDue,
@@ -24,6 +27,7 @@ import {
   projectWorkRhythmSnapshot,
   remainingPhaseSeconds,
   resumeFromTimeOutCommandId,
+  settleActiveTaskInterval,
   startTimeOutCommandId,
   startWorkSessionExtensionCommandId,
   windDownBoundaryEpochMs,
@@ -33,11 +37,13 @@ import {
   workRhythmWindDownAlarmName,
   createWorkSessionStartedFact,
   workSessionStartedFactId,
+  type TaskAttribution,
   type WorkRhythmFocusBlock,
   type WorkRhythmTimeOut,
   type WorkRhythmValue,
   type WorkRhythmWorkSessionCompleted,
 } from '@/modules/work-rhythm';
+import { computeSelectedTaskRemainingMinutes, type TaskListValue } from '@/modules/task-list';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { RUNTIME_PROTOCOL_VERSION } from '../protocol/types';
 import { createCommandLedger } from '../commandLedger';
@@ -53,6 +59,7 @@ import {
   type WorkRhythmCommandError,
 } from '../protocol/workRhythmCommand';
 import type { CoinCommandHandler } from '../coinTypes';
+import type { TaskListCommandHandler } from '../taskListTypes';
 import {
   createNoOpTimeOutReportNotifier,
   type TimeOutReportNotifier,
@@ -105,6 +112,7 @@ export const createWorkRhythmCommandHandler = (
     clock: Clock;
     alarms: AlarmAdapter;
     coinHandler: CoinCommandHandler;
+    taskListHandler: TaskListCommandHandler;
     effectExecutor?: EffectExecutor;
     createSessionId?: () => string;
     diagnostics?: DiagnosticRingBuffer;
@@ -126,6 +134,7 @@ export const createWorkRhythmCommandHandler = (
   const clock = options.clock;
   const alarms = options.alarms;
   const coinHandler = options.coinHandler;
+  const taskListHandler = options.taskListHandler;
   const effectExecutor = options.effectExecutor;
   const onWorkSessionStarted = options.onWorkSessionStarted;
   const timeOutReportNotifier = options.timeOutReportNotifier ?? createNoOpTimeOutReportNotifier();
@@ -173,6 +182,130 @@ export const createWorkRhythmCommandHandler = (
     return toFailure({
       kind: 'unexpected-runtime',
       diagnosticId: record?.id ?? 'diag-unavailable',
+    });
+  };
+
+  type TaskListCommit = {
+    expectedRevision: number;
+    value: TaskListValue;
+  };
+
+  const readSelectedTaskRemainingMinutes = (): number | null => {
+    if (!hasTaskSelection(currentDocument.value)) {
+      return null;
+    }
+    return computeSelectedTaskRemainingMinutes(
+      taskListHandler.getDocument().value,
+      currentDocument.value.selectedTaskIds
+    );
+  };
+
+  const settleTaskAttributionForPhase = (
+    nowEpochMs: number
+  ):
+    | {
+        ok: true;
+        value: { taskListCommit: TaskListCommit | null; attribution: TaskAttribution | null };
+      }
+    | { ok: false; error: WorkRhythmCommandError } => {
+    if (!hasTaskSelection(currentDocument.value)) {
+      return { ok: true, value: { taskListCommit: null, attribution: null } };
+    }
+    const taskListDoc = taskListHandler.getDocument();
+    const settled = settleActiveTaskInterval(currentDocument.value, taskListDoc.value, nowEpochMs);
+    if (!settled.ok) {
+      return { ok: false, error: settled.error };
+    }
+    if (!settled.value.attribution) {
+      return { ok: true, value: { taskListCommit: null, attribution: null } };
+    }
+    return {
+      ok: true,
+      value: {
+        taskListCommit: {
+          expectedRevision: taskListDoc.revision,
+          value: settled.value.nextTaskList,
+        },
+        attribution: settled.value.attribution,
+      },
+    };
+  };
+
+  const commitWorkRhythmDocuments = async (
+    workRhythmValue: WorkRhythmValue,
+    taskListCommit: TaskListCommit | null
+  ): Promise<
+    | {
+        ok: true;
+        value: {
+          workRhythm: { revision: number; value: WorkRhythmValue };
+          taskList?: { revision: number; value: TaskListValue };
+        };
+      }
+    | { ok: false; error: WorkRhythmCommandError }
+  > => {
+    const commits: Array<{
+      document: 'work-rhythm' | 'task-list';
+      expectedRevision: number;
+      value: WorkRhythmValue | TaskListValue;
+    }> = [
+      {
+        document: 'work-rhythm',
+        expectedRevision: currentDocument.revision,
+        value: workRhythmValue,
+      },
+    ];
+    if (taskListCommit) {
+      commits.push({
+        document: 'task-list',
+        expectedRevision: taskListCommit.expectedRevision,
+        value: taskListCommit.value,
+      });
+    }
+    const committed = await persistence.commit(commits);
+    if (!committed.ok) {
+      if (committed.error.kind === 'conflict') {
+        return {
+          ok: false,
+          error: {
+            kind: 'stale-revision',
+            expectedRevision: currentDocument.revision,
+            actualRevision: committed.error.actualRevision,
+          },
+        };
+      }
+      return { ok: false, error: { kind: 'persistence-failed' } };
+    }
+    const workRhythm = committed.value.documents['work-rhythm'];
+    if (!workRhythm) {
+      return { ok: false, error: { kind: 'persistence-failed' } };
+    }
+    const taskList = committed.value.documents['task-list'];
+    if (taskListCommit && !taskList) {
+      return { ok: false, error: { kind: 'persistence-failed' } };
+    }
+    return {
+      ok: true,
+      value: {
+        workRhythm,
+        taskList: taskList ?? undefined,
+      },
+    };
+  };
+
+  const appendTaskAttributionHistory = async (input: {
+    commandId: string;
+    attribution: TaskAttribution;
+    outcomeRevision: number;
+  }): Promise<void> => {
+    if (!effectExecutor) {
+      return;
+    }
+    await runWorkHistoryAppendEffectTransition({
+      executor: effectExecutor,
+      commandId: input.commandId,
+      fact: input.attribution.fact,
+      outcomeRevision: input.outcomeRevision,
     });
   };
 
@@ -299,7 +432,13 @@ export const createWorkRhythmCommandHandler = (
     focus: WorkRhythmFocusBlock,
     commandId: string
   ): Promise<WorkRhythmCommandResponse> => {
-    const settled = decideFocusBoundarySettlement(focus, clock.nowEpochMs());
+    const nowEpochMs = clock.nowEpochMs();
+    const taskSettlement = settleTaskAttributionForPhase(nowEpochMs);
+    if (!taskSettlement.ok) {
+      return toFailure(taskSettlement.error);
+    }
+
+    const settled = decideFocusBoundarySettlement(focus, nowEpochMs);
     if (!settled.ok) {
       return toFailure(settled.error);
     }
@@ -308,27 +447,21 @@ export const createWorkRhythmCommandHandler = (
       return toFailure({ kind: 'malformed-command', message: 'settlement command id mismatch' });
     }
 
-    const committed = await persistence.commit([
-      {
-        document: 'work-rhythm',
-        expectedRevision: currentDocument.revision,
-        value: outcome.nextValue,
-      },
-    ]);
+    const committed = await commitWorkRhythmDocuments(
+      outcome.nextValue,
+      taskSettlement.value.taskListCommit
+    );
     if (!committed.ok) {
-      if (committed.error.kind === 'conflict') {
-        return toFailure({
-          kind: 'stale-revision',
-          expectedRevision: currentDocument.revision,
-          actualRevision: committed.error.actualRevision,
-        });
-      }
-      return toFailure({ kind: 'persistence-failed' });
+      return toFailure(committed.error);
     }
 
-    const workRhythm = committed.value.documents['work-rhythm'];
-    if (!workRhythm) {
-      return toFailure({ kind: 'persistence-failed' });
+    const workRhythm = committed.value.workRhythm;
+    if (taskSettlement.value.taskListCommit && committed.value.taskList) {
+      taskListHandler.adoptCommitted({
+        schemaVersion: initialized.schemaVersion,
+        revision: committed.value.taskList.revision,
+        value: committed.value.taskList.value,
+      });
     }
 
     await clearFocusAlarm(focus.sessionId);
@@ -341,12 +474,26 @@ export const createWorkRhythmCommandHandler = (
       coinCredit: outcome.coinCredit,
       streakCoinCredit: outcome.streakCoinCredit,
     });
+    if (taskSettlement.value.attribution) {
+      await appendTaskAttributionHistory({
+        commandId,
+        attribution: taskSettlement.value.attribution,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
 
     currentDocument = {
       revision: workRhythm.revision,
       value: cloneWorkRhythmValue(workRhythm.value),
     };
-    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    const snapshot = toPublishedSnapshot(
+      {
+        schemaVersion: initialized.schemaVersion,
+        revision: workRhythm.revision,
+        value: workRhythm.value,
+      },
+      clock
+    );
     publish();
     return toSuccess(snapshot);
   };
@@ -354,7 +501,13 @@ export const createWorkRhythmCommandHandler = (
   const commitEndWorkSessionEarly = async (
     commandId: string
   ): Promise<WorkRhythmCommandResponse> => {
-    const ended = decideEndWorkSessionEarly(currentDocument.value, clock.nowEpochMs());
+    const nowEpochMs = clock.nowEpochMs();
+    const taskSettlement = settleTaskAttributionForPhase(nowEpochMs);
+    if (!taskSettlement.ok) {
+      return toFailure(taskSettlement.error);
+    }
+
+    const ended = decideEndWorkSessionEarly(currentDocument.value, nowEpochMs);
     if (!ended.ok) {
       return toFailure(ended.error);
     }
@@ -369,27 +522,21 @@ export const createWorkRhythmCommandHandler = (
     const sessionId =
       currentDocument.value.phase === 'inactive' ? null : currentDocument.value.sessionId;
 
-    const committed = await persistence.commit([
-      {
-        document: 'work-rhythm',
-        expectedRevision: currentDocument.revision,
-        value: outcome.nextValue,
-      },
-    ]);
+    const committed = await commitWorkRhythmDocuments(
+      outcome.nextValue,
+      taskSettlement.value.taskListCommit
+    );
     if (!committed.ok) {
-      if (committed.error.kind === 'conflict') {
-        return toFailure({
-          kind: 'stale-revision',
-          expectedRevision: currentDocument.revision,
-          actualRevision: committed.error.actualRevision,
-        });
-      }
-      return toFailure({ kind: 'persistence-failed' });
+      return toFailure(committed.error);
     }
 
-    const workRhythm = committed.value.documents['work-rhythm'];
-    if (!workRhythm) {
-      return toFailure({ kind: 'persistence-failed' });
+    const workRhythm = committed.value.workRhythm;
+    if (taskSettlement.value.taskListCommit && committed.value.taskList) {
+      taskListHandler.adoptCommitted({
+        schemaVersion: initialized.schemaVersion,
+        revision: committed.value.taskList.revision,
+        value: committed.value.taskList.value,
+      });
     }
 
     if (sessionId) {
@@ -403,18 +550,38 @@ export const createWorkRhythmCommandHandler = (
       workSessionCompletedFact: outcome.workSessionCompletedFact,
       coinCredit: outcome.coinCredit,
     });
+    if (taskSettlement.value.attribution) {
+      await appendTaskAttributionHistory({
+        commandId,
+        attribution: taskSettlement.value.attribution,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
 
     currentDocument = {
       revision: workRhythm.revision,
       value: cloneWorkRhythmValue(workRhythm.value),
     };
-    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    const snapshot = toPublishedSnapshot(
+      {
+        schemaVersion: initialized.schemaVersion,
+        revision: workRhythm.revision,
+        value: workRhythm.value,
+      },
+      clock
+    );
     publish();
     return toSuccess(snapshot);
   };
 
   const commitStartTimeOut = async (commandId: string): Promise<WorkRhythmCommandResponse> => {
-    const started = decideStartTimeOut(currentDocument.value, clock.nowEpochMs());
+    const nowEpochMs = clock.nowEpochMs();
+    const taskSettlement = settleTaskAttributionForPhase(nowEpochMs);
+    if (!taskSettlement.ok) {
+      return toFailure(taskSettlement.error);
+    }
+
+    const started = decideStartTimeOut(currentDocument.value, nowEpochMs);
     if (!started.ok) {
       return toFailure(started.error);
     }
@@ -429,27 +596,24 @@ export const createWorkRhythmCommandHandler = (
     const sessionId =
       currentDocument.value.phase === 'focus-block' ? currentDocument.value.sessionId : null;
 
-    const committed = await persistence.commit([
-      {
-        document: 'work-rhythm',
-        expectedRevision: currentDocument.revision,
-        value: outcome.nextValue,
-      },
-    ]);
+    const committed = await commitWorkRhythmDocuments(
+      outcome.nextValue,
+      taskSettlement.value.taskListCommit
+    );
     if (!committed.ok) {
-      if (committed.error.kind === 'conflict') {
-        return toFailure({
-          kind: 'stale-revision',
-          expectedRevision: currentDocument.revision,
-          actualRevision: committed.error.actualRevision,
-        });
-      }
-      return toFailure({ kind: 'persistence-failed' });
+      return toFailure(committed.error);
     }
 
-    const workRhythm = committed.value.documents['work-rhythm'];
+    const workRhythm = committed.value.workRhythm;
     if (!workRhythm || workRhythm.value.phase !== 'time-out') {
       return toFailure({ kind: 'persistence-failed' });
+    }
+    if (taskSettlement.value.taskListCommit && committed.value.taskList) {
+      taskListHandler.adoptCommitted({
+        schemaVersion: initialized.schemaVersion,
+        revision: committed.value.taskList.revision,
+        value: committed.value.taskList.value,
+      });
     }
 
     if (sessionId) {
@@ -457,12 +621,26 @@ export const createWorkRhythmCommandHandler = (
       await clearWindDownAlarm(sessionId);
     }
     await scheduleTimeOutReportAlarm(workRhythm.value);
+    if (taskSettlement.value.attribution) {
+      await appendTaskAttributionHistory({
+        commandId,
+        attribution: taskSettlement.value.attribution,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
 
     currentDocument = {
       revision: workRhythm.revision,
       value: cloneWorkRhythmValue(workRhythm.value),
     };
-    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    const snapshot = toPublishedSnapshot(
+      {
+        schemaVersion: initialized.schemaVersion,
+        revision: workRhythm.revision,
+        value: workRhythm.value,
+      },
+      clock
+    );
     publish();
     return toSuccess(snapshot);
   };
@@ -531,7 +709,7 @@ export const createWorkRhythmCommandHandler = (
     const declined = decideDeclineRecess(currentDocument.value, {
       nowEpochMs: clock.nowEpochMs(),
       preferredCadence: profile.value.value.preferredCadence,
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingMinutes: readSelectedTaskRemainingMinutes(),
       gameBudget: { kind: 'cards' },
     });
     if (!declined.ok) {
@@ -605,7 +783,7 @@ export const createWorkRhythmCommandHandler = (
     const extended = decideStartWorkSessionExtension(currentDocument.value, extensionSeconds, {
       nowEpochMs: clock.nowEpochMs(),
       preferredCadence: profile.value.value.preferredCadence,
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingMinutes: readSelectedTaskRemainingMinutes(),
       gameBudget: { kind: 'cards' },
     });
     if (!extended.ok) {
@@ -666,7 +844,7 @@ export const createWorkRhythmCommandHandler = (
       nowEpochMs,
       sessionId,
       preferredCadence: profile.value.value.preferredCadence,
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingMinutes: readSelectedTaskRemainingMinutes(),
       gameBudget: { kind: 'cards' },
     });
     if (!decided.ok) {
@@ -728,6 +906,94 @@ export const createWorkRhythmCommandHandler = (
     const snapshot = toPublishedSnapshot(workRhythm, clock);
     publish();
     return toSuccess(snapshot);
+  };
+
+  const commitTaskSelectionChange = async (
+    envelope: WorkRhythmCommandEnvelope,
+    decided: {
+      nextValue: WorkRhythmValue;
+      nextTaskList: TaskListValue;
+      attribution: TaskAttribution | null;
+    }
+  ): Promise<WorkRhythmCommandResponse> => {
+    const taskListDoc = taskListHandler.getDocument();
+    const committed = await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: currentDocument.revision,
+        value: decided.nextValue,
+      },
+      {
+        document: 'task-list',
+        expectedRevision: taskListDoc.revision,
+        value: decided.nextTaskList,
+      },
+    ]);
+    if (!committed.ok) {
+      if (committed.error.kind === 'conflict') {
+        return toFailure({
+          kind: 'stale-revision',
+          expectedRevision: currentDocument.revision,
+          actualRevision: committed.error.actualRevision,
+        });
+      }
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const workRhythm = committed.value.documents['work-rhythm'];
+    const taskList = committed.value.documents['task-list'];
+    if (!workRhythm || !taskList) {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    taskListHandler.adoptCommitted(taskList);
+    if (decided.attribution) {
+      await appendTaskAttributionHistory({
+        commandId: envelope.commandId,
+        attribution: decided.attribution,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
+
+    currentDocument = {
+      revision: workRhythm.revision,
+      value: cloneWorkRhythmValue(workRhythm.value),
+    };
+    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    publish();
+    return toSuccess(snapshot);
+  };
+
+  const commitSelectTasks = async (
+    envelope: WorkRhythmCommandEnvelope
+  ): Promise<WorkRhythmCommandResponse> => {
+    const taskListDoc = taskListHandler.getDocument();
+    const decided = decideSelectTasks(
+      currentDocument.value,
+      taskListDoc.value,
+      envelope.command.kind === 'select-tasks' ? envelope.command.taskIds : [],
+      clock.nowEpochMs()
+    );
+    if (!decided.ok) {
+      return toFailure(decided.error);
+    }
+    return commitTaskSelectionChange(envelope, decided.value);
+  };
+
+  const commitSetActiveTask = async (
+    envelope: WorkRhythmCommandEnvelope
+  ): Promise<WorkRhythmCommandResponse> => {
+    const taskListDoc = taskListHandler.getDocument();
+    const decided = decideSetActiveTask(
+      currentDocument.value,
+      taskListDoc.value,
+      envelope.command.kind === 'set-active-task' ? envelope.command.taskId : null,
+      clock.nowEpochMs()
+    );
+    if (!decided.ok) {
+      return toFailure(decided.error);
+    }
+    return commitTaskSelectionChange(envelope, decided.value);
   };
 
   const executeFresh = async (
@@ -820,6 +1086,14 @@ export const createWorkRhythmCommandHandler = (
 
     if (envelope.command.kind === 'start-work-session-extension') {
       return commitStartWorkSessionExtension(envelope.commandId, envelope.command.extensionSeconds);
+    }
+
+    if (envelope.command.kind === 'select-tasks') {
+      return commitSelectTasks(envelope);
+    }
+
+    if (envelope.command.kind === 'set-active-task') {
+      return commitSetActiveTask(envelope);
     }
 
     return toFailure({ kind: 'malformed-command', message: 'unsupported command' });

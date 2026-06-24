@@ -20,6 +20,12 @@ export interface WorkRhythmInactive {
   phase: 'inactive';
 }
 
+export const emptyTaskSelectionState = () => ({
+  selectedTaskIds: [] as string[],
+  activeTaskId: null as string | null,
+  activeTaskIntervalStartedAtEpochMs: null as number | null,
+});
+
 export interface WorkRhythmFocusBlock {
   phase: 'focus-block';
   sessionId: string;
@@ -43,6 +49,9 @@ export interface WorkRhythmFocusBlock {
   extensionTrancheSeconds: number;
   extensionBaselineCumulativeSeconds: number;
   extensionBaselineCount: number;
+  selectedTaskIds: string[];
+  activeTaskId: string | null;
+  activeTaskIntervalStartedAtEpochMs: number | null;
 }
 
 export interface WorkRhythmWorkSessionCompleted {
@@ -101,6 +110,9 @@ export interface WorkRhythmTimeOut {
   extensionTrancheSeconds: number;
   extensionBaselineCumulativeSeconds: number;
   extensionBaselineCount: number;
+  selectedTaskIds: string[];
+  activeTaskId: string | null;
+  activeTaskIntervalStartedAtEpochMs: number | null;
 }
 
 export interface WorkRhythmRewardGame {
@@ -181,7 +193,14 @@ export const cloneWorkRhythmValue = (value: WorkRhythmValue): WorkRhythmValue =>
   ) {
     return { ...value };
   }
-  if (value.phase === 'time-out' || value.phase === 'recess') {
+  if (value.phase === 'time-out') {
+    return {
+      ...value,
+      selectedTaskIds: [...value.selectedTaskIds],
+      schedulerReasons: value.schedulerReasons.map((reason) => ({ ...reason })),
+    };
+  }
+  if (value.phase === 'recess') {
     return {
       ...value,
       schedulerReasons: value.schedulerReasons.map((reason) => ({ ...reason })),
@@ -210,5 +229,8 @@ export const cloneWorkRhythmValue = (value: WorkRhythmValue): WorkRhythmValue =>
     extensionTrancheSeconds: value.extensionTrancheSeconds,
     extensionBaselineCumulativeSeconds: value.extensionBaselineCumulativeSeconds,
     extensionBaselineCount: value.extensionBaselineCount,
+    selectedTaskIds: [...value.selectedTaskIds],
+    activeTaskId: value.activeTaskId,
+    activeTaskIntervalStartedAtEpochMs: value.activeTaskIntervalStartedAtEpochMs,
   };
 };

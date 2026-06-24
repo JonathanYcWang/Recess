@@ -175,6 +175,22 @@ export const createTaskListCommandHandler = (
       };
     },
 
+    getDocument(): VersionedDocument<TaskListValue> {
+      return {
+        schemaVersion: initialized.schemaVersion,
+        revision: currentDocument.revision,
+        value: cloneTaskListValue(currentDocument.value),
+      };
+    },
+
+    adoptCommitted(document: VersionedDocument<TaskListValue>) {
+      currentDocument = {
+        revision: document.revision,
+        value: cloneTaskListValue(document.value),
+      };
+      notifyListeners();
+    },
+
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

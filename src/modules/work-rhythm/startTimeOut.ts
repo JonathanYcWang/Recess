@@ -63,6 +63,9 @@ export const decideStartTimeOut = (
         extensionTrancheSeconds: focus.extensionTrancheSeconds,
         extensionBaselineCumulativeSeconds: focus.extensionBaselineCumulativeSeconds,
         extensionBaselineCount: focus.extensionBaselineCount,
+        selectedTaskIds: [...focus.selectedTaskIds],
+        activeTaskId: focus.activeTaskId,
+        activeTaskIntervalStartedAtEpochMs: null,
       },
     },
   };

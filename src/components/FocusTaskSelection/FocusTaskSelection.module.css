@@ -1,0 +1,52 @@
+.root {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-subtle, #d8d8d8);
+  border-radius: 8px;
+}
+
+.header {
+  margin: 0;
+  font-weight: 600;
+}
+
+.caption {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--text-secondary, #555);
+  font-size: 0.875rem;
+}
+
+.taskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.taskItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.activateButton,
+.activeButton {
+  border: 1px solid var(--border-subtle, #d8d8d8);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  font-size: 0.8125rem;
+}
+
+.activeButton {
+  font-weight: 600;
+}

@@ -45,6 +45,14 @@ export interface WorkRhythmCommandHandler {
 export interface WorkRhythmClient {
   current(): Promise<WorkRhythmClientCurrentResult>;
   command(envelope: WorkRhythmCommandEnvelope): Promise<WorkRhythmClientCommandResult>;
+  selectTasks(
+    taskIds: string[],
+    options?: { commandId?: string; expectedRevision?: number }
+  ): Promise<WorkRhythmClientCommandResult>;
+  setActiveTask(
+    taskId: string | null,
+    options?: { commandId?: string; expectedRevision?: number }
+  ): Promise<WorkRhythmClientCommandResult>;
   subscribe(
     listener: (snapshot: WorkRhythmPublishedSnapshot) => void,
     options?: { onTransportLoss?: () => void }

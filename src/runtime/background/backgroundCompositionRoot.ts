@@ -198,6 +198,7 @@ export const createBackgroundCompositionRoot = async (options: {
       clock,
       alarms,
       coinHandler,
+      taskListHandler,
       effectExecutor,
       diagnostics,
       outcomeStore: workRhythmOutcomeStore,

@@ -5,6 +5,7 @@ import type {
   WorkRhythmValue,
 } from './workRhythmDocument';
 import type { WorkRhythmFocusBlock } from './workRhythmDocument';
+import { emptyTaskSelectionState } from './workRhythmDocument';
 import { decideFocusRecessCycle } from '@/modules/scheduler';
 import { gameKindForIndex } from '@/modules/reward-game';
 import type { PreferredCadence } from '@/modules/workstyle-profile';
@@ -142,6 +143,7 @@ export const decideCompleteCountdown = (
         extensionTrancheSeconds: 0,
         extensionBaselineCumulativeSeconds: 0,
         extensionBaselineCount: 0,
+        ...emptyTaskSelectionState(),
       },
     },
   };

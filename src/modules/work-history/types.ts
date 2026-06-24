@@ -4,7 +4,8 @@ export type WorkHistoryFactKind =
   | 'work-session-started'
   | 'work-session-completed'
   | 'focus-block-completed'
-  | 'recess-started';
+  | 'recess-started'
+  | 'task-focused-time-attributed';
 
 export interface WorkHistoryFact {
   id: string;

@@ -25,4 +25,26 @@ export const createConnectionAwareWorkRhythmClient = (
     }
     return result;
   },
+  selectTasks: async (taskIds, options) => {
+    const manager = getWorkRhythmConnectionManager();
+    if (manager?.getConnectionState() === 'disconnected') {
+      return transportUnavailable();
+    }
+    const result = await client.selectTasks(taskIds, options);
+    if (!result.ok && isWorkRhythmTransportError(result.error)) {
+      manager?.markDisconnected();
+    }
+    return result;
+  },
+  setActiveTask: async (taskId, options) => {
+    const manager = getWorkRhythmConnectionManager();
+    if (manager?.getConnectionState() === 'disconnected') {
+      return transportUnavailable();
+    }
+    const result = await client.setActiveTask(taskId, options);
+    if (!result.ok && isWorkRhythmTransportError(result.error)) {
+      manager?.markDisconnected();
+    }
+    return result;
+  },
 });

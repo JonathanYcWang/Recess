@@ -149,3 +149,19 @@ export {
   WORK_SESSION_EXTENSION_STEP_SECONDS,
 } from './workSessionExtension';
 export { workRhythmCodec, WORK_RHYTHM_SCHEMA_VERSION } from './workRhythmCodec';
+export {
+  createTaskFocusedTimeAttributedFact,
+  taskFocusedTimeAttributedFactId,
+  type TaskFocusedTimeAttributedContext,
+} from './taskFocusedTimeAttributed';
+export {
+  decideSelectTasks,
+  decideSetActiveTask,
+  emptyTaskSelection,
+  hasTaskSelection,
+  preparePhaseAfterTaskSettlement,
+  settleActiveTaskInterval,
+  type TaskAttribution,
+  type TaskSelectionError,
+  type TaskSelectionPhaseValue,
+} from './taskSelection';

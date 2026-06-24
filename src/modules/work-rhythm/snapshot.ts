@@ -23,6 +23,8 @@ export type WorkRhythmFocusBlockSnapshot = {
   blocksUntilNextStreakMilestone: number;
   schedulerReasonCodes: SchedulerReasonCode[];
   windDownActive: boolean;
+  selectedTaskIds: string[];
+  activeTaskId: string | null;
 };
 
 export type WorkRhythmRecessPromptSnapshot = {
@@ -50,6 +52,8 @@ export type WorkRhythmTimeOutSnapshot = {
   focusBlockStreak: number;
   blocksUntilNextStreakMilestone: number;
   isFinalFocus: boolean;
+  selectedTaskIds: string[];
+  activeTaskId: string | null;
 };
 
 export type WorkRhythmWorkSessionCompletedSnapshot = {
@@ -176,6 +180,8 @@ export const projectWorkRhythmSnapshot = (
         value.focusBlockStreak
       ),
       isFinalFocus: value.isFinalFocus,
+      selectedTaskIds: [...value.selectedTaskIds],
+      activeTaskId: value.activeTaskId,
     };
   }
 
@@ -258,5 +264,7 @@ export const projectWorkRhythmSnapshot = (
     ),
     schedulerReasonCodes: value.schedulerReasons.map((reason) => reason.code),
     windDownActive: isWindDownActive(windDownContext, nowEpochMs),
+    selectedTaskIds: [...value.selectedTaskIds],
+    activeTaskId: value.activeTaskId,
   };
 };
