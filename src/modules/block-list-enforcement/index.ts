@@ -1,6 +1,9 @@
 export type {
+  AccessSnapshot,
   CloseTabsResult,
+  EnforcementResult,
   OpenTabResult,
+  RememberedOwnership,
   TabAccess,
   TabAccessError,
   TabAccessResult,
@@ -13,3 +16,8 @@ export {
   type InMemoryTab,
   type InMemoryTabAccessState,
 } from './inMemoryTabAccess';
+export {
+  createBlockListReconciler,
+  createInMemoryOwnershipStore,
+  type EnforcementOwnershipStore,
+} from './reconciler';
