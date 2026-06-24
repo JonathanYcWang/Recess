@@ -11,6 +11,9 @@ import {
   createDefaultWorkRhythmValue,
   type WorkRhythmFocusBlock,
   type WorkRhythmRecessPrompt,
+  type WorkRhythmRewardGame,
+  type WorkRhythmRecess,
+  type WorkRhythmBackToWorkCountdown,
   type WorkRhythmValue,
 } from './workRhythmDocument';
 
@@ -184,6 +187,167 @@ const parseRecessPrompt = (value: unknown): Result<WorkRhythmRecessPrompt, strin
   };
 };
 
+const parseSessionFields = (
+  value: Record<string, unknown>
+): Result<
+  {
+    sessionId: string;
+    originalGoalSeconds: number;
+    sessionStartedAtEpochMs: number;
+    settledRemainingWorkSessionSeconds: number;
+    energy: WorkRhythmFocusBlock['energy'];
+    momentum: WorkRhythmFocusBlock['momentum'];
+    focusBlockStreak: number;
+  },
+  string
+> => {
+  if (typeof value.sessionId !== 'string' || value.sessionId.length === 0) {
+    return { ok: false, error: 'sessionId must be a non-empty string' };
+  }
+  const numberFields = [
+    'originalGoalSeconds',
+    'sessionStartedAtEpochMs',
+    'settledRemainingWorkSessionSeconds',
+    'focusBlockStreak',
+  ] as const;
+  for (const field of numberFields) {
+    if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
+      return { ok: false, error: `${field} must be a finite number` };
+    }
+  }
+  if (typeof value.energy !== 'string' || !includes(ENERGY_LEVELS, value.energy)) {
+    return { ok: false, error: 'energy must be low, steady, or high' };
+  }
+  if (typeof value.momentum !== 'string' || !includes(MOMENTUM_LEVELS, value.momentum)) {
+    return { ok: false, error: 'momentum must be a valid momentum level' };
+  }
+  return {
+    ok: true,
+    value: {
+      sessionId: value.sessionId as string,
+      originalGoalSeconds: value.originalGoalSeconds as number,
+      sessionStartedAtEpochMs: value.sessionStartedAtEpochMs as number,
+      settledRemainingWorkSessionSeconds: value.settledRemainingWorkSessionSeconds as number,
+      energy: value.energy as WorkRhythmFocusBlock['energy'],
+      momentum: value.momentum as WorkRhythmFocusBlock['momentum'],
+      focusBlockStreak: value.focusBlockStreak as number,
+    },
+  };
+};
+
+const parseRewardGame = (value: unknown): Result<WorkRhythmRewardGame, string> => {
+  if (!isRecord(value) || value.phase !== 'reward-game') {
+    return { ok: false, error: 'reward game value must have phase reward-game' };
+  }
+  const session = parseSessionFields(value);
+  if (!session.ok) {
+    return session;
+  }
+  if (typeof value.completedFocusBlockIndex !== 'number') {
+    return { ok: false, error: 'completedFocusBlockIndex must be a number' };
+  }
+  if (typeof value.roundId !== 'string' || value.roundId.length === 0) {
+    return { ok: false, error: 'roundId must be a non-empty string' };
+  }
+  return {
+    ok: true,
+    value: {
+      phase: 'reward-game',
+      ...session.value,
+      completedFocusBlockIndex: value.completedFocusBlockIndex as number,
+      roundId: value.roundId as string,
+    },
+  };
+};
+
+const parseRecess = (value: unknown): Result<WorkRhythmRecess, string> => {
+  if (!isRecord(value) || value.phase !== 'recess') {
+    return { ok: false, error: 'recess value must have phase recess' };
+  }
+  const session = parseSessionFields(value);
+  if (!session.ok) {
+    return session;
+  }
+  if (typeof value.nextFocusBlockIndex !== 'number') {
+    return { ok: false, error: 'nextFocusBlockIndex must be a number' };
+  }
+  if (
+    value.recessPassDestination !== null &&
+    (typeof value.recessPassDestination !== 'string' || value.recessPassDestination.length === 0)
+  ) {
+    return { ok: false, error: 'recessPassDestination must be null or a non-empty string' };
+  }
+  const epochFields = [
+    'recessStartedAtEpochMs',
+    'recessDeadlineAtEpochMs',
+    'recessDurationSeconds',
+  ] as const;
+  for (const field of epochFields) {
+    if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
+      return { ok: false, error: `${field} must be a finite number` };
+    }
+  }
+  if (!Array.isArray(value.schedulerReasons)) {
+    return { ok: false, error: 'schedulerReasons must be an array' };
+  }
+  const schedulerReasons: WorkRhythmRecess['schedulerReasons'] = [];
+  for (const reason of value.schedulerReasons) {
+    const parsed = parseSchedulerReason(reason);
+    if (!parsed.ok) {
+      return { ok: false, error: parsed.error };
+    }
+    schedulerReasons.push(parsed.value);
+  }
+  return {
+    ok: true,
+    value: {
+      phase: 'recess',
+      ...session.value,
+      nextFocusBlockIndex: value.nextFocusBlockIndex as number,
+      recessPassDestination: value.recessPassDestination as string | null,
+      recessStartedAtEpochMs: value.recessStartedAtEpochMs as number,
+      recessDeadlineAtEpochMs: value.recessDeadlineAtEpochMs as number,
+      recessDurationSeconds: value.recessDurationSeconds as number,
+      schedulerReasons,
+    },
+  };
+};
+
+const parseCountdown = (value: unknown): Result<WorkRhythmBackToWorkCountdown, string> => {
+  if (!isRecord(value) || value.phase !== 'back-to-work-countdown') {
+    return { ok: false, error: 'countdown value must have phase back-to-work-countdown' };
+  }
+  const session = parseSessionFields(value);
+  if (!session.ok) {
+    return session;
+  }
+  if (typeof value.nextFocusBlockIndex !== 'number') {
+    return { ok: false, error: 'nextFocusBlockIndex must be a number' };
+  }
+  if (
+    typeof value.countdownStartedAtEpochMs !== 'number' ||
+    !Number.isFinite(value.countdownStartedAtEpochMs)
+  ) {
+    return { ok: false, error: 'countdownStartedAtEpochMs must be a finite number' };
+  }
+  if (
+    typeof value.countdownDeadlineAtEpochMs !== 'number' ||
+    !Number.isFinite(value.countdownDeadlineAtEpochMs)
+  ) {
+    return { ok: false, error: 'countdownDeadlineAtEpochMs must be a finite number' };
+  }
+  return {
+    ok: true,
+    value: {
+      phase: 'back-to-work-countdown',
+      ...session.value,
+      nextFocusBlockIndex: value.nextFocusBlockIndex as number,
+      countdownStartedAtEpochMs: value.countdownStartedAtEpochMs as number,
+      countdownDeadlineAtEpochMs: value.countdownDeadlineAtEpochMs as number,
+    },
+  };
+};
+
 const parseWorkRhythmValue = (value: unknown): Result<WorkRhythmValue, string> => {
   if (!isRecord(value) || typeof value.phase !== 'string') {
     return { ok: false, error: 'work rhythm value must include phase' };
@@ -197,7 +361,20 @@ const parseWorkRhythmValue = (value: unknown): Result<WorkRhythmValue, string> =
   if (value.phase === 'recess-prompt') {
     return parseRecessPrompt(value);
   }
-  return { ok: false, error: 'phase must be inactive, focus-block, or recess-prompt' };
+  if (value.phase === 'reward-game') {
+    return parseRewardGame(value);
+  }
+  if (value.phase === 'recess') {
+    return parseRecess(value);
+  }
+  if (value.phase === 'back-to-work-countdown') {
+    return parseCountdown(value);
+  }
+  return {
+    ok: false,
+    error:
+      'phase must be inactive, focus-block, recess-prompt, reward-game, recess, or back-to-work-countdown',
+  };
 };
 
 export const workRhythmCodec: DocumentCodec<WorkRhythmValue> = {

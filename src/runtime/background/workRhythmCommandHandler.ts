@@ -43,12 +43,12 @@ const clonePublishedSnapshot = (
   snapshot:
     snapshot.snapshot.phase === 'inactive'
       ? { phase: 'inactive' }
-      : snapshot.snapshot.phase === 'recess-prompt'
-        ? { ...snapshot.snapshot }
-        : {
+      : snapshot.snapshot.phase === 'focus-block' || snapshot.snapshot.phase === 'recess'
+        ? {
             ...snapshot.snapshot,
             schedulerReasonCodes: [...snapshot.snapshot.schedulerReasonCodes],
-          },
+          }
+        : { ...snapshot.snapshot },
 });
 
 const toPublishedSnapshot = (
