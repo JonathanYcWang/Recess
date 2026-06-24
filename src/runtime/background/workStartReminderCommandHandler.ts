@@ -142,6 +142,7 @@ const migrateLegacyWorkHours = async (
     if (nextValue.schedules.length === 0) {
       return snapshot;
     }
+    await adapter.remove(LEGACY_WORK_HOURS_KEY);
     return { ...snapshot, value: nextValue };
   } catch {
     return snapshot;

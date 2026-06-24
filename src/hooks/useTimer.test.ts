@@ -30,7 +30,6 @@ import quizReducer from '../store/reducers/quizReducer';
 import routingReducer from '../store/reducers/routingReducer';
 import settingsProjectionReducer from '../store/reducers/settingsProjectionReducer';
 import timerReducer from '../store/reducers/timerReducer';
-import workHoursReducer from '../store/reducers/workHoursReducer';
 import type { Reward } from '../types/reward';
 import { useTimer } from './useTimer';
 
@@ -91,7 +90,6 @@ const createState = (overrides: Partial<RootState['timer']> = {}): RootState => 
     ...timerReducer(undefined, { type: 'test/init' }),
     ...overrides,
   },
-  workHours: workHoursReducer(undefined, { type: 'test/init' }),
   blockedSites: blockedSitesReducer(undefined, setBlockedSites(['youtube.com', 'reddit.com'])),
   routing: routingReducer(undefined, { type: 'test/init' }),
   quiz: quizReducer(undefined, { type: 'test/init' }),

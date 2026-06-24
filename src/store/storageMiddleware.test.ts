@@ -9,13 +9,11 @@ import blockedSitesReducer from './reducers/blockedSitesReducer';
 import quizReducer from './reducers/quizReducer';
 import routingReducer from './reducers/routingReducer';
 import timerReducer from './reducers/timerReducer';
-import workHoursReducer from './reducers/workHoursReducer';
 import {
   createInitialBlockedSitesState,
   createInitialQuizState,
   createInitialRoutingState,
   createInitialTimerState,
-  createInitialWorkHoursState,
 } from './initialState';
 import {
   loadStateFromStorage,
@@ -27,7 +25,6 @@ const createTestStore = () =>
   configureStore({
     reducer: {
       timer: timerReducer,
-      workHours: workHoursReducer,
       blockedSites: blockedSitesReducer,
       routing: routingReducer,
       quiz: quizReducer,
@@ -117,7 +114,6 @@ describe('storageMiddleware', () => {
               sessionState: SESSION_STATES.BEFORE_WORK_SESSION,
               totalRemaining: 1,
             },
-            workHours: [{ id: 'weekday', time: '09:00', days: [], enabled: true }],
             blockedSites: { sites: ['news.example'] },
             hasOnboarded: true,
             quizState: {
@@ -139,7 +135,6 @@ describe('storageMiddleware', () => {
         sessionState: SESSION_STATES.BEFORE_WORK_SESSION,
         totalRemaining: 1,
       },
-      workHours: [{ id: 'weekday', time: '09:00', days: [], enabled: true }],
       blockedSites: ['news.example'],
       routing: true,
       quiz: {
@@ -170,7 +165,6 @@ describe('storageMiddleware', () => {
 
     expect(values).toEqual({
       timerState: createInitialTimerState(),
-      workHours: createInitialWorkHoursState().entries,
       blockedSites: createInitialBlockedSitesState(),
       hasOnboarded: createInitialRoutingState().hasOnboarded,
       quizState: createInitialQuizState(),
@@ -203,7 +197,6 @@ describe('storageMiddleware', () => {
 
     expect(values.timerState).toBe(existingTimer);
     expect(values.blockedSites).toEqual(['news.example']);
-    expect(values.workHours).toEqual(createInitialWorkHoursState().entries);
     expect(values.hasOnboarded).toBe(createInitialRoutingState().hasOnboarded);
     expect(values.quizState).toEqual(createInitialQuizState());
     expect(chromeStorage.set).not.toHaveBeenCalledWith(
@@ -224,7 +217,6 @@ describe('storageMiddleware', () => {
 
     await expect(loadStateFromStorage()).resolves.toEqual({
       timer: undefined,
-      workHours: undefined,
       blockedSites: undefined,
       routing: undefined,
       quiz: undefined,

@@ -6,14 +6,8 @@ import {
 } from '../constants/constants';
 import { calculateFocusSessionDuration } from '../services/sessionDurationService';
 import type { TimerState } from '../types/timer';
-import type { WorkHoursEntry } from '../types/workHours';
 import type { BlockedSitesState } from './actions/blockedSitesActions';
 import type { QuizReduxState } from './actions/quizActions';
-
-export interface WorkHoursState {
-  entries: WorkHoursEntry[];
-  isLoaded: boolean;
-}
 
 export interface RoutingState {
   hasOnboarded: boolean;
@@ -69,11 +63,6 @@ export const createInitialTimerState = (): TimerState => {
 
   return base;
 };
-
-export const createInitialWorkHoursState = (): WorkHoursState => ({
-  entries: [],
-  isLoaded: false,
-});
 
 export const createInitialRoutingState = (): RoutingState => ({
   hasOnboarded: false,
