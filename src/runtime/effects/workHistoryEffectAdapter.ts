@@ -33,11 +33,21 @@ export const createWorkHistoryEffectAdapter = (options: {
       }
     }
 
+    const kind = intent.facts.kind;
+    if (
+      kind !== 'focus-block-completed' &&
+      kind !== 'work-session-completed' &&
+      kind !== 'work-session-started' &&
+      kind !== 'recess-started'
+    ) {
+      return { ok: false, error: 'unsupported work history effect kind' };
+    }
+
     return options.append([
       {
         id: factId,
         recordedAt,
-        kind: 'focus-block-completed',
+        kind,
         payload,
       },
     ]);

@@ -13,11 +13,14 @@ import { createDefaultSettingsValue } from '../settings/settingsDocument';
 import type { BlockListValue } from '@/modules/block-list';
 import type { WorkstyleProfileValue } from '@/modules/workstyle-profile';
 import type { CoinLedgerValue } from '@/modules/coin';
+import { workRhythmCodec } from '@/modules/work-rhythm';
+import type { WorkRhythmValue } from '@/modules/work-rhythm';
 
 export const SETTINGS_DOCUMENT_KEY = '__recess_doc_settings';
 export const BLOCK_LIST_DOCUMENT_KEY = '__recess_doc_block_list';
 export const WORKSTYLE_PROFILE_DOCUMENT_KEY = '__recess_doc_workstyle_profile';
 export const COIN_DOCUMENT_KEY = '__recess_doc_coin';
+export const WORK_RHYTHM_DOCUMENT_KEY = '__recess_doc_work_rhythm';
 
 export interface DocumentRegistryEntry<T> {
   document: PersistedDocumentName;
@@ -51,11 +54,18 @@ export const documentRegistry = {
     codec: coinCodec,
     createDefault: () => coinCodec.createDefault(),
   },
+  'work-rhythm': {
+    document: 'work-rhythm',
+    storageKey: WORK_RHYTHM_DOCUMENT_KEY,
+    codec: workRhythmCodec,
+    createDefault: () => workRhythmCodec.createDefault(),
+  },
 } as const satisfies {
   settings: DocumentRegistryEntry<SettingsValue>;
   'block-list': DocumentRegistryEntry<BlockListValue>;
   'workstyle-profile': DocumentRegistryEntry<WorkstyleProfileValue>;
   coin: DocumentRegistryEntry<CoinLedgerValue>;
+  'work-rhythm': DocumentRegistryEntry<WorkRhythmValue>;
 };
 
 export const registeredDocumentNames = [
@@ -63,6 +73,7 @@ export const registeredDocumentNames = [
   'block-list',
   'workstyle-profile',
   'coin',
+  'work-rhythm',
 ] as const satisfies readonly PersistedDocumentName[];
 
 export const allOperationalStorageKeys = (): string[] =>

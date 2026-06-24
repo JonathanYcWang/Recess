@@ -4,11 +4,36 @@ import { ACCESS_CONTEXT_STORAGE_KEY } from '@/runtime/accessContextStorage';
 import type { RootState } from './index';
 
 export const projectAccessContextFromState = (state: RootState): AccessContext => {
-  const timer = state.timer;
   const blockListEntries =
     state.blockListProjection?.revision != null
       ? state.blockListProjection.entries
       : state.blockedSites;
+
+  if (
+    state.workRhythmProjection.connectionState === 'connected' &&
+    state.workRhythmProjection.snapshot.phase === 'focus-block'
+  ) {
+    return {
+      phase: 'focus-block',
+      blockListEntries,
+      recessPassEntry: null,
+      hallPassEntry: null,
+    };
+  }
+
+  if (
+    state.workRhythmProjection.connectionState === 'connected' &&
+    state.workRhythmProjection.snapshot.phase === 'recess-prompt'
+  ) {
+    return {
+      phase: 'reward-game',
+      blockListEntries,
+      recessPassEntry: null,
+      hallPassEntry: null,
+    };
+  }
+
+  const timer = state.timer;
 
   return mapLegacyTimerToAccessContext(
     {

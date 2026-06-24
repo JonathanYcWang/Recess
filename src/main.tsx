@@ -14,6 +14,8 @@ import { createAppSettingsClient } from './store/settingsClient';
 import { startSettingsProjectionSubscription } from './store/settingsProjectionSubscription';
 import { createAppBlockListClient } from './store/blockListClient';
 import { startBlockListProjectionSubscription } from './store/blockListProjectionSubscription';
+import { startWorkRhythmProjectionSubscription } from './store/workRhythmProjectionSubscription';
+import { createAppWorkRhythmClient } from './store/workRhythmClient';
 import { startAccessContextPublisher } from './store/accessContextSubscription';
 
 // Initialize store from storage
@@ -49,6 +51,14 @@ seedInitialStateInStorage()
     if (blockListClient) {
       startBlockListProjectionSubscription({
         client: blockListClient,
+        dispatch: store.dispatch,
+      });
+    }
+
+    const workRhythmClient = createAppWorkRhythmClient();
+    if (workRhythmClient) {
+      startWorkRhythmProjectionSubscription({
+        client: workRhythmClient,
         dispatch: store.dispatch,
       });
     }

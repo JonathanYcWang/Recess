@@ -3,6 +3,7 @@ import { SESSION_STATES } from '../../constants/constants';
 import blockedSitesReducer from '../reducers/blockedSitesReducer';
 import blockListProjectionReducer from '../reducers/blockListProjectionReducer';
 import workstyleProfileProjectionReducer from '../reducers/workstyleProfileProjectionReducer';
+import workRhythmProjectionReducer from '../reducers/workRhythmProjectionReducer';
 import quizReducer from '../reducers/quizReducer';
 import routingReducer from '../reducers/routingReducer';
 import settingsProjectionReducer from '../reducers/settingsProjectionReducer';
@@ -68,6 +69,7 @@ const createState = (): RootState => ({
   settingsProjection: settingsProjectionReducer(undefined, { type: 'test/init' }),
   blockListProjection: blockListProjectionReducer(undefined, { type: 'test/init' }),
   workstyleProfileProjection: workstyleProfileProjectionReducer(undefined, { type: 'test/init' }),
+  workRhythmProjection: workRhythmProjectionReducer(undefined, { type: 'test/init' }),
 });
 
 describe('Redux selectors', () => {

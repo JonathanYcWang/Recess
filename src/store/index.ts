@@ -7,6 +7,7 @@ import quizReducer from './reducers/quizReducer';
 import settingsProjectionReducer from './reducers/settingsProjectionReducer';
 import blockListProjectionReducer from './reducers/blockListProjectionReducer';
 import workstyleProfileProjectionReducer from './reducers/workstyleProfileProjectionReducer';
+import workRhythmProjectionReducer from './reducers/workRhythmProjectionReducer';
 import { storageMiddleware } from './storageMiddleware';
 
 export const store = configureStore({
@@ -19,6 +20,7 @@ export const store = configureStore({
     settingsProjection: settingsProjectionReducer,
     blockListProjection: blockListProjectionReducer,
     workstyleProfileProjection: workstyleProfileProjectionReducer,
+    workRhythmProjection: workRhythmProjectionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
