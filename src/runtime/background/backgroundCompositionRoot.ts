@@ -6,6 +6,7 @@ import {
 import { createInProcessSettingsClient } from '../client/inProcessSettingsClient';
 import { createInProcessBlockListClient } from '../client/inProcessBlockListClient';
 import { createInProcessWorkstyleProfileClient } from '../client/inProcessWorkstyleProfileClient';
+import { createInProcessCoinClient } from '../client/inProcessCoinClient';
 import { createCommandOutcomeStore } from '../commandOutcomeStore';
 import type {
   BlockListClient,
@@ -23,17 +24,21 @@ import type {
   WorkstyleProfileCommandHandler,
   WorkstyleProfileCommandResponse,
 } from '../workstyleProfileTypes';
+import type { CoinClient, CoinCommandHandler, CoinCommandResponse } from '../coinTypes';
 import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 import { createWorkstyleProfileCommandHandler } from './workstyleProfileCommandHandler';
+import { createCoinCommandHandler } from './coinCommandHandler';
 
 export interface BackgroundCompositionRoot {
   settings: SettingsClient;
   blockList: BlockListClient;
   workstyleProfile: WorkstyleProfileClient;
+  coin: CoinClient;
   settingsHandler: SettingsCommandHandler;
   blockListHandler: BlockListCommandHandler;
   workstyleProfileHandler: WorkstyleProfileCommandHandler;
+  coinHandler: CoinCommandHandler;
 }
 
 type BackgroundCompositionRootResult =
@@ -57,6 +62,7 @@ export const createBackgroundCompositionRoot = async (options: {
   const workstyleProfileOutcomeStore = createCommandOutcomeStore<WorkstyleProfileCommandResponse>(
     options.adapter
   );
+  const coinOutcomeStore = createCommandOutcomeStore<CoinCommandResponse>(options.adapter);
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
@@ -72,6 +78,10 @@ export const createBackgroundCompositionRoot = async (options: {
     initialized.value.documents['workstyle-profile'],
     { diagnostics, outcomeStore: workstyleProfileOutcomeStore }
   );
+  const coinHandler = createCoinCommandHandler(persistence, initialized.value.documents.coin, {
+    diagnostics,
+    outcomeStore: coinOutcomeStore,
+  });
 
   return {
     ok: true,
@@ -79,9 +89,11 @@ export const createBackgroundCompositionRoot = async (options: {
       settings: createInProcessSettingsClient(settingsHandler),
       blockList: createInProcessBlockListClient(blockListHandler),
       workstyleProfile: createInProcessWorkstyleProfileClient(workstyleProfileHandler),
+      coin: createInProcessCoinClient(coinHandler),
       settingsHandler,
       blockListHandler,
       workstyleProfileHandler,
+      coinHandler,
     },
   };
 };
