@@ -102,10 +102,12 @@ export const replanReminderOccurrences = (
     if (!schedule.enabled) {
       continue;
     }
-    const hasActive = retained.some(
-      (occurrence) => occurrence.scheduleId === schedule.id && occurrence.phase === 'active'
+    const hasOpenOccurrence = retained.some(
+      (occurrence) =>
+        occurrence.scheduleId === schedule.id &&
+        (occurrence.phase === 'planned' || occurrence.phase === 'active')
     );
-    if (hasActive) {
+    if (hasOpenOccurrence) {
       continue;
     }
     const existingPlanned = withZone.occurrences.find(

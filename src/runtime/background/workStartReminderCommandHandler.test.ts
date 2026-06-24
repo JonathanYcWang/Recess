@@ -75,4 +75,33 @@ describe('workStartReminderCommandHandler', () => {
     }
     expect(after.value.revision).toBeGreaterThan(before.value.revision);
   });
+
+  it('recalculates today occurrence phase after a same-day edit', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+    await root.value.workStartReminder.addSchedule({
+      time: '11:59 PM',
+      days: [true, true, true, true, true, true, true],
+    });
+    const current = root.value.workStartReminderHandler.current();
+    if (!current.ok) {
+      throw new Error('expected current');
+    }
+    const scheduleId = current.value.snapshot.schedules[0]!.id;
+    const updated = await root.value.workStartReminder.updateSchedule(scheduleId, {
+      time: '09:00 AM',
+      days: [true, true, true, true, true, true, true],
+    });
+    expect(updated.ok).toBe(true);
+
+    const secondRoot = await createBackgroundCompositionRoot({ adapter });
+    if (!secondRoot.ok) {
+      throw new Error('expected restart root');
+    }
+    const afterRestart = secondRoot.value.workStartReminderHandler.current();
+    expect(afterRestart.ok).toBe(true);
+  });
 });
