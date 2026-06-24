@@ -17,7 +17,7 @@ export type EndRecessError = { kind: 'invalid-phase-for-end-recess' } | { kind: 
 export interface EndRecessContext {
   nowEpochMs: number;
   preferredCadence: PreferredCadence;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
   nextGameIndex: number;
   early: boolean;
 }
@@ -73,7 +73,7 @@ export type CompleteCountdownError =
 export interface CompleteCountdownContext {
   nowEpochMs: number;
   preferredCadence: PreferredCadence;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
   nextGameIndex: number;
 }
 
@@ -110,12 +110,12 @@ export const decideCompleteCountdown = (
       current.originalGoalSeconds === 0
         ? 0
         : (current.originalGoalSeconds - remainingWorkSessionSeconds) / current.originalGoalSeconds,
-    selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+    selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
     remainingWorkSessionSeconds,
     gameBudget: { kind: gameKindForIndex(context.nextGameIndex) },
   });
 
-  const focusDurationSeconds = schedulerDecision.focusMinutes * 60;
+  const focusDurationSeconds = schedulerDecision.focusDurationSeconds;
   return {
     ok: true,
     value: {

@@ -1,5 +1,6 @@
 export {
   decideFocusRecessCycle,
+  MIN_TASK_CAP_SECONDS,
   type SchedulerDecision,
   type SchedulerInput,
   type SchedulerReason,

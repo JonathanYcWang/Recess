@@ -12,7 +12,7 @@ export interface PostGameRecessInput {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   workSessionProgressRatio: number;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
   remainingWorkSessionSeconds: number;
 }
 

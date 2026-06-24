@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   computeIntervalElapsedSeconds,
+  computeSelectedTaskDerivedRemainingSeconds,
   computeSelectedTaskRemainingMinutes,
   decideActivateTask,
   decideAttributeFocusedTime,
@@ -56,6 +57,17 @@ describe('attributeFocusedTime', () => {
     }
     expect(computeSelectedTaskRemainingMinutes(attributed.value, ['task-1'])).toBe(45);
     expect(computeSelectedTaskRemainingMinutes(attributed.value, [])).toBeNull();
+  });
+
+  it('sums derived remaining seconds without minute rounding', () => {
+    const taskList = createTask('task-1', 60);
+    const attributed = decideAttributeFocusedTime(taskList, 'task-1', 15 * 60 + 30, 2_000);
+    if (!attributed.ok) {
+      throw new Error('expected attribution');
+    }
+    expect(computeSelectedTaskDerivedRemainingSeconds(attributed.value, ['task-1'])).toBe(
+      44 * 60 + 30
+    );
   });
 
   it('floors elapsed interval seconds at mid-second boundaries', () => {

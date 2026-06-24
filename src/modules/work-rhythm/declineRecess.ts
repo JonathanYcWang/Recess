@@ -16,7 +16,7 @@ export type DeclineRecessError =
 export interface DeclineRecessContext {
   nowEpochMs: number;
   preferredCadence: PreferredCadence;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
   gameBudget: RewardGameBudget;
 }
 
@@ -66,12 +66,12 @@ export const decideDeclineRecess = (
     energy: recess.energy,
     momentum: recess.momentum,
     workSessionProgressRatio,
-    selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+    selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
     remainingWorkSessionSeconds,
     gameBudget: context.gameBudget,
   });
 
-  const focusDurationSeconds = schedulerDecision.focusMinutes * 60;
+  const focusDurationSeconds = schedulerDecision.focusDurationSeconds;
   const settlementSegment = recess.lastSettledSegment + 1;
 
   return {

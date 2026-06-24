@@ -5,6 +5,7 @@ import {
   isIncompleteTask,
   type TaskListValue,
 } from './taskListDocument';
+import { deriveRemainingWorkSeconds } from './timeEstimate';
 
 export const isFocusAttributionPhase = (phase: string): boolean => phase === 'focus-block';
 
@@ -73,7 +74,7 @@ export const decideActivateTask = (
   return { ok: true, value: next };
 };
 
-export const computeSelectedTaskRemainingMinutes = (
+export const computeSelectedTaskDerivedRemainingSeconds = (
   taskList: TaskListValue,
   selectedTaskIds: readonly string[]
 ): number | null => {
@@ -81,12 +82,34 @@ export const computeSelectedTaskRemainingMinutes = (
     return null;
   }
   let totalSeconds = 0;
+  let matchedIncompleteTasks = 0;
   for (const taskId of selectedTaskIds) {
     const task = taskList.tasks.find((entry) => entry.id === taskId);
     if (!task || !isIncompleteTask(task)) {
       continue;
     }
-    totalSeconds += Math.max(0, task.originalEstimateMinutes * 60 - task.focusedTimeSeconds);
+    matchedIncompleteTasks += 1;
+    totalSeconds += deriveRemainingWorkSeconds(task);
+  }
+  return matchedIncompleteTasks > 0 ? totalSeconds : null;
+};
+
+export const filterSelectedIncompleteTaskIds = (
+  taskList: TaskListValue,
+  selectedTaskIds: readonly string[]
+): string[] =>
+  selectedTaskIds.filter((taskId) => {
+    const task = taskList.tasks.find((entry) => entry.id === taskId);
+    return task !== undefined && isIncompleteTask(task);
+  });
+
+export const computeSelectedTaskRemainingMinutes = (
+  taskList: TaskListValue,
+  selectedTaskIds: readonly string[]
+): number | null => {
+  const totalSeconds = computeSelectedTaskDerivedRemainingSeconds(taskList, selectedTaskIds);
+  if (totalSeconds === null) {
+    return null;
   }
   return Math.ceil(totalSeconds / 60);
 };

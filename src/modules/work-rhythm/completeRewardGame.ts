@@ -11,7 +11,7 @@ export type CompleteRewardGameError =
 export interface CompleteRewardGameContext {
   nowEpochMs: number;
   preferredCadence: PreferredCadence;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
   roundId: string;
   selectedDestination: string;
 }
@@ -44,7 +44,7 @@ export const decideCompleteRewardGame = (
       current.originalGoalSeconds === 0
         ? 0
         : (current.originalGoalSeconds - remainingWorkSessionSeconds) / current.originalGoalSeconds,
-    selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+    selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
     remainingWorkSessionSeconds,
   });
 

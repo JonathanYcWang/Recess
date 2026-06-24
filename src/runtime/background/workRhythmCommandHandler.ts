@@ -44,7 +44,12 @@ import {
   type WorkRhythmValue,
   type WorkRhythmWorkSessionCompleted,
 } from '@/modules/work-rhythm';
-import { computeSelectedTaskRemainingMinutes, type TaskListValue } from '@/modules/task-list';
+import { consumePendingFocusTaskIds } from '@/modules/task-planner';
+import {
+  computeSelectedTaskDerivedRemainingSeconds,
+  filterSelectedIncompleteTaskIds,
+  type TaskListValue,
+} from '@/modules/task-list';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { RUNTIME_PROTOCOL_VERSION } from '../protocol/types';
 import { createCommandLedger } from '../commandLedger';
@@ -191,14 +196,33 @@ export const createWorkRhythmCommandHandler = (
     value: TaskListValue;
   };
 
-  const readSelectedTaskRemainingMinutes = (): number | null => {
+  const readSelectedTaskRemainingSeconds = (): number | null => {
     if (!hasTaskSelection(currentDocument.value)) {
       return null;
     }
-    return computeSelectedTaskRemainingMinutes(
+    if (currentDocument.value.selectedTaskIds.length === 0) {
+      return null;
+    }
+    return computeSelectedTaskDerivedRemainingSeconds(
       taskListHandler.getDocument().value,
       currentDocument.value.selectedTaskIds
     );
+  };
+
+  const readStartTaskCapInput = (): {
+    selectedTaskRemainingSeconds: number | null;
+    confirmedFocusTaskIds: string[];
+  } => {
+    const pendingTaskIds = consumePendingFocusTaskIds();
+    const taskList = taskListHandler.getDocument().value;
+    const confirmedFocusTaskIds = filterSelectedIncompleteTaskIds(taskList, pendingTaskIds);
+    return {
+      confirmedFocusTaskIds,
+      selectedTaskRemainingSeconds: computeSelectedTaskDerivedRemainingSeconds(
+        taskList,
+        confirmedFocusTaskIds
+      ),
+    };
   };
 
   const settleTaskAttributionForPhase = (
@@ -710,7 +734,7 @@ export const createWorkRhythmCommandHandler = (
     const declined = decideDeclineRecess(currentDocument.value, {
       nowEpochMs: clock.nowEpochMs(),
       preferredCadence: profile.value.value.preferredCadence,
-      selectedTaskRemainingMinutes: readSelectedTaskRemainingMinutes(),
+      selectedTaskRemainingSeconds: readSelectedTaskRemainingSeconds(),
       gameBudget: { kind: 'cards' },
     });
     if (!declined.ok) {
@@ -784,7 +808,7 @@ export const createWorkRhythmCommandHandler = (
     const extended = decideStartWorkSessionExtension(currentDocument.value, extensionSeconds, {
       nowEpochMs: clock.nowEpochMs(),
       preferredCadence: profile.value.value.preferredCadence,
-      selectedTaskRemainingMinutes: readSelectedTaskRemainingMinutes(),
+      selectedTaskRemainingSeconds: readSelectedTaskRemainingSeconds(),
       gameBudget: { kind: 'cards' },
     });
     if (!extended.ok) {
@@ -841,11 +865,13 @@ export const createWorkRhythmCommandHandler = (
 
     const sessionId = createSessionId();
     const nowEpochMs = clock.nowEpochMs();
+    const startTaskCap = readStartTaskCapInput();
     const decided = applyWorkRhythmCommand(currentDocument.value, envelope.command, {
       nowEpochMs,
       sessionId,
       preferredCadence: profile.value.value.preferredCadence,
-      selectedTaskRemainingMinutes: readSelectedTaskRemainingMinutes(),
+      selectedTaskRemainingSeconds: startTaskCap.selectedTaskRemainingSeconds,
+      confirmedFocusTaskIds: startTaskCap.confirmedFocusTaskIds,
       gameBudget: { kind: 'cards' },
     });
     if (!decided.ok) {
