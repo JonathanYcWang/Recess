@@ -20,12 +20,22 @@ import {
   WORK_START_REMINDER_ALARM_PREFIX,
   type WorkStartReminderValue,
 } from '@/modules/work-start-reminder';
+import {
+  applyLogicalReminderOutcomes,
+  cloneWorkSessionStreakValue,
+  extractNewLogicalReminderOutcomes,
+  pendingLogicalReminderOutcomes,
+  type WorkSessionStreakCoinCredit,
+  type WorkSessionStreakValue,
+} from '@/modules/work-session-streak';
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import type { Clock } from '../clock';
 import type { AlarmAdapter } from '../alarms/types';
 import type { ReminderNotificationAdapter } from '../notifications/reminderNotificationAdapter';
+import { RUNTIME_PROTOCOL_VERSION } from '../protocol/types';
+import type { CoinCommandHandler } from '../coinTypes';
 import {
   decodeWorkStartReminderCommandEnvelope,
   mapScheduleCommandError,
@@ -145,6 +155,8 @@ export const createWorkStartReminderCommandHandler = (
     clock: Clock;
     alarms: AlarmAdapter;
     notifications: ReminderNotificationAdapter;
+    coinHandler: CoinCommandHandler;
+    streakInitialized: VersionedDocument<WorkSessionStreakValue>;
     adapter?: KeyValueStorageAdapter;
     diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkStartReminderCommandResponse>;
@@ -156,12 +168,17 @@ export const createWorkStartReminderCommandHandler = (
     revision: initialized.revision,
     value: cloneWorkStartReminderValue(initialized.value),
   };
+  let currentStreakDocument = {
+    revision: options.streakInitialized.revision,
+    value: cloneWorkSessionStreakValue(options.streakInitialized.value),
+  };
   const ledger = createCommandLedger<WorkStartReminderCommandResponse>();
   const diagnostics = options.diagnostics;
   const outcomeStore = options.outcomeStore;
   const clock = options.clock;
   const alarms = options.alarms;
   const notifications = options.notifications;
+  const coinHandler = options.coinHandler;
   const createScheduleId =
     options.createScheduleId ??
     (() => `rem-${clock.nowEpochMs()}-${Math.random().toString(36).slice(2, 10)}`);
@@ -247,10 +264,60 @@ export const createWorkStartReminderCommandHandler = (
     return null;
   };
 
+  const syncStreakCoinCredits = async (
+    coinCredits: readonly WorkSessionStreakCoinCredit[]
+  ): Promise<void> => {
+    for (const credit of coinCredits) {
+      await coinHandler.execute({
+        protocolVersion: RUNTIME_PROTOCOL_VERSION,
+        commandId: credit.transactionId,
+        module: 'coin',
+        command: {
+          kind: 'credit',
+          transactionId: credit.transactionId,
+          amount: credit.amount,
+          recordedAt: credit.recordedAt,
+          reasonCode: credit.reasonCode,
+          context: credit.context,
+        },
+      });
+    }
+  };
+
+  const reconcilePendingStreakOutcomes = async (
+    reminder: WorkStartReminderValue
+  ): Promise<void> => {
+    const pending = pendingLogicalReminderOutcomes(currentStreakDocument.value, reminder);
+    if (pending.length === 0) {
+      return;
+    }
+    const applied = applyLogicalReminderOutcomes(currentStreakDocument.value, pending);
+    const committed = await persistence.commit([
+      {
+        document: 'work-session-streak',
+        expectedRevision: currentStreakDocument.revision,
+        value: applied.streak,
+      },
+    ]);
+    if (!committed.ok) {
+      return;
+    }
+    const streakDocument = committed.value.documents['work-session-streak'];
+    if (!streakDocument) {
+      return;
+    }
+    currentStreakDocument = {
+      revision: streakDocument.revision,
+      value: cloneWorkSessionStreakValue(streakDocument.value),
+    };
+    await syncStreakCoinCredits(applied.coinCredits);
+  };
+
   const commitValue = async (
     nextValue: WorkStartReminderValue,
     options?: { workSessionStart?: { workSessionId: string; startedAtEpochMs: number } }
   ): Promise<WorkStartReminderCommandResponse> => {
+    const beforeReminder = cloneWorkStartReminderValue(currentDocument.value);
     const timeZoneId = resolveLocalTimeZoneId();
     const nowEpochMs = clock.nowEpochMs();
     const resolved = applyOccurrenceResolution(nextValue, nowEpochMs, options?.workSessionStart);
@@ -271,12 +338,24 @@ export const createWorkStartReminderCommandHandler = (
       return toFailure(alarmError);
     }
 
+    const newOutcomes = extractNewLogicalReminderOutcomes(beforeReminder, replanned);
+    const streakApplied = applyLogicalReminderOutcomes(currentStreakDocument.value, newOutcomes);
+
     const committed = await persistence.commit([
       {
         document: 'work-start-reminder',
         expectedRevision: currentDocument.revision,
         value: replanned,
       },
+      ...(newOutcomes.length > 0
+        ? [
+            {
+              document: 'work-session-streak' as const,
+              expectedRevision: currentStreakDocument.revision,
+              value: streakApplied.streak,
+            },
+          ]
+        : []),
     ]);
     if (!committed.ok) {
       if (committed.error.kind === 'conflict') {
@@ -296,6 +375,17 @@ export const createWorkStartReminderCommandHandler = (
       revision: document.revision,
       value: cloneWorkStartReminderValue(document.value),
     };
+    if (newOutcomes.length > 0) {
+      const streakDocument = committed.value.documents['work-session-streak'];
+      if (!streakDocument) {
+        return toFailure({ kind: 'persistence-failed' });
+      }
+      currentStreakDocument = {
+        revision: streakDocument.revision,
+        value: cloneWorkSessionStreakValue(streakDocument.value),
+      };
+      await syncStreakCoinCredits(streakApplied.coinCredits);
+    }
     notifyListeners();
     return toSuccess(publishSnapshot());
   };
@@ -319,6 +409,7 @@ export const createWorkStartReminderCommandHandler = (
       }
     }
     await commitValue(currentDocument.value);
+    await reconcilePendingStreakOutcomes(currentDocument.value);
   };
 
   const recordUnexpected = (
