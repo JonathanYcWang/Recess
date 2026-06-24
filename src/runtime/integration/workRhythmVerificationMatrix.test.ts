@@ -164,6 +164,9 @@ describe('work rhythm verification matrix', () => {
         extensionTrancheSeconds: 0,
         extensionBaselineCumulativeSeconds: 0,
         extensionBaselineCount: 0,
+        selectedTaskIds: [],
+        activeTaskId: null,
+        activeTaskIntervalStartedAtEpochMs: null,
       };
       await harness.persistence.commit([
         {

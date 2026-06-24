@@ -13,6 +13,7 @@ import { OCCURRENCE_ELIGIBILITY_WINDOW_MS } from '@/modules/work-start-reminder'
 import type { Clock } from '@/runtime/clock';
 import { createInMemoryAlarmAdapter } from '@/runtime/alarms/inMemoryAlarmAdapter';
 import { createCoinCommandHandler } from '@/runtime/background/coinCommandHandler';
+import { createTaskListCommandHandler } from '@/runtime/background/taskListCommandHandler';
 import { createWorkRhythmCommandHandler } from '@/runtime/background/workRhythmCommandHandler';
 import { createWorkStartReminderCommandHandler } from '@/runtime/background/workStartReminderCommandHandler';
 import { createWorkRhythmCommandEnvelope } from '@/runtime/client/inProcessWorkRhythmClient';
@@ -124,6 +125,9 @@ export const createWorkStartReminderVerificationHarness = async (options?: {
   const buildHandlers = async () => {
     const documents = await loadDocuments();
     coinHandler = createCoinCommandHandler(persistence, documents.coin);
+    const taskListHandler = createTaskListCommandHandler(persistence, documents['task-list'], {
+      clock: verificationClock,
+    });
     reminderHandler = createWorkStartReminderCommandHandler(
       persistence,
       documents['work-start-reminder'],
@@ -141,6 +145,7 @@ export const createWorkStartReminderVerificationHarness = async (options?: {
       clock: verificationClock,
       alarms,
       coinHandler,
+      taskListHandler,
       effectExecutor,
       timeOutReportNotifier: createNoOpTimeOutReportNotifier(),
       onWorkSessionStarted: async (input) => {

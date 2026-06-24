@@ -28,12 +28,16 @@ describe('WorkRhythmConnectionManager', () => {
         blocksUntilNextStreakMilestone: 3,
         schedulerReasonCodes: ['base-cadence' as const],
         windDownActive: false,
+        selectedTaskIds: [],
+        activeTaskId: null,
       },
     };
 
     const client: WorkRhythmClient = {
       current: async () => ({ ok: true, value: snapshot }),
       command: async () => ({ ok: true, revision: snapshot.revision, snapshot }),
+      selectTasks: async () => ({ ok: true, revision: snapshot.revision, snapshot }),
+      setActiveTask: async () => ({ ok: true, revision: snapshot.revision, snapshot }),
       subscribe(listener) {
         listener(snapshot);
         return () => undefined;

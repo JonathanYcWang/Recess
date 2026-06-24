@@ -1,4 +1,5 @@
-import type { TaskListSnapshot } from '@/modules/task-list';
+import type { TaskListSnapshot, TaskListValue } from '@/modules/task-list';
+import type { VersionedDocument } from '@/modules/persisted-application-state';
 import type { TaskListCommandEnvelope, TaskListCommandError } from './protocol/taskListCommand';
 import type { TaskListRuntimeTransportError } from './messaging/taskListMessages';
 import type { RuntimeCommandResponse } from './protocol/types';
@@ -36,6 +37,8 @@ export interface TaskListSubscribeOptions {
 
 export interface TaskListCommandHandler {
   current(): TaskListRuntimeResult;
+  getDocument(): VersionedDocument<TaskListValue>;
+  adoptCommitted(document: VersionedDocument<TaskListValue>): void;
   execute(envelope: unknown): Promise<TaskListCommandResponse>;
   subscribe(listener: (snapshot: TaskListPublishedSnapshot) => void): () => void;
 }

@@ -7,6 +7,7 @@ import {
   remainingWorkSessionExtensionSeconds,
 } from './workSessionExtension';
 import type { WorkRhythmValue, WorkRhythmWorkSessionCompleted } from './workRhythmDocument';
+import { emptyTaskSelectionState } from './workRhythmDocument';
 
 export type StartWorkSessionExtensionError =
   | { kind: 'invalid-phase-for-extension' }
@@ -94,6 +95,7 @@ export const decideStartWorkSessionExtension = (
         extensionTrancheSeconds: extensionSeconds,
         extensionBaselineCumulativeSeconds: completed.cumulativeExtensionSeconds,
         extensionBaselineCount: completed.extensionCount,
+        ...emptyTaskSelectionState(),
       },
     },
   };

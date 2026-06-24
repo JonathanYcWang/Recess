@@ -15,3 +15,10 @@ export {
   deriveRemainingWorkSeconds,
   isValidTimeEstimateMinutes,
 } from './timeEstimate';
+export {
+  computeIntervalElapsedSeconds,
+  computeSelectedTaskRemainingMinutes,
+  decideActivateTask,
+  decideAttributeFocusedTime,
+  isFocusAttributionPhase,
+} from './attributeFocusedTime';

@@ -38,7 +38,8 @@ export const createWorkHistoryEffectAdapter = (options: {
       kind !== 'focus-block-completed' &&
       kind !== 'work-session-completed' &&
       kind !== 'work-session-started' &&
-      kind !== 'recess-started'
+      kind !== 'recess-started' &&
+      kind !== 'task-focused-time-attributed'
     ) {
       return { ok: false, error: 'unsupported work history effect kind' };
     }

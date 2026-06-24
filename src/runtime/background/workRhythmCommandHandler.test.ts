@@ -25,6 +25,7 @@ import { createEffectExecutor } from '../effects/effectExecutor';
 import { createEffectOutcomeStore } from '../effects/effectOutcomeStore';
 import { createWorkHistoryEffectAdapter } from '../effects/workHistoryEffectAdapter';
 import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import { createWorkRhythmHandlerForTests } from './workRhythmCommandHandlerTestUtils';
 
 describe('workRhythmCommandHandler', () => {
   it('starts a work session, persists durable anchors, and publishes a focus snapshot', async () => {
@@ -200,8 +201,7 @@ describe('workRhythmCommandHandler', () => {
         }),
       ],
     });
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
-    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    const handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(workRhythmDoc.value.focusDeadlineAtEpochMs),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler,
@@ -289,8 +289,7 @@ describe('workRhythmCommandHandler', () => {
         }),
       ],
     });
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
-    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    const handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(partialNow),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler,
@@ -380,8 +379,7 @@ describe('workRhythmCommandHandler', () => {
 
     const partialNow = workRhythmDoc.value.focusBlockStartedAtEpochMs + 10 * 60 * 1000;
     const reports: Array<{ elapsedMinutes: number }> = [];
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
-    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    const handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(partialNow),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
@@ -417,7 +415,7 @@ describe('workRhythmCommandHandler', () => {
     const timeOutDoc = rehydrated.value.documents['work-rhythm'];
 
     const resumeAt = partialNow + 2 * 60 * 1000;
-    const resumedHandler = createWorkRhythmCommandHandler(persistence, timeOutDoc, {
+    const resumedHandler = await createWorkRhythmHandlerForTests(persistence, timeOutDoc, {
       clock: createFixedClock(resumeAt),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
@@ -467,8 +465,7 @@ describe('workRhythmCommandHandler', () => {
 
     const timeOutStart = workRhythmDoc.value.focusBlockStartedAtEpochMs + 60_000;
     const reports: number[] = [];
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
-    let handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    let handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(timeOutStart),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
@@ -497,7 +494,7 @@ describe('workRhythmCommandHandler', () => {
     }
 
     const atTenMinutes = workRhythmDoc.value.timeOutStartedAtEpochMs + 10 * 60 * 1000;
-    handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(atTenMinutes),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler: createCoinCommandHandler(persistence, hydrated.value.documents.coin),
@@ -528,7 +525,6 @@ describe('workRhythmCommandHandler', () => {
     }
 
     const coinHandler = createCoinCommandHandler(persistence, hydrated.value.documents.coin);
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
     const focus = {
       phase: 'focus-block' as const,
       sessionId: 'ws-streak',
@@ -554,9 +550,12 @@ describe('workRhythmCommandHandler', () => {
       extensionTrancheSeconds: 0,
       extensionBaselineCumulativeSeconds: 0,
       extensionBaselineCount: 0,
+      selectedTaskIds: [],
+      activeTaskId: null,
+      activeTaskIntervalStartedAtEpochMs: null,
     };
 
-    const handler = createWorkRhythmCommandHandler(
+    const handler = await createWorkRhythmHandlerForTests(
       persistence,
       {
         schemaVersion: 1,
@@ -657,8 +656,7 @@ describe('workRhythmCommandHandler', () => {
       },
     ]);
 
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
-    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    const handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(1_100_000),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler: createCoinCommandHandler(persistence, refreshed.value.documents.coin),
@@ -737,8 +735,7 @@ describe('workRhythmCommandHandler', () => {
     ]);
 
     const alarms = createInMemoryAlarmAdapter();
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
-    const handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    const handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(5_000_000),
       alarms,
       coinHandler: createCoinCommandHandler(persistence, refreshed.value.documents.coin),
@@ -811,10 +808,9 @@ describe('workRhythmCommandHandler', () => {
       adapters: [notificationAdapter, soundAdapter],
     });
     const coinHandler = createCoinCommandHandler(persistence, hydrated.value.documents.coin);
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
 
     const windDownAt = windDownBoundaryEpochMs(workRhythmDoc.value.focusDeadlineAtEpochMs);
-    let handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    let handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(windDownAt),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler,
@@ -827,7 +823,7 @@ describe('workRhythmCommandHandler', () => {
     const duplicateWindDown = await handler.reconcileWindDownSignals();
     expect(duplicateWindDown).toEqual(windDown);
 
-    handler = createWorkRhythmCommandHandler(persistence, workRhythmDoc, {
+    handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
       clock: createFixedClock(workRhythmDoc.value.focusDeadlineAtEpochMs),
       alarms: createInMemoryAlarmAdapter(),
       coinHandler,
@@ -861,8 +857,7 @@ describe('workRhythmCommandHandler', () => {
 
     const alarms = createInMemoryAlarmAdapter();
     const coinHandler = createCoinCommandHandler(persistence, hydrated.value.documents.coin);
-    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
-    const handler = createWorkRhythmCommandHandler(
+    const handler = await createWorkRhythmHandlerForTests(
       persistence,
       hydrated.value.documents['work-rhythm'],
       {
@@ -898,7 +893,6 @@ describe('workRhythmCommandHandler clock injection', () => {
       throw new Error('expected root');
     }
 
-    const handlerModule = await import('./workRhythmCommandHandler');
     const persistenceModule = await import('@/modules/persisted-application-state');
     const persistence = persistenceModule.createPersistedApplicationState({ adapter });
     const initialized = await persistence.initialize();
@@ -919,7 +913,7 @@ describe('workRhythmCommandHandler clock injection', () => {
       ],
     });
 
-    const handler = handlerModule.createWorkRhythmCommandHandler(
+    const handler = await createWorkRhythmHandlerForTests(
       persistence,
       initialized.value.documents['work-rhythm'],
       {
@@ -940,7 +934,7 @@ describe('workRhythmCommandHandler clock injection', () => {
     );
     expect(response.ok).toBe(true);
     if (response.ok && response.snapshot.snapshot.phase === 'focus-block') {
-      const later = handlerModule.createWorkRhythmCommandHandler(
+      const later = await createWorkRhythmHandlerForTests(
         persistence,
         {
           schemaVersion: 1,
@@ -970,6 +964,9 @@ describe('workRhythmCommandHandler clock injection', () => {
             extensionTrancheSeconds: 0,
             extensionBaselineCumulativeSeconds: 0,
             extensionBaselineCount: 0,
+            selectedTaskIds: [],
+            activeTaskId: null,
+            activeTaskIntervalStartedAtEpochMs: null,
           },
         },
         {
@@ -985,5 +982,109 @@ describe('workRhythmCommandHandler clock injection', () => {
         expect(current.value.snapshot.remainingWorkSessionSeconds).toBe(55 * 60);
       }
     }
+  });
+});
+
+describe('workRhythmCommandHandler task attribution', () => {
+  it('attributes focused seconds when switching active tasks', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+
+    const created = await root.value.taskList.createTask({
+      title: 'Plan',
+      originalEstimateMinutes: 30,
+    });
+    if (!created.ok) {
+      throw new Error('expected task');
+    }
+    const firstId = created.snapshot.snapshot.incompleteTasks[0]?.id;
+    if (!firstId) {
+      throw new Error('expected first task');
+    }
+
+    const second = await root.value.taskList.createTask({
+      title: 'Build',
+      originalEstimateMinutes: 45,
+    });
+    if (!second.ok) {
+      throw new Error('expected second task');
+    }
+    const secondId = second.snapshot.snapshot.incompleteTasks.find(
+      (task) => task.id !== firstId
+    )?.id;
+    if (!secondId) {
+      throw new Error('expected second task id');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'select-tasks', taskIds: [firstId, secondId] })
+    );
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'set-active-task', taskId: firstId })
+    );
+
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+    const workRhythmDoc = hydrated.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'focus-block') {
+      throw new Error('expected focus');
+    }
+
+    const handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
+      clock: createFixedClock(workRhythmDoc.value.activeTaskIntervalStartedAtEpochMs! + 30_000),
+      alarms: createInMemoryAlarmAdapter(),
+    });
+
+    const switched = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'set-active-task', taskId: secondId })
+    );
+    expect(switched.ok).toBe(true);
+
+    const reloaded = await persistence.initialize();
+    if (!reloaded.ok) {
+      throw new Error('expected reload');
+    }
+    const firstTask = reloaded.value.documents['task-list'].value.tasks.find(
+      (task) => task.id === firstId
+    );
+    expect(firstTask?.focusedTimeSeconds).toBe(30);
+  });
+
+  it('replays duplicate select-tasks command ids', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+
+    const envelope = createWorkRhythmCommandEnvelope(
+      { kind: 'select-tasks', taskIds: [] },
+      { commandId: 'select-empty' }
+    );
+    const first = await root.value.workRhythm.command(envelope);
+    const second = await root.value.workRhythm.command(envelope);
+    expect(second).toEqual(first);
   });
 });

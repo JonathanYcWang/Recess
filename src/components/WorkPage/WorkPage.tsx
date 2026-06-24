@@ -1,5 +1,6 @@
 import WorkRhythmProjectionView from '@/components/WorkRhythmProjection/WorkRhythmProjectionView';
 import TaskList from '@/components/TaskList/TaskList';
+import FocusTaskSelection from '@/components/FocusTaskSelection/FocusTaskSelection';
 import { useTimer } from '../../hooks/useTimer';
 import BeforeWorkSessionView from '../../views/BeforeWorkSessionView/BeforeWorkSessionView';
 import OngoingFocusSessionView from '../../views/OngoingFocusSessionView/OngoingFocusSessionView';
@@ -88,6 +89,7 @@ const WorkPage = () => {
   return (
     <div className={styles.workPage}>
       <TaskList />
+      <FocusTaskSelection />
       <WorkRhythmProjectionView />
       {renderContent()}
     </div>

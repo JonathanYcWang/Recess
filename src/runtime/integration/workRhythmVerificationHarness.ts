@@ -22,6 +22,7 @@ import type {
 } from '@/runtime/workRhythmTypes';
 import type { CoinCommandHandler } from '@/runtime/coinTypes';
 import { createCoinCommandHandler } from '@/runtime/background/coinCommandHandler';
+import { createTaskListCommandHandler } from '@/runtime/background/taskListCommandHandler';
 import { createWorkRhythmCommandHandler } from '@/runtime/background/workRhythmCommandHandler';
 
 export interface WorkRhythmVerificationHarness {
@@ -91,6 +92,13 @@ export const createWorkRhythmVerificationHarness = async (options?: {
   }
 
   const coinHandler = createCoinCommandHandler(persistence, refreshed.value.documents.coin);
+  const taskListHandler = createTaskListCommandHandler(
+    persistence,
+    refreshed.value.documents['task-list'],
+    {
+      clock: createFixedClock(nowEpochMs),
+    }
+  );
   const alarms = createInMemoryAlarmAdapter();
   const sessionId = options?.sessionId ?? 'ws-verify';
 
@@ -107,6 +115,7 @@ export const createWorkRhythmVerificationHarness = async (options?: {
       clock: createFixedClock(nowEpochMs),
       alarms,
       coinHandler,
+      taskListHandler,
       effectExecutor,
       timeOutReportNotifier: createNoOpTimeOutReportNotifier(),
       createSessionId: () => sessionId,

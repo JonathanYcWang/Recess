@@ -8,6 +8,7 @@ import {
 } from '@/modules/workstyle-profile';
 import {
   cloneWorkRhythmValue,
+  emptyTaskSelectionState,
   isValidWorkSessionGoalSeconds,
   type WorkRhythmValue,
 } from './workRhythmDocument';
@@ -28,7 +29,9 @@ export type WorkRhythmCommand =
   | { kind: 'start-time-out' }
   | { kind: 'resume-from-time-out' }
   | { kind: 'decline-recess' }
-  | { kind: 'start-work-session-extension'; extensionSeconds: unknown };
+  | { kind: 'start-work-session-extension'; extensionSeconds: unknown }
+  | { kind: 'select-tasks'; taskIds: unknown }
+  | { kind: 'set-active-task'; taskId: unknown };
 
 export type WorkRhythmDecisionError =
   | { kind: 'invalid-goal' }
@@ -45,7 +48,13 @@ export type WorkRhythmDecisionError =
   | { kind: 'cannot-decline-without-deferred-recess' }
   | { kind: 'invalid-phase-for-extension' }
   | { kind: 'invalid-extension-goal' }
-  | { kind: 'extension-limit-exceeded' };
+  | { kind: 'extension-limit-exceeded' }
+  | { kind: 'invalid-phase-for-task-selection' }
+  | { kind: 'invalid-task-ids' }
+  | { kind: 'invalid-active-task' }
+  | { kind: 'task-not-found'; taskId: string }
+  | { kind: 'task-not-incomplete'; taskId: string }
+  | { kind: 'task-not-selected'; taskId: string };
 
 export interface WorkRhythmDecisionContext {
   nowEpochMs: number;
@@ -126,6 +135,7 @@ export const applyWorkRhythmCommand = (
         extensionTrancheSeconds: 0,
         extensionBaselineCumulativeSeconds: 0,
         extensionBaselineCount: 0,
+        ...emptyTaskSelectionState(),
       },
     };
   }

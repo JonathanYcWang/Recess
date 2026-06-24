@@ -51,6 +51,34 @@ export const createMessagingWorkRhythmClient = (
         envelope,
       })
     ),
+  selectTasks: async (taskIds, options) =>
+    unwrapCommand(
+      await transport.send({
+        channel: WORK_RHYTHM_RUNTIME_CHANNEL,
+        action: 'command',
+        envelope: {
+          protocolVersion: RUNTIME_PROTOCOL_VERSION,
+          commandId: options?.commandId ?? createCommandId(),
+          module: 'work-rhythm',
+          expectedRevision: options?.expectedRevision,
+          command: { kind: 'select-tasks', taskIds },
+        },
+      })
+    ),
+  setActiveTask: async (taskId, options) =>
+    unwrapCommand(
+      await transport.send({
+        channel: WORK_RHYTHM_RUNTIME_CHANNEL,
+        action: 'command',
+        envelope: {
+          protocolVersion: RUNTIME_PROTOCOL_VERSION,
+          commandId: options?.commandId ?? createCommandId(),
+          module: 'work-rhythm',
+          expectedRevision: options?.expectedRevision,
+          command: { kind: 'set-active-task', taskId },
+        },
+      })
+    ),
   subscribe(listener, options) {
     const port = transport.connect();
     const removeMessageListener = port.onMessage((message: WorkRhythmRuntimePortMessage) => {

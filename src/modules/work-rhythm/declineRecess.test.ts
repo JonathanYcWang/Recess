@@ -27,6 +27,9 @@ const baseFocus = (overrides: Partial<WorkRhythmFocusBlock> = {}): WorkRhythmFoc
   extensionTrancheSeconds: 0,
   extensionBaselineCumulativeSeconds: 0,
   extensionBaselineCount: 0,
+  selectedTaskIds: [],
+  activeTaskId: null,
+  activeTaskIntervalStartedAtEpochMs: null,
   ...overrides,
 });
 

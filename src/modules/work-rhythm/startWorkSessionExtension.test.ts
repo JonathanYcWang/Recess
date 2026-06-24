@@ -58,6 +58,9 @@ const baseExtensionFocus = (
   extensionTrancheSeconds: 30 * 60,
   extensionBaselineCumulativeSeconds: 0,
   extensionBaselineCount: 0,
+  selectedTaskIds: [],
+  activeTaskId: null,
+  activeTaskIntervalStartedAtEpochMs: null,
   ...overrides,
 });
 

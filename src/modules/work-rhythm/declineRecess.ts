@@ -7,6 +7,7 @@ import type {
   WorkRhythmRecessPrompt,
   WorkRhythmValue,
 } from './workRhythmDocument';
+import { emptyTaskSelectionState } from './workRhythmDocument';
 
 export type DeclineRecessError =
   | { kind: 'invalid-phase-for-decline-recess' }
@@ -104,6 +105,7 @@ export const decideDeclineRecess = (
         extensionTrancheSeconds: recess.extensionTrancheSeconds,
         extensionBaselineCumulativeSeconds: recess.extensionBaselineCumulativeSeconds,
         extensionBaselineCount: recess.extensionBaselineCount,
+        ...emptyTaskSelectionState(),
       },
     },
   };

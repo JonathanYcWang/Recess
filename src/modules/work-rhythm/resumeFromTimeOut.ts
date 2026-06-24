@@ -54,6 +54,9 @@ export const decideResumeFromTimeOut = (
         extensionTrancheSeconds: timeOut.extensionTrancheSeconds,
         extensionBaselineCumulativeSeconds: timeOut.extensionBaselineCumulativeSeconds,
         extensionBaselineCount: timeOut.extensionBaselineCount,
+        selectedTaskIds: [...timeOut.selectedTaskIds],
+        activeTaskId: timeOut.activeTaskId,
+        activeTaskIntervalStartedAtEpochMs: timeOut.activeTaskId !== null ? nowEpochMs : null,
       },
     },
   };

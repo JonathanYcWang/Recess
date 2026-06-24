@@ -98,6 +98,62 @@ const parseNumberField = (
   return { ok: true, value };
 };
 
+const parseTaskSelectionFields = (
+  value: Record<string, unknown>
+): Result<
+  {
+    selectedTaskIds: string[];
+    activeTaskId: string | null;
+    activeTaskIntervalStartedAtEpochMs: number | null;
+  },
+  string
+> => {
+  let selectedTaskIds: string[] = [];
+  if (value.selectedTaskIds !== undefined) {
+    if (!Array.isArray(value.selectedTaskIds)) {
+      return { ok: false, error: 'selectedTaskIds must be an array' };
+    }
+    if (!value.selectedTaskIds.every((entry) => typeof entry === 'string')) {
+      return { ok: false, error: 'selectedTaskIds must contain strings' };
+    }
+    selectedTaskIds = value.selectedTaskIds as string[];
+  }
+
+  let activeTaskId: string | null = null;
+  if (value.activeTaskId !== undefined && value.activeTaskId !== null) {
+    if (typeof value.activeTaskId !== 'string' || value.activeTaskId.length === 0) {
+      return { ok: false, error: 'activeTaskId must be a non-empty string or null' };
+    }
+    activeTaskId = value.activeTaskId;
+  }
+
+  let activeTaskIntervalStartedAtEpochMs: number | null = null;
+  if (
+    value.activeTaskIntervalStartedAtEpochMs !== undefined &&
+    value.activeTaskIntervalStartedAtEpochMs !== null
+  ) {
+    if (
+      typeof value.activeTaskIntervalStartedAtEpochMs !== 'number' ||
+      !Number.isFinite(value.activeTaskIntervalStartedAtEpochMs)
+    ) {
+      return {
+        ok: false,
+        error: 'activeTaskIntervalStartedAtEpochMs must be a finite number or null',
+      };
+    }
+    activeTaskIntervalStartedAtEpochMs = value.activeTaskIntervalStartedAtEpochMs;
+  }
+
+  return {
+    ok: true,
+    value: {
+      selectedTaskIds,
+      activeTaskId,
+      activeTaskIntervalStartedAtEpochMs,
+    },
+  };
+};
+
 const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> => {
   if (!isRecord(value) || value.phase !== 'focus-block') {
     return { ok: false, error: 'focus block value must have phase focus-block' };
@@ -188,6 +244,10 @@ const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> =
   if (!extensionBaselineCount.ok) {
     return { ok: false, error: extensionBaselineCount.error };
   }
+  const taskSelection = parseTaskSelectionFields(value);
+  if (!taskSelection.ok) {
+    return { ok: false, error: taskSelection.error };
+  }
   return {
     ok: true,
     value: {
@@ -213,6 +273,7 @@ const parseFocusBlock = (value: unknown): Result<WorkRhythmFocusBlock, string> =
       extensionTrancheSeconds: extensionTrancheSeconds.value,
       extensionBaselineCumulativeSeconds: extensionBaselineCumulativeSeconds.value,
       extensionBaselineCount: extensionBaselineCount.value,
+      ...taskSelection.value,
     },
   };
 };
@@ -391,6 +452,10 @@ const parseTimeOut = (value: unknown): Result<WorkRhythmTimeOut, string> => {
   if (!extensionBaselineCount.ok) {
     return { ok: false, error: extensionBaselineCount.error };
   }
+  const taskSelection = parseTaskSelectionFields(value);
+  if (!taskSelection.ok) {
+    return { ok: false, error: taskSelection.error };
+  }
   return {
     ok: true,
     value: {
@@ -416,6 +481,7 @@ const parseTimeOut = (value: unknown): Result<WorkRhythmTimeOut, string> => {
       extensionTrancheSeconds: extensionTrancheSeconds.value,
       extensionBaselineCumulativeSeconds: extensionBaselineCumulativeSeconds.value,
       extensionBaselineCount: extensionBaselineCount.value,
+      ...taskSelection.value,
     },
   };
 };

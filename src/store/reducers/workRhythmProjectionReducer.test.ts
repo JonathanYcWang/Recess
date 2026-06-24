@@ -21,6 +21,8 @@ const snapshots: WorkRhythmSnapshot[] = [
     blocksUntilNextStreakMilestone: 3,
     schedulerReasonCodes: ['base-cadence'],
     windDownActive: false,
+    selectedTaskIds: [],
+    activeTaskId: null,
   },
   {
     phase: 'recess-prompt',
@@ -46,6 +48,8 @@ const snapshots: WorkRhythmSnapshot[] = [
     focusBlockStreak: 1,
     blocksUntilNextStreakMilestone: 2,
     isFinalFocus: false,
+    selectedTaskIds: [],
+    activeTaskId: null,
   },
   {
     phase: 'work-session-completed',
