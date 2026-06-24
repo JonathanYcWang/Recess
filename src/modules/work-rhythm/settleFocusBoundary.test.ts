@@ -42,6 +42,7 @@ describe('settleFocusBoundary', () => {
       phase: 'recess-prompt',
       deferredRecessCount: 1,
       settledRemainingWorkSessionSeconds: 60 * 60 - 25 * 60,
+      focusBlockStreak: 1,
     });
     expect(settled.value.coinCredit.amount).toBe(25);
     expect(settled.value.coinCredit.reasonCode).toBe('standard-focus');
@@ -82,6 +83,23 @@ describe('settleFocusBoundary', () => {
     if (settled.ok) {
       expect(settled.value.coinCredit.amount).toBe(5);
       expect(settled.value.coinCredit.reasonCode).toBe('extension-focus');
+      expect(settled.value.nextValue).toMatchObject({ focusBlockStreak: 0 });
+      expect(settled.value.streakCoinCredit).toBeUndefined();
     }
+  });
+
+  it('awards ten streak coins at the third completed focus block', () => {
+    const focus = baseFocus({ focusBlockStreak: 2, focusBlockIndex: 2 });
+    const settled = decideFocusBoundarySettlement(focus, focus.focusDeadlineAtEpochMs);
+    expect(settled.ok).toBe(true);
+    if (!settled.ok) {
+      return;
+    }
+    expect(settled.value.nextValue).toMatchObject({ focusBlockStreak: 3 });
+    expect(settled.value.streakCoinCredit).toMatchObject({
+      amount: 10,
+      reasonCode: 'focus-block-streak',
+      transactionId: 'coin-ws-1-focus-block-streak-3',
+    });
   });
 });

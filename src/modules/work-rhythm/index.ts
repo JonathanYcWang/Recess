@@ -6,6 +6,14 @@ export {
   type WorkRhythmDecisionError,
 } from './decide';
 export {
+  blocksUntilNextFocusBlockStreakMilestone,
+  focusBlockStreakCoinTransactionId,
+  FOCUS_BLOCK_STREAK_MILESTONE_COINS,
+  FOCUS_BLOCK_STREAK_MILESTONE_INTERVAL,
+  nextFocusBlockStreakAfterCompletion,
+  shouldAwardFocusBlockStreakMilestone,
+} from './focusBlockStreak';
+export {
   decideEndWorkSessionEarly,
   endWorkSessionEarlyCommandId,
   endWorkSessionEarlyCoinTransactionId,

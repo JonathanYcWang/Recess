@@ -5,6 +5,12 @@ import {
 } from '@/modules/coin/duration';
 import type { WorkHistoryFact } from '@/modules/work-history';
 import { createFocusBlockCompletedFact } from './focusBlockCompleted';
+import {
+  focusBlockStreakCoinTransactionId,
+  FOCUS_BLOCK_STREAK_MILESTONE_COINS,
+  nextFocusBlockStreakAfterCompletion,
+  shouldAwardFocusBlockStreakMilestone,
+} from './focusBlockStreak';
 import { createWorkSessionCompletedFact } from './workSessionCompleted';
 import type {
   WorkRhythmFocusBlock,
@@ -25,6 +31,13 @@ export interface FocusBoundarySettlement {
     transactionId: string;
     amount: number;
     reasonCode: 'standard-focus' | 'extension-focus';
+    recordedAt: number;
+    context: Record<string, string | number | boolean | null>;
+  };
+  streakCoinCredit?: {
+    transactionId: string;
+    amount: number;
+    reasonCode: 'focus-block-streak';
     recordedAt: number;
     context: Record<string, string | number | boolean | null>;
   };
@@ -63,7 +76,8 @@ export const computeActualFocusSeconds = (
 
 const toRecessPrompt = (
   focus: WorkRhythmFocusBlock,
-  settledRemainingWorkSessionSeconds: number
+  settledRemainingWorkSessionSeconds: number,
+  focusBlockStreak: number
 ): WorkRhythmRecessPrompt => ({
   phase: 'recess-prompt',
   sessionId: focus.sessionId,
@@ -72,7 +86,7 @@ const toRecessPrompt = (
   settledRemainingWorkSessionSeconds,
   energy: focus.energy,
   momentum: focus.momentum,
-  focusBlockStreak: focus.focusBlockStreak,
+  focusBlockStreak,
   completedFocusBlockIndex: focus.focusBlockIndex,
   deferredRecessCount: 1,
   originalGoalPermanentlyComplete: false,
@@ -130,6 +144,24 @@ export const decideFocusBoundarySettlement = (
     },
   };
 
+  const nextFocusBlockStreak = nextFocusBlockStreakAfterCompletion(
+    focus.focusBlockStreak,
+    focus.wasExtension
+  );
+  const streakCoinCredit = shouldAwardFocusBlockStreakMilestone(nextFocusBlockStreak)
+    ? {
+        transactionId: focusBlockStreakCoinTransactionId(focus.sessionId, nextFocusBlockStreak),
+        amount: FOCUS_BLOCK_STREAK_MILESTONE_COINS,
+        reasonCode: 'focus-block-streak' as const,
+        recordedAt: nowEpochMs,
+        context: {
+          workSessionId: focus.sessionId,
+          focusBlockStreak: nextFocusBlockStreak,
+          focusBlockIndex: focus.focusBlockIndex,
+        },
+      }
+    : undefined;
+
   if (focus.isFinalFocus) {
     const actualWorkedSeconds = focus.originalGoalSeconds - settledRemainingWorkSessionSeconds;
     const workSessionCompletedFact = createWorkSessionCompletedFact({
@@ -149,6 +181,7 @@ export const decideFocusBoundarySettlement = (
         focusBlockFact,
         workSessionCompletedFact,
         coinCredit,
+        streakCoinCredit,
       },
     };
   }
@@ -156,10 +189,11 @@ export const decideFocusBoundarySettlement = (
   return {
     ok: true,
     value: {
-      nextValue: toRecessPrompt(focus, settledRemainingWorkSessionSeconds),
+      nextValue: toRecessPrompt(focus, settledRemainingWorkSessionSeconds, nextFocusBlockStreak),
       settlementCommandId,
       focusBlockFact,
       coinCredit,
+      streakCoinCredit,
     },
   };
 };

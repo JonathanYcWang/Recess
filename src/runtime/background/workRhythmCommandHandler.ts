@@ -194,6 +194,13 @@ export const createWorkRhythmCommandHandler = (
       recordedAt: number;
       context: Record<string, string | number | boolean | null>;
     };
+    streakCoinCredit?: {
+      transactionId: string;
+      amount: number;
+      reasonCode: 'focus-block-streak';
+      recordedAt: number;
+      context: Record<string, string | number | boolean | null>;
+    };
   }): Promise<void> => {
     if (input.coinCredit) {
       await coinHandler.execute({
@@ -207,6 +214,22 @@ export const createWorkRhythmCommandHandler = (
           recordedAt: input.coinCredit.recordedAt,
           reasonCode: input.coinCredit.reasonCode,
           context: input.coinCredit.context,
+        },
+      });
+    }
+
+    if (input.streakCoinCredit) {
+      await coinHandler.execute({
+        protocolVersion: RUNTIME_PROTOCOL_VERSION,
+        commandId: input.streakCoinCredit.transactionId,
+        module: 'coin',
+        command: {
+          kind: 'credit',
+          transactionId: input.streakCoinCredit.transactionId,
+          amount: input.streakCoinCredit.amount,
+          recordedAt: input.streakCoinCredit.recordedAt,
+          reasonCode: input.streakCoinCredit.reasonCode,
+          context: input.streakCoinCredit.context,
         },
       });
     }
@@ -276,6 +299,7 @@ export const createWorkRhythmCommandHandler = (
       focusBlockFact: outcome.focusBlockFact,
       workSessionCompletedFact: outcome.workSessionCompletedFact,
       coinCredit: outcome.coinCredit,
+      streakCoinCredit: outcome.streakCoinCredit,
     });
 
     currentDocument = {

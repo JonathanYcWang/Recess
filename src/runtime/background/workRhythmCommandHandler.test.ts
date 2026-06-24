@@ -212,6 +212,10 @@ describe('workRhythmCommandHandler', () => {
     expect(settled.ok).toBe(true);
     if (settled.ok) {
       expect(settled.snapshot.snapshot.phase).toBe('recess-prompt');
+      if (settled.snapshot.snapshot.phase === 'recess-prompt') {
+        expect(settled.snapshot.snapshot.focusBlockStreak).toBe(1);
+        expect(settled.snapshot.snapshot.blocksUntilNextStreakMilestone).toBe(2);
+      }
     }
 
     const coin = await coinHandler.current();
@@ -506,6 +510,79 @@ describe('workRhythmCommandHandler', () => {
 
     await handler.reconcileTimeOutReports();
     expect(reports).toEqual([5, 10]);
+  });
+
+  it('awards focus block streak coins idempotently at the third completed block', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+
+    const coinHandler = createCoinCommandHandler(persistence, hydrated.value.documents.coin);
+    const { createWorkRhythmCommandHandler } = await import('./workRhythmCommandHandler');
+    const focus = {
+      phase: 'focus-block' as const,
+      sessionId: 'ws-streak',
+      originalGoalSeconds: 60 * 60,
+      sessionStartedAtEpochMs: 1_000_000,
+      remainingWorkSessionSeconds: 60 * 60,
+      settledRemainingWorkSessionSeconds: 60 * 60,
+      energy: 'steady' as const,
+      momentum: 'steady' as const,
+      focusBlockIndex: 2,
+      focusBlockStartedAtEpochMs: 1_000_000,
+      focusDeadlineAtEpochMs: 1_000_000 + 25 * 60 * 1000,
+      focusDurationSeconds: 25 * 60,
+      isFinalFocus: false,
+      wasExtension: false,
+      schedulerReasons: [
+        { code: 'base-cadence' as const, focusDeltaMinutes: 25, recessDeltaMinutes: 5 },
+      ],
+      focusBlockStreak: 2,
+    };
+
+    const handler = createWorkRhythmCommandHandler(
+      persistence,
+      {
+        schemaVersion: 1,
+        revision: 0,
+        value: focus,
+      },
+      {
+        clock: createFixedClock(focus.focusDeadlineAtEpochMs),
+        alarms: createInMemoryAlarmAdapter(),
+        coinHandler,
+      }
+    );
+
+    const commandId = focusBoundarySettlementCommandId(focus.sessionId, focus.focusBlockIndex);
+    const settled = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'settle-focus-boundary' }, { commandId })
+    );
+    expect(settled.ok).toBe(true);
+
+    const coin = await coinHandler.current();
+    expect(coin.ok).toBe(true);
+    if (coin.ok) {
+      expect(coin.value.value.transactions).toHaveLength(2);
+      expect(coin.value.value.transactions.map((txn) => txn.reasonCode)).toEqual([
+        'standard-focus',
+        'focus-block-streak',
+      ]);
+      expect(coin.value.value.balance).toBe(35);
+    }
+
+    const duplicate = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'settle-focus-boundary' }, { commandId })
+    );
+    expect(duplicate).toEqual(settled);
+    const coinAfter = await coinHandler.current();
+    if (coinAfter.ok) {
+      expect(coinAfter.value.value.transactions).toHaveLength(2);
+      expect(coinAfter.value.value.balance).toBe(35);
+    }
   });
 });
 

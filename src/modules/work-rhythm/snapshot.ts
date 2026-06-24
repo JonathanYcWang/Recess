@@ -1,5 +1,6 @@
 import type { EnergyLevel, MomentumLevel } from '@/modules/workstyle-profile';
 import type { SchedulerReasonCode } from '@/modules/scheduler';
+import { blocksUntilNextFocusBlockStreakMilestone } from './focusBlockStreak';
 import type { WorkRhythmValue } from './workRhythmDocument';
 
 export type WorkRhythmInactiveSnapshot = {
@@ -16,6 +17,7 @@ export type WorkRhythmFocusBlockSnapshot = {
   momentum: MomentumLevel;
   isFinalFocus: boolean;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
   schedulerReasonCodes: SchedulerReasonCode[];
 };
 
@@ -27,6 +29,7 @@ export type WorkRhythmRecessPromptSnapshot = {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
   deferredRecessCount: number;
   originalGoalPermanentlyComplete: boolean;
 };
@@ -41,6 +44,7 @@ export type WorkRhythmTimeOutSnapshot = {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   focusBlockStreak: number;
+  blocksUntilNextStreakMilestone: number;
   isFinalFocus: boolean;
 };
 
@@ -75,6 +79,9 @@ export const projectWorkRhythmSnapshot = (
       energy: value.energy,
       momentum: value.momentum,
       focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
       deferredRecessCount: value.deferredRecessCount,
       originalGoalPermanentlyComplete: value.originalGoalPermanentlyComplete,
     };
@@ -95,6 +102,9 @@ export const projectWorkRhythmSnapshot = (
       energy: value.energy,
       momentum: value.momentum,
       focusBlockStreak: value.focusBlockStreak,
+      blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+        value.focusBlockStreak
+      ),
       isFinalFocus: value.isFinalFocus,
     };
   }
@@ -122,6 +132,9 @@ export const projectWorkRhythmSnapshot = (
     momentum: value.momentum,
     isFinalFocus: value.isFinalFocus,
     focusBlockStreak: value.focusBlockStreak,
+    blocksUntilNextStreakMilestone: blocksUntilNextFocusBlockStreakMilestone(
+      value.focusBlockStreak
+    ),
     schedulerReasonCodes: value.schedulerReasons.map((reason) => reason.code),
   };
 };
