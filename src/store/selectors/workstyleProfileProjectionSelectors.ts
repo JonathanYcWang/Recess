@@ -18,6 +18,9 @@ export const selectWorkstyleProfileFriction = (state: RootState) =>
 export const selectAssignedPetId = (state: RootState) =>
   state.workstyleProfileProjection.assignedPetId;
 
+export const selectOnboardingCompleted = (state: RootState) =>
+  state.workstyleProfileProjection.onboardingCompleted;
+
 export const selectWorkstyleProfileConnectionState = (state: RootState) =>
   state.workstyleProfileProjection.connectionState;
 

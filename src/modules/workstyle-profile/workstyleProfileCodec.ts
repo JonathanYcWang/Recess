@@ -70,6 +70,9 @@ const parseWorkstyleProfileValue = (value: unknown): Result<WorkstyleProfileValu
   if (value.assignedPetId !== null && typeof value.assignedPetId !== 'string') {
     return { ok: false, error: 'assignedPetId must be a string or null' };
   }
+  if (typeof value.onboardingCompleted !== 'boolean') {
+    return { ok: false, error: 'onboardingCompleted must be a boolean' };
+  }
   return {
     ok: true,
     value: {
@@ -78,6 +81,7 @@ const parseWorkstyleProfileValue = (value: unknown): Result<WorkstyleProfileValu
       momentum: value.momentum as MomentumLevel,
       friction: friction.value,
       assignedPetId: value.assignedPetId === null ? null : String(value.assignedPetId),
+      onboardingCompleted: value.onboardingCompleted,
     },
   };
 };

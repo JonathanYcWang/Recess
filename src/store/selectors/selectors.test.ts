@@ -115,6 +115,7 @@ describe('Redux selectors', () => {
           fatigue: 'low',
         },
         assignedPetId: null,
+        onboardingCompleted: true,
       })
     );
     const withProfile = { ...state, workstyleProfileProjection: projected };

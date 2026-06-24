@@ -14,6 +14,7 @@ export const setWorkstyleProfileProjection = createAction<{
   momentum: MomentumLevel;
   friction: FrictionProfile;
   assignedPetId: string | null;
+  onboardingCompleted: boolean;
 }>('workstyleProfileProjection/setProjection');
 
 export const setWorkstyleProfileConnectionState = createAction<WorkstyleProfileConnectionState>(
