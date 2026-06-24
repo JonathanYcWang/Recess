@@ -49,6 +49,10 @@ export interface WorkStartReminderCommandHandler {
   subscribe(listener: (snapshot: WorkStartReminderPublishedSnapshot) => void): () => void;
   reconcileDueReminder(alarmName: string): Promise<WorkStartReminderCommandResponse | null>;
   bootstrapPlanning(): Promise<void>;
+  applyWorkSessionStarted(input: {
+    workSessionId: string;
+    startedAtEpochMs: number;
+  }): Promise<WorkStartReminderCommandResponse>;
 }
 
 export interface WorkStartReminderClient {

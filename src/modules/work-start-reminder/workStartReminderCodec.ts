@@ -19,7 +19,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const isOccurrenceOutcome = (value: unknown): value is OccurrenceOutcome =>
-  value === 'neutral' || value === 'skipped' || value === 'missed';
+  value === 'neutral' || value === 'skipped' || value === 'missed' || value === 'satisfied';
 
 const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => {
   if (!isRecord(value)) {
@@ -47,7 +47,23 @@ const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => 
     return { ok: false, error: 'occurrence alarmName must use the reminder alarm prefix' };
   }
   if (value.outcome !== undefined && !isOccurrenceOutcome(value.outcome)) {
-    return { ok: false, error: 'occurrence outcome must be neutral, skipped, or missed' };
+    return {
+      ok: false,
+      error: 'occurrence outcome must be neutral, skipped, missed, or satisfied',
+    };
+  }
+  if (value.resolvedAtEpochMs !== undefined) {
+    if (typeof value.resolvedAtEpochMs !== 'number' || !Number.isFinite(value.resolvedAtEpochMs)) {
+      return { ok: false, error: 'occurrence resolvedAtEpochMs must be a finite number' };
+    }
+  }
+  if (value.resolvedBySessionId !== undefined) {
+    if (typeof value.resolvedBySessionId !== 'string' || value.resolvedBySessionId.length === 0) {
+      return { ok: false, error: 'occurrence resolvedBySessionId must be a non-empty string' };
+    }
+  }
+  if (value.phase === 'resolved' && value.outcome === 'satisfied' && !value.resolvedBySessionId) {
+    return { ok: false, error: 'satisfied occurrence must include resolvedBySessionId' };
   }
   if (value.phase === 'resolved' && value.outcome === undefined) {
     return { ok: false, error: 'resolved occurrence must include an outcome' };
@@ -64,6 +80,8 @@ const parseOccurrence = (value: unknown): Result<ReminderOccurrence, string> => 
       timeZoneId: value.timeZoneId,
       phase: value.phase,
       outcome: value.outcome,
+      resolvedAtEpochMs: value.resolvedAtEpochMs,
+      resolvedBySessionId: value.resolvedBySessionId,
       alarmName: value.alarmName,
     },
   };

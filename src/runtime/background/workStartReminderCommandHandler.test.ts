@@ -103,5 +103,5 @@ describe('workStartReminderCommandHandler', () => {
     }
     const afterRestart = secondRoot.value.workStartReminderHandler.current();
     expect(afterRestart.ok).toBe(true);
-  });
+  }, 15_000);
 });

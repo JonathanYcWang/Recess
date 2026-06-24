@@ -14,7 +14,7 @@ export interface ReminderSchedule {
 
 export type OccurrencePhase = 'planned' | 'active' | 'resolved';
 
-export type OccurrenceOutcome = 'neutral' | 'skipped' | 'missed';
+export type OccurrenceOutcome = 'neutral' | 'skipped' | 'missed' | 'satisfied';
 
 export interface ReminderOccurrence {
   id: string;
@@ -23,6 +23,8 @@ export interface ReminderOccurrence {
   timeZoneId: string;
   phase: OccurrencePhase;
   outcome?: OccurrenceOutcome;
+  resolvedAtEpochMs?: number;
+  resolvedBySessionId?: string;
   alarmName: string;
 }
 

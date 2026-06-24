@@ -90,6 +90,11 @@ export {
   type StartWorkSessionExtensionOutcome,
 } from './startWorkSessionExtension';
 export {
+  createWorkSessionStartedFact,
+  workSessionStartedFactId,
+  type WorkSessionStartedContext,
+} from './workSessionStarted';
+export {
   advanceTimeOutBoundaries,
   completedFiveMinuteBoundaries,
   isTimeOutReportDue,
