@@ -17,7 +17,9 @@ export {
 } from './timeEstimate';
 export {
   computeIntervalElapsedSeconds,
+  computeSelectedTaskDerivedRemainingSeconds,
   computeSelectedTaskRemainingMinutes,
+  filterSelectedIncompleteTaskIds,
   decideActivateTask,
   decideAttributeFocusedTime,
   isFocusAttributionPhase,

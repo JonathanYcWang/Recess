@@ -84,7 +84,7 @@ describe('reward game and recess epic integration', () => {
       blockListEntries: [],
       nextGameIndex: 0,
       roundId: 'unused',
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingSeconds: null,
     });
     expect(accepted.ok).toBe(true);
     if (accepted.ok) {
@@ -104,7 +104,7 @@ describe('reward game and recess epic integration', () => {
       blockListEntries: destinations,
       nextGameIndex: 0,
       roundId: 'round-epic',
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingSeconds: null,
     });
     if (!accepted.ok || accepted.value.nextValue.phase !== 'reward-game') {
       throw new Error('expected reward-game phase');
@@ -137,7 +137,7 @@ describe('reward game and recess epic integration', () => {
     const completedGame = decideCompleteRewardGame(accepted.value.nextValue, {
       nowEpochMs: 1_001_200,
       preferredCadence: '25/5',
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingSeconds: null,
       roundId: 'round-epic',
       selectedDestination: chosen.snapshot.snapshot.selectedDestination,
     });
@@ -149,7 +149,7 @@ describe('reward game and recess epic integration', () => {
     const ended = decideEndRecess(completedGame.value.nextValue, {
       nowEpochMs: completedGame.value.nextValue.recessDeadlineAtEpochMs,
       preferredCadence: '25/5',
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingSeconds: null,
       nextGameIndex: 1,
       early: false,
     });
@@ -161,7 +161,7 @@ describe('reward game and recess epic integration', () => {
     const nextFocus = decideCompleteCountdown(ended.value.nextValue, {
       nowEpochMs: ended.value.nextValue.countdownDeadlineAtEpochMs,
       preferredCadence: '25/5',
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingSeconds: null,
       nextGameIndex: 1,
     });
     expect(nextFocus.ok).toBe(true);

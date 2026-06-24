@@ -17,7 +17,7 @@ export type StartWorkSessionExtensionError =
 export interface StartWorkSessionExtensionContext {
   nowEpochMs: number;
   preferredCadence: PreferredCadence;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
   gameBudget: RewardGameBudget;
 }
 
@@ -60,12 +60,12 @@ export const decideStartWorkSessionExtension = (
     energy: completed.energy,
     momentum: completed.momentum,
     workSessionProgressRatio: 1,
-    selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+    selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
     remainingWorkSessionSeconds: extensionSeconds,
     gameBudget: context.gameBudget,
   });
 
-  const focusDurationSeconds = schedulerDecision.focusMinutes * 60;
+  const focusDurationSeconds = schedulerDecision.focusDurationSeconds;
   const extensionOrdinal = completed.extensionCount;
 
   return {

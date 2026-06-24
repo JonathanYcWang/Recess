@@ -61,7 +61,8 @@ export interface WorkRhythmDecisionContext {
   nowEpochMs: number;
   sessionId: string;
   preferredCadence: PreferredCadence;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
+  confirmedFocusTaskIds?: readonly string[];
   gameBudget: RewardGameBudget;
 }
 
@@ -103,13 +104,17 @@ export const applyWorkRhythmCommand = (
       energy: energy.value,
       momentum: 'steady',
       workSessionProgressRatio: 0,
-      selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+      selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
       remainingWorkSessionSeconds: goal.value,
       gameBudget: context.gameBudget,
     });
 
-    const focusDurationSeconds = schedulerDecision.focusMinutes * 60;
+    const focusDurationSeconds = schedulerDecision.focusDurationSeconds;
     const focusDeadlineAtEpochMs = context.nowEpochMs + focusDurationSeconds * 1000;
+    const taskSelection = emptyTaskSelectionState();
+    if (context.confirmedFocusTaskIds && context.confirmedFocusTaskIds.length > 0) {
+      taskSelection.selectedTaskIds = [...context.confirmedFocusTaskIds];
+    }
 
     return {
       ok: true,
@@ -136,7 +141,7 @@ export const applyWorkRhythmCommand = (
         extensionTrancheSeconds: 0,
         extensionBaselineCumulativeSeconds: 0,
         extensionBaselineCount: 0,
-        ...emptyTaskSelectionState(),
+        ...taskSelection,
       },
     };
   }
@@ -180,7 +185,7 @@ export const applyWorkRhythmCommand = (
     const declined = decideDeclineRecess(current, {
       nowEpochMs: context.nowEpochMs,
       preferredCadence: context.preferredCadence,
-      selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+      selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
       gameBudget: context.gameBudget,
     });
     if (!declined.ok) {
@@ -193,7 +198,7 @@ export const applyWorkRhythmCommand = (
     const extended = decideStartWorkSessionExtension(current, command.extensionSeconds, {
       nowEpochMs: context.nowEpochMs,
       preferredCadence: context.preferredCadence,
-      selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+      selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
       gameBudget: context.gameBudget,
     });
     if (!extended.ok) {

@@ -13,7 +13,7 @@ const baseContext = {
   nowEpochMs: 1_700_000_000_000,
   sessionId: 'ws-test-1',
   preferredCadence: '25/5' as const,
-  selectedTaskRemainingMinutes: null,
+  selectedTaskRemainingSeconds: null,
   gameBudget: { kind: 'cards' as const },
 };
 
@@ -124,7 +124,7 @@ describe('applyWorkRhythmCommand', () => {
       {
         ...baseContext,
         preferredCadence: '45/10',
-        selectedTaskRemainingMinutes: 20,
+        selectedTaskRemainingSeconds: 20 * 60,
       }
     );
     expect(result.ok).toBe(true);

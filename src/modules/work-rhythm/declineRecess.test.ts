@@ -65,7 +65,7 @@ describe('decideDeclineRecess', () => {
     const declined = decideDeclineRecess(settled.value.nextValue, {
       nowEpochMs: settled.value.nextValue.sessionStartedAtEpochMs + 60_000,
       preferredCadence: '25/5',
-      selectedTaskRemainingMinutes: null,
+      selectedTaskRemainingSeconds: null,
       gameBudget: { kind: 'cards' },
     });
     expect(declined.ok).toBe(true);
@@ -92,7 +92,7 @@ describe('decideDeclineRecess', () => {
       decideDeclineRecess(createDefaultWorkRhythmValue(), {
         nowEpochMs: 1,
         preferredCadence: '25/5',
-        selectedTaskRemainingMinutes: null,
+        selectedTaskRemainingSeconds: null,
         gameBudget: { kind: 'cards' },
       })
     ).toMatchObject({ ok: false, error: { kind: 'invalid-phase-for-decline-recess' } });
@@ -101,7 +101,7 @@ describe('decideDeclineRecess', () => {
       decideDeclineRecess(baseRecessPrompt({ deferredRecessCount: 0 }), {
         nowEpochMs: 2_000_000,
         preferredCadence: '25/5',
-        selectedTaskRemainingMinutes: null,
+        selectedTaskRemainingSeconds: null,
         gameBudget: { kind: 'cards' },
       })
     ).toMatchObject({ ok: false, error: { kind: 'cannot-decline-without-deferred-recess' } });

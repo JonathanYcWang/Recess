@@ -13,7 +13,7 @@ export interface AcceptRecessContext {
   blockListEntries: readonly string[];
   nextGameIndex: number;
   roundId: string;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
 }
 
 export interface AcceptRecessOutcome {
@@ -60,7 +60,7 @@ export const decideAcceptRecess = (
         prompt.originalGoalSeconds === 0
           ? 0
           : (prompt.originalGoalSeconds - remainingWorkSessionSeconds) / prompt.originalGoalSeconds,
-      selectedTaskRemainingMinutes: context.selectedTaskRemainingMinutes,
+      selectedTaskRemainingSeconds: context.selectedTaskRemainingSeconds,
       remainingWorkSessionSeconds,
     });
     const recess: WorkRhythmRecess = {
