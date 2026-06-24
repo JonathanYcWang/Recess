@@ -11,7 +11,6 @@ describe('Redux store', () => {
       'routing',
       'settingsProjection',
       'timer',
-      'workHours',
       'workRhythmProjection',
       'workStartReminderProjection',
       'workstyleProfileProjection',

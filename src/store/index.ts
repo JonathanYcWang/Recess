@@ -1,6 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
 import timerReducer from './reducers/timerReducer';
-import workHoursReducer from './reducers/workHoursReducer';
 import blockedSitesReducer from './reducers/blockedSitesReducer';
 import routingReducer from './reducers/routingReducer';
 import quizReducer from './reducers/quizReducer';
@@ -15,7 +14,6 @@ import { storageMiddleware } from './storageMiddleware';
 export const store = configureStore({
   reducer: {
     timer: timerReducer,
-    workHours: workHoursReducer,
     blockedSites: blockedSitesReducer,
     routing: routingReducer,
     quiz: quizReducer,

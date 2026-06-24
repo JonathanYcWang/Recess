@@ -9,7 +9,6 @@ import quizReducer from '../reducers/quizReducer';
 import routingReducer from '../reducers/routingReducer';
 import settingsProjectionReducer from '../reducers/settingsProjectionReducer';
 import timerReducer from '../reducers/timerReducer';
-import workHoursReducer from '../reducers/workHoursReducer';
 import workStartReminderProjectionReducer from '../reducers/workStartReminderProjectionReducer';
 import type { RootState } from '../index';
 import { addBlockedSite } from '../actions/blockedSitesActions';
@@ -45,7 +44,6 @@ const createState = (): RootState => ({
     timerReducer(timerReducer(undefined, startFocusSession()), transitionToRewardSelection()),
     { type: 'test/noop' }
   ),
-  workHours: workHoursReducer(undefined, { type: 'test/init' }),
   workStartReminderProjection: workStartReminderProjectionReducer(
     undefined,
     setWorkStartReminderProjection({

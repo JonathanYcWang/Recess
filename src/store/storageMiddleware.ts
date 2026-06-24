@@ -1,17 +1,14 @@
 import type { Middleware, AnyAction } from '@reduxjs/toolkit';
 import type { QuizReduxState } from './actions/quizActions';
-import type { WorkHoursEntry } from '../types/workHours';
 import {
   createInitialBlockedSitesState,
   createInitialQuizState,
   createInitialRoutingState,
   createInitialTimerState,
-  createInitialWorkHoursState,
 } from './initialState';
 
 const STORAGE_KEYS = {
   timer: 'timerState',
-  workHours: 'workHours',
   blockedSites: 'blockedSites',
   routing: 'hasOnboarded',
   quiz: 'quizState',
@@ -68,7 +65,6 @@ type PersistedBlockedSites = string[] | { sites?: unknown } | undefined;
 
 const getInitialPersistedState = () => ({
   [STORAGE_KEYS.timer]: createInitialTimerState(),
-  [STORAGE_KEYS.workHours]: createInitialWorkHoursState().entries,
   [STORAGE_KEYS.blockedSites]: createInitialBlockedSitesState(),
   [STORAGE_KEYS.routing]: createInitialRoutingState().hasOnboarded,
   [STORAGE_KEYS.quiz]: createInitialQuizState(),
@@ -123,18 +119,15 @@ export const seedInitialStateInStorage = async () => {
 };
 
 export const loadStateFromStorage = async () => {
-  const [timerState, workHoursEntries, blockedSitesState, hasOnboarded, quizState] =
-    await Promise.all([
-      storageAPI.get(STORAGE_KEYS.timer),
-      storageAPI.get<WorkHoursEntry[]>(STORAGE_KEYS.workHours),
-      storageAPI.get<PersistedBlockedSites>(STORAGE_KEYS.blockedSites),
-      storageAPI.get<boolean>(STORAGE_KEYS.routing),
-      storageAPI.get<QuizReduxState>(STORAGE_KEYS.quiz),
-    ]);
+  const [timerState, blockedSitesState, hasOnboarded, quizState] = await Promise.all([
+    storageAPI.get(STORAGE_KEYS.timer),
+    storageAPI.get<PersistedBlockedSites>(STORAGE_KEYS.blockedSites),
+    storageAPI.get<boolean>(STORAGE_KEYS.routing),
+    storageAPI.get<QuizReduxState>(STORAGE_KEYS.quiz),
+  ]);
 
   return {
     timer: timerState,
-    workHours: workHoursEntries ? workHoursEntries : undefined,
     blockedSites: normalizeBlockedSites(blockedSitesState),
     routing: hasOnboarded !== undefined ? hasOnboarded : undefined,
     quiz: quizState,
