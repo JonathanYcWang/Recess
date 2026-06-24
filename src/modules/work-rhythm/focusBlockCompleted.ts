@@ -10,6 +10,7 @@ export interface FocusBlockCompletedContext {
   completedAt: number;
   energyAtStart: string;
   wasExtension: boolean;
+  completed?: boolean;
 }
 
 export const createFocusBlockCompletedFact = (
@@ -26,6 +27,7 @@ export const createFocusBlockCompletedFact = (
     completedAt: context.completedAt,
     energyAtStart: context.energyAtStart,
     wasExtension: context.wasExtension,
+    completed: context.completed ?? true,
   },
 });
 

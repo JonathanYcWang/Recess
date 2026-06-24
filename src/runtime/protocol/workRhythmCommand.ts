@@ -4,7 +4,8 @@ import type { WorkRhythmDecisionError } from '@/modules/work-rhythm';
 
 export type WorkRhythmCommand =
   | { kind: 'start-work-session'; goalSeconds: unknown; energy: unknown }
-  | { kind: 'settle-focus-boundary' };
+  | { kind: 'settle-focus-boundary' }
+  | { kind: 'end-work-session' };
 
 export type WorkRhythmCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -34,6 +35,9 @@ const parseCommand = (command: unknown): WorkRhythmCommand | null => {
   }
   if (command.kind === 'settle-focus-boundary') {
     return { kind: 'settle-focus-boundary' };
+  }
+  if (command.kind === 'end-work-session') {
+    return { kind: 'end-work-session' };
   }
   return null;
 };

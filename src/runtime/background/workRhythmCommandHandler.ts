@@ -5,7 +5,9 @@ import type {
 import {
   applyWorkRhythmCommand,
   cloneWorkRhythmValue,
+  decideEndWorkSessionEarly,
   decideFocusBoundarySettlement,
+  endWorkSessionEarlyCommandId,
   focusBoundarySettlementCommandId,
   isFocusBoundaryDue,
   projectWorkRhythmSnapshot,
@@ -151,9 +153,9 @@ export const createWorkRhythmCommandHandler = (
   const runSettlementEffects = async (input: {
     settlementCommandId: string;
     outcomeRevision: number;
-    focusBlockFact: import('@/modules/work-history').WorkHistoryFact;
+    focusBlockFact?: import('@/modules/work-history').WorkHistoryFact;
     workSessionCompletedFact?: import('@/modules/work-history').WorkHistoryFact;
-    coinCredit: {
+    coinCredit?: {
       transactionId: string;
       amount: number;
       reasonCode: 'standard-focus' | 'extension-focus';
@@ -161,30 +163,34 @@ export const createWorkRhythmCommandHandler = (
       context: Record<string, string | number | boolean | null>;
     };
   }): Promise<void> => {
-    await coinHandler.execute({
-      protocolVersion: RUNTIME_PROTOCOL_VERSION,
-      commandId: input.coinCredit.transactionId,
-      module: 'coin',
-      command: {
-        kind: 'credit',
-        transactionId: input.coinCredit.transactionId,
-        amount: input.coinCredit.amount,
-        recordedAt: input.coinCredit.recordedAt,
-        reasonCode: input.coinCredit.reasonCode,
-        context: input.coinCredit.context,
-      },
-    });
+    if (input.coinCredit) {
+      await coinHandler.execute({
+        protocolVersion: RUNTIME_PROTOCOL_VERSION,
+        commandId: input.coinCredit.transactionId,
+        module: 'coin',
+        command: {
+          kind: 'credit',
+          transactionId: input.coinCredit.transactionId,
+          amount: input.coinCredit.amount,
+          recordedAt: input.coinCredit.recordedAt,
+          reasonCode: input.coinCredit.reasonCode,
+          context: input.coinCredit.context,
+        },
+      });
+    }
 
     if (!effectExecutor) {
       return;
     }
 
-    await runWorkHistoryAppendEffectTransition({
-      executor: effectExecutor,
-      commandId: input.settlementCommandId,
-      fact: input.focusBlockFact,
-      outcomeRevision: input.outcomeRevision,
-    });
+    if (input.focusBlockFact) {
+      await runWorkHistoryAppendEffectTransition({
+        executor: effectExecutor,
+        commandId: input.settlementCommandId,
+        fact: input.focusBlockFact,
+        outcomeRevision: input.outcomeRevision,
+      });
+    }
     if (input.workSessionCompletedFact) {
       await runWorkHistoryAppendEffectTransition({
         executor: effectExecutor,
@@ -234,6 +240,68 @@ export const createWorkRhythmCommandHandler = (
     await clearFocusAlarm(focus.sessionId);
     await runSettlementEffects({
       settlementCommandId: outcome.settlementCommandId,
+      outcomeRevision: workRhythm.revision,
+      focusBlockFact: outcome.focusBlockFact,
+      workSessionCompletedFact: outcome.workSessionCompletedFact,
+      coinCredit: outcome.coinCredit,
+    });
+
+    currentDocument = {
+      revision: workRhythm.revision,
+      value: cloneWorkRhythmValue(workRhythm.value),
+    };
+    const snapshot = toPublishedSnapshot(workRhythm, clock);
+    publish();
+    return toSuccess(snapshot);
+  };
+
+  const commitEndWorkSessionEarly = async (
+    commandId: string
+  ): Promise<WorkRhythmCommandResponse> => {
+    const ended = decideEndWorkSessionEarly(currentDocument.value, clock.nowEpochMs());
+    if (!ended.ok) {
+      return toFailure(ended.error);
+    }
+    const outcome = ended.value;
+    if (commandId !== outcome.commandId) {
+      return toFailure({
+        kind: 'malformed-command',
+        message: 'end-work-session command id mismatch',
+      });
+    }
+
+    const sessionId =
+      currentDocument.value.phase === 'inactive' ? null : currentDocument.value.sessionId;
+
+    const committed = await persistence.commit([
+      {
+        document: 'work-rhythm',
+        expectedRevision: currentDocument.revision,
+        value: outcome.nextValue,
+      },
+    ]);
+    if (!committed.ok) {
+      if (committed.error.kind === 'conflict') {
+        return toFailure({
+          kind: 'stale-revision',
+          expectedRevision: currentDocument.revision,
+          actualRevision: committed.error.actualRevision,
+        });
+      }
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    const workRhythm = committed.value.documents['work-rhythm'];
+    if (!workRhythm) {
+      return toFailure({ kind: 'persistence-failed' });
+    }
+
+    if (sessionId) {
+      await clearFocusAlarm(sessionId);
+    }
+
+    await runSettlementEffects({
+      settlementCommandId: outcome.commandId,
       outcomeRevision: workRhythm.revision,
       focusBlockFact: outcome.focusBlockFact,
       workSessionCompletedFact: outcome.workSessionCompletedFact,
@@ -325,6 +393,20 @@ export const createWorkRhythmCommandHandler = (
         return toFailure({ kind: 'invalid-phase-for-settlement' });
       }
       return commitSettlement(currentDocument.value, envelope.commandId);
+    }
+
+    if (envelope.command.kind === 'end-work-session') {
+      if (currentDocument.value.phase === 'inactive') {
+        return toFailure({ kind: 'no-active-work-session' });
+      }
+      const expectedCommandId = endWorkSessionEarlyCommandId(currentDocument.value.sessionId);
+      if (envelope.commandId !== expectedCommandId) {
+        return toFailure({
+          kind: 'malformed-command',
+          message: 'end-work-session command id must match active session',
+        });
+      }
+      return commitEndWorkSessionEarly(envelope.commandId);
     }
 
     return toFailure({ kind: 'malformed-command', message: 'unsupported command' });

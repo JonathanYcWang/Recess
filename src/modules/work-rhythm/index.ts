@@ -6,6 +6,13 @@ export {
   type WorkRhythmDecisionError,
 } from './decide';
 export {
+  decideEndWorkSessionEarly,
+  endWorkSessionEarlyCommandId,
+  endWorkSessionEarlyCoinTransactionId,
+  type EndWorkSessionEarlyOutcome,
+  type EndWorkSessionEarlyError,
+} from './endWorkSessionEarly';
+export {
   computeActualFocusSeconds,
   decideFocusBoundarySettlement,
   focusBlockCompletedFactId,
