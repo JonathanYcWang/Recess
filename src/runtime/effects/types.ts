@@ -7,7 +7,7 @@ export interface EffectIntentFacts {
 export interface EffectIntent {
   intentId: string;
   commandId: string;
-  module: 'settings';
+  module: 'settings' | 'work-history';
   kind: string;
   facts: EffectIntentFacts;
 }
