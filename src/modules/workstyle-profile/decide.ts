@@ -11,7 +11,9 @@ import {
   type EnergyLevel,
   type FrictionDimension,
   type FrictionLevel,
+  type FrictionProfile,
   type MomentumLevel,
+  type PersonalizationQuizOutcome,
   type PreferredCadence,
   type WorkstyleProfileValue,
 } from './workstyleProfileDocument';
@@ -30,7 +32,10 @@ export type WorkstyleProfileCommand =
       cadence: unknown;
       primaryFriction: unknown;
     }
-  | { kind: 'assign-pet'; petId: unknown };
+  | { kind: 'assign-pet'; petId: unknown }
+  | { kind: 'enrich-friction-from-personalization-quiz'; friction: unknown }
+  | { kind: 'complete-personalization-quiz'; outcome: unknown }
+  | { kind: 'restore-friction-baseline'; friction: unknown };
 
 export type WorkstyleProfileDecisionError =
   | { kind: 'invalid-energy' }
@@ -40,7 +45,10 @@ export type WorkstyleProfileDecisionError =
   | { kind: 'invalid-friction-level' }
   | { kind: 'invalid-primary-friction' }
   | { kind: 'invalid-pet-id' }
-  | { kind: 'pet-already-assigned'; existingPetId: string };
+  | { kind: 'pet-already-assigned'; existingPetId: string }
+  | { kind: 'invalid-friction-profile' }
+  | { kind: 'invalid-personalization-quiz-outcome' }
+  | { kind: 'onboarding-incomplete' };
 
 const parseEnergy = (value: unknown): Result<EnergyLevel, WorkstyleProfileDecisionError> => {
   if (typeof value !== 'string' || !includes(ENERGY_LEVELS, value)) {
@@ -95,6 +103,61 @@ const parsePetId = (value: unknown): Result<string, WorkstyleProfileDecisionErro
     return { ok: false, error: { kind: 'invalid-pet-id' } };
   }
   return { ok: true, value: value.trim() };
+};
+
+const parseFrictionProfile = (
+  value: unknown
+): Result<FrictionProfile, WorkstyleProfileDecisionError> => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return { ok: false, error: { kind: 'invalid-friction-profile' } };
+  }
+  const candidate = value as Record<string, unknown>;
+  const fields = [
+    ['emotionalLoad', candidate.emotionalLoad],
+    ['motivation', candidate.motivation],
+    ['organization', candidate.organization],
+    ['distraction', candidate.distraction],
+    ['starting', candidate.starting],
+    ['fatigue', candidate.fatigue],
+  ] as const;
+  const friction = {} as FrictionProfile;
+  for (const [field, level] of fields) {
+    if (typeof level !== 'string' || !includes(FRICTION_LEVELS, level)) {
+      return { ok: false, error: { kind: 'invalid-friction-profile' } };
+    }
+    friction[field] = level;
+  }
+  return { ok: true, value: friction };
+};
+
+const parsePersonalizationQuizOutcome = (
+  value: unknown
+): Result<PersonalizationQuizOutcome, WorkstyleProfileDecisionError> => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return { ok: false, error: { kind: 'invalid-personalization-quiz-outcome' } };
+  }
+  const candidate = value as Record<string, unknown>;
+  if (candidate.kind === 'balanced') {
+    return { ok: true, value: { kind: 'balanced' } };
+  }
+  if (candidate.kind !== 'top-two' || !Array.isArray(candidate.dimensions)) {
+    return { ok: false, error: { kind: 'invalid-personalization-quiz-outcome' } };
+  }
+  const [first, second] = candidate.dimensions;
+  if (
+    typeof first !== 'string' ||
+    typeof second !== 'string' ||
+    !includes(FRICTION_DIMENSIONS, first) ||
+    !includes(FRICTION_DIMENSIONS, second) ||
+    first === second
+  ) {
+    return { ok: false, error: { kind: 'invalid-personalization-quiz-outcome' } };
+  }
+  const dimensions = (first < second ? [first, second] : [second, first]) as readonly [
+    FrictionDimension,
+    FrictionDimension,
+  ];
+  return { ok: true, value: { kind: 'top-two', dimensions } };
 };
 
 export const applyWorkstyleProfileCommand = (
@@ -178,6 +241,39 @@ export const applyWorkstyleProfileCommand = (
         return petId;
       }
       next.assignedPetId = petId.value;
+      return { ok: true, value: next };
+    }
+    case 'enrich-friction-from-personalization-quiz': {
+      if (!current.onboardingCompleted) {
+        return { ok: false, error: { kind: 'onboarding-incomplete' } };
+      }
+      const friction = parseFrictionProfile(command.friction);
+      if (!friction.ok) {
+        return friction;
+      }
+      next.friction = cloneFrictionProfile(friction.value);
+      return { ok: true, value: next };
+    }
+    case 'complete-personalization-quiz': {
+      if (!current.onboardingCompleted) {
+        return { ok: false, error: { kind: 'onboarding-incomplete' } };
+      }
+      const outcome = parsePersonalizationQuizOutcome(command.outcome);
+      if (!outcome.ok) {
+        return outcome;
+      }
+      next.personalizationQuizOutcome = outcome.value;
+      return { ok: true, value: next };
+    }
+    case 'restore-friction-baseline': {
+      if (!current.onboardingCompleted) {
+        return { ok: false, error: { kind: 'onboarding-incomplete' } };
+      }
+      const friction = parseFrictionProfile(command.friction);
+      if (!friction.ok) {
+        return friction;
+      }
+      next.friction = cloneFrictionProfile(friction.value);
       return { ok: true, value: next };
     }
   }
