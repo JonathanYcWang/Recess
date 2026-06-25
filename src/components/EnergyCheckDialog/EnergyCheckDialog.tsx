@@ -1,4 +1,4 @@
-import { Dialog } from '@mui/material';
+import { PrimitiveDialog } from '@/primitives';
 import Icon from '../Icon/Icon';
 import InPainIcon from '../../assets/emoji-in-pain.svg?url';
 import MehIcon from '../../assets/emoji-meh.svg?url';
@@ -20,25 +20,18 @@ const EnergyCheckDialog = ({ open, onClose, onEmojiSelect }: EnergyCheckDialogPr
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      slotProps={{
-        paper: {
-          sx: {
-            borderRadius: 2,
-            padding: '24px',
-            minWidth: '280px',
-          },
-        },
+    <PrimitiveDialog
+      isOpen={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
       }}
+      title="How are you feeling?"
     >
       <div className={styles.dialogContent}>
         <div className={styles.closeButton}>
           <Icon src={TimesIcon} alt="Close" size={20} onClick={onClose} />
         </div>
         <div className={styles.contentContainer}>
-          <p className={styles.question}>How are you feeling?</p>
           <div className={styles.emotionsContainer}>
             <div
               className={styles.emotionIcon}
@@ -67,7 +60,7 @@ const EnergyCheckDialog = ({ open, onClose, onEmojiSelect }: EnergyCheckDialogPr
           </div>
         </div>
       </div>
-    </Dialog>
+    </PrimitiveDialog>
   );
 };
 

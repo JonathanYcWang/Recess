@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Dialog } from '@mui/material';
 import { useSelector } from 'react-redux';
+import { PrimitiveDialog } from '@/primitives';
 import Button from '../Button/Button';
 import WorkWindow from '../WorkWindow/WorkWindow';
 import EditTimeRangeOverlay from '../EditTimeRangeOverlay/EditTimeRangeOverlay';
@@ -95,20 +95,13 @@ const WorkHoursSettings = () => {
           />
         ))}
       </div>
-      <Dialog
-        open={dialogOpen}
-        onClose={closeDialog}
-        maxWidth={false}
-        slotProps={{
-          paper: {
-            sx: {
-              backgroundColor: 'transparent',
-              boxShadow: 'none',
-              maxWidth: '400px',
-              width: '100%',
-            },
-          },
+      <PrimitiveDialog
+        isOpen={dialogOpen}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) closeDialog();
         }}
+        variant="unframed"
+        aria-label="Edit work start reminder"
       >
         <EditTimeRangeOverlay
           time={editTime}
@@ -117,7 +110,7 @@ const WorkHoursSettings = () => {
           onCancel={closeDialog}
           onDelete={editingId ? handleDelete : undefined}
         />
-      </Dialog>
+      </PrimitiveDialog>
     </div>
   );
 };
