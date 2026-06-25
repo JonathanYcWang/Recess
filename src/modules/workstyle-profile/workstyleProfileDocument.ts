@@ -1,3 +1,6 @@
+import type { PetMoodValue } from '@/modules/pet-mood';
+import { createDefaultPetMoodValue } from '@/modules/pet-mood';
+
 export const PREFERRED_CADENCES = ['15/5', '25/5', '45/10'] as const;
 export type PreferredCadence = (typeof PREFERRED_CADENCES)[number];
 
@@ -42,6 +45,7 @@ export interface WorkstyleProfileValue {
   activePetId: string | null;
   onboardingCompleted: boolean;
   personalizationQuizOutcome: PersonalizationQuizOutcome | null;
+  petMood: PetMoodValue;
 }
 
 const DEFAULT_FRICTION: FrictionProfile = {
@@ -62,6 +66,7 @@ export const createDefaultWorkstyleProfileValue = (): WorkstyleProfileValue => (
   activePetId: null,
   onboardingCompleted: false,
   personalizationQuizOutcome: null,
+  petMood: createDefaultPetMoodValue(),
 });
 
 export const withActivePet = (
@@ -122,4 +127,10 @@ export const cloneWorkstyleProfileValue = (
           ],
         }
     : null,
+  petMood: {
+    currentMood: value.petMood.currentMood,
+    completedFocusBlocksInSession: value.petMood.completedFocusBlocksInSession,
+    timeOutSessionId: value.petMood.timeOutSessionId,
+    timeOutElapsedMinutes: value.petMood.timeOutElapsedMinutes,
+  },
 });
