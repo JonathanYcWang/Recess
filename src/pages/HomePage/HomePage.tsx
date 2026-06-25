@@ -12,6 +12,7 @@ import FocusPet from '@/components/FocusPet/FocusPet';
 import WorkPage from '@/components/WorkPage/WorkPage';
 import WorkHoursSettings from '@/components/WorkHoursSettings/WorkHoursSettings';
 import BlockedSites from '@/components/BlockedSites/BlockedSites';
+import InsightsSection from '@/components/InsightsPage/InsightsSection';
 import InfoWidget from '@/components/InfoWidget/InfoWidget';
 import styles from './HomePage.module.css';
 // import {
@@ -68,7 +69,7 @@ const BarChartIcon = ({ className }: NavIconProps) => (
   </svg>
 );
 
-type MainSectionId = 'focus' | 'schedule' | 'blocked' | 'stats';
+type MainSectionId = 'focus' | 'schedule' | 'blocked' | 'insights';
 
 const navItems: {
   id: MainSectionId;
@@ -78,7 +79,7 @@ const navItems: {
   { id: 'focus', label: 'Focus', icon: TimerIcon },
   { id: 'schedule', label: 'Schedule', icon: CalendarIcon },
   { id: 'blocked', label: 'Blocked Sites', icon: ShieldBanIcon },
-  { id: 'stats', label: 'Stats', icon: BarChartIcon },
+  { id: 'insights', label: 'Insights', icon: BarChartIcon },
 ];
 const renderSectionContent = (mainContent: MainSectionId) => {
   switch (mainContent) {
@@ -88,8 +89,8 @@ const renderSectionContent = (mainContent: MainSectionId) => {
       return <WorkHoursSettings />;
     case 'blocked':
       return <BlockedSites />;
-    case 'stats':
-      return <></>;
+    case 'insights':
+      return <InsightsSection />;
     default:
       return null;
   }
