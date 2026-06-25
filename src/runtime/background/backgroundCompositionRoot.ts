@@ -49,6 +49,7 @@ import type {
   TaskListCommandHandler,
   TaskListCommandResponse,
 } from '../taskListTypes';
+import type { WorkHistoryService } from '@/modules/work-history';
 import { createBlockListCommandHandler } from './blockListCommandHandler';
 import { createSettingsCommandHandler } from './settingsCommandHandler';
 import { createWorkstyleProfileCommandHandler } from './workstyleProfileCommandHandler';
@@ -66,6 +67,7 @@ import {
 } from '@/modules/browser-activity/inMemoryBrowserActivity';
 import { createSafariCompatibleBrowserActivityAdapter } from '@/adapters/browser/safari/safariBrowserActivityAdapter';
 import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
+import { createIndexedDbWorkHistoryAdapter } from '@/adapters/browser/chromium/indexedDbWorkHistoryAdapter';
 import { createWorkHistoryService } from '@/modules/work-history';
 import { createEffectExecutor } from '../effects/effectExecutor';
 import { createEffectOutcomeStore } from '../effects/effectOutcomeStore';
@@ -85,6 +87,7 @@ export interface BackgroundCompositionRoot {
   hallPass: HallPassClient;
   workStartReminder: WorkStartReminderClient;
   taskList: TaskListClient;
+  workHistory: WorkHistoryService;
   settingsHandler: SettingsCommandHandler;
   blockListHandler: BlockListCommandHandler;
   workstyleProfileHandler: WorkstyleProfileCommandHandler;
@@ -146,7 +149,11 @@ export const createBackgroundCompositionRoot = async (options: {
     { diagnostics, outcomeStore: workstyleProfileOutcomeStore, coinHandler, clock }
   );
 
-  const workHistory = createWorkHistoryService(createInMemoryWorkHistoryAdapter());
+  const workHistory = createWorkHistoryService(
+    typeof indexedDB !== 'undefined'
+      ? createIndexedDbWorkHistoryAdapter()
+      : createInMemoryWorkHistoryAdapter()
+  );
   const effectExecutor = createEffectExecutor({
     store: createEffectOutcomeStore(options.adapter),
     adapters: [
@@ -178,6 +185,7 @@ export const createBackgroundCompositionRoot = async (options: {
       adapter: options.adapter,
       diagnostics,
       outcomeStore: workStartReminderOutcomeStore,
+      effectExecutor,
     }
   );
 
@@ -261,6 +269,7 @@ export const createBackgroundCompositionRoot = async (options: {
       hallPass: createInProcessHallPassClient(hallPassHandler),
       workStartReminder: createInProcessWorkStartReminderClient(workStartReminderHandler),
       taskList: createInProcessTaskListClient(taskListHandler),
+      workHistory,
       settingsHandler,
       blockListHandler,
       workstyleProfileHandler,

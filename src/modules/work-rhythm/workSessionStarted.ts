@@ -1,4 +1,5 @@
 import type { WorkHistoryFact } from '@/modules/work-history';
+import { withSchemaVersion } from '@/modules/work-history/factCodec';
 
 export interface WorkSessionStartedContext {
   factId: string;
@@ -12,16 +13,15 @@ export interface WorkSessionStartedContext {
 export const workSessionStartedFactId = (sessionId: string): string =>
   `work-session-started-${sessionId}`;
 
-export const createWorkSessionStartedFact = (
-  context: WorkSessionStartedContext
-): WorkHistoryFact => ({
-  id: context.factId,
-  recordedAt: context.recordedAt,
-  kind: 'work-session-started',
-  payload: {
-    workSessionId: context.workSessionId,
-    startedAtEpochMs: context.startedAtEpochMs,
-    goalSeconds: context.goalSeconds,
-    energy: context.energy,
-  },
-});
+export const createWorkSessionStartedFact = (context: WorkSessionStartedContext): WorkHistoryFact =>
+  withSchemaVersion({
+    id: context.factId,
+    recordedAt: context.recordedAt,
+    kind: 'work-session-started',
+    payload: {
+      workSessionId: context.workSessionId,
+      startedAtEpochMs: context.startedAtEpochMs,
+      goalSeconds: context.goalSeconds,
+      energy: context.energy,
+    },
+  });

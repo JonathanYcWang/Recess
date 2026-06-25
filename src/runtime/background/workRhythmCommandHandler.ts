@@ -653,6 +653,14 @@ export const createWorkRhythmCommandHandler = (
         outcomeRevision: workRhythm.revision,
       });
     }
+    if (effectExecutor) {
+      await runWorkHistoryAppendEffectTransition({
+        executor: effectExecutor,
+        commandId,
+        fact: outcome.timeOutStartedFact,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
 
     currentDocument = {
       revision: workRhythm.revision,
@@ -715,6 +723,14 @@ export const createWorkRhythmCommandHandler = (
       await clearTimeOutAlarm(sessionId);
     }
     await scheduleFocusAlarm(workRhythm.value);
+    if (effectExecutor) {
+      await runWorkHistoryAppendEffectTransition({
+        executor: effectExecutor,
+        commandId,
+        fact: outcome.timeOutEndedFact,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
 
     currentDocument = {
       revision: workRhythm.revision,
@@ -845,6 +861,14 @@ export const createWorkRhythmCommandHandler = (
     }
 
     await scheduleFocusAlarm(workRhythm.value);
+    if (effectExecutor) {
+      await runWorkHistoryAppendEffectTransition({
+        executor: effectExecutor,
+        commandId,
+        fact: extended.value.workSessionExtendedFact,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
 
     currentDocument = {
       revision: workRhythm.revision,
@@ -941,6 +965,7 @@ export const createWorkRhythmCommandHandler = (
       nextValue: WorkRhythmValue;
       nextTaskList: TaskListValue;
       attribution: TaskAttribution | null;
+      taskCompletedFact?: import('@/modules/work-history').WorkHistoryFact;
     }
   ): Promise<WorkRhythmCommandResponse> => {
     const taskListDoc = taskListHandler.getDocument();
@@ -978,6 +1003,14 @@ export const createWorkRhythmCommandHandler = (
       await appendTaskAttributionHistory({
         commandId: envelope.commandId,
         attribution: decided.attribution,
+        outcomeRevision: workRhythm.revision,
+      });
+    }
+    if (decided.taskCompletedFact && effectExecutor) {
+      await runWorkHistoryAppendEffectTransition({
+        executor: effectExecutor,
+        commandId: envelope.commandId,
+        fact: decided.taskCompletedFact,
         outcomeRevision: workRhythm.revision,
       });
     }

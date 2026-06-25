@@ -23,6 +23,7 @@ describe('taskFocusedTimeAttributed facts', () => {
       recordedAt: 2_500,
       kind: 'task-focused-time-attributed',
       payload: {
+        schemaVersion: 1,
         workSessionId: 'ws-1',
         taskId: 'task-1',
         seconds: 1,

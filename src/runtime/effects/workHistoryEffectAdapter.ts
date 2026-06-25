@@ -1,7 +1,14 @@
 import type { WorkHistoryFact } from '@/modules/work-history';
+import {
+  effectFactsToWorkHistoryFact,
+  WORK_HISTORY_FACT_KINDS,
+} from '@/modules/work-history/factCodec';
 import type { EffectAdapter, EffectIntent } from './types';
 
 export const WORK_HISTORY_APPEND_EFFECT_KIND = 'work-history.append';
+
+const isWorkHistoryFactKind = (value: string): value is WorkHistoryFact['kind'] =>
+  (WORK_HISTORY_FACT_KINDS as readonly string[]).includes(value);
 
 export const createWorkHistoryEffectAdapter = (options: {
   append: (
@@ -10,47 +17,11 @@ export const createWorkHistoryEffectAdapter = (options: {
 }): EffectAdapter => ({
   kind: WORK_HISTORY_APPEND_EFFECT_KIND,
   async execute(intent: EffectIntent) {
-    const factId = intent.facts.factId;
-    const recordedAt = Number(intent.facts.recordedAt);
-    if (!factId || !Number.isFinite(recordedAt)) {
-      return { ok: false, error: 'work history effect missing fact identity' };
-    }
-
-    const payload: WorkHistoryFact['payload'] = {};
-    for (const [key, value] of Object.entries(intent.facts)) {
-      if (key === 'factId' || key === 'recordedAt' || key === 'kind') {
-        continue;
-      }
-      if (value === 'true') {
-        payload[key] = true;
-      } else if (value === 'false') {
-        payload[key] = false;
-      } else if (value === 'null') {
-        payload[key] = null;
-      } else {
-        const numeric = Number(value);
-        payload[key] = Number.isFinite(numeric) && value.trim() !== '' ? numeric : value;
-      }
-    }
-
-    const kind = intent.facts.kind;
-    if (
-      kind !== 'focus-block-completed' &&
-      kind !== 'work-session-completed' &&
-      kind !== 'work-session-started' &&
-      kind !== 'recess-started' &&
-      kind !== 'task-focused-time-attributed'
-    ) {
+    const fact = effectFactsToWorkHistoryFact(intent.facts);
+    if (!fact || !isWorkHistoryFactKind(fact.kind)) {
       return { ok: false, error: 'unsupported work history effect kind' };
     }
 
-    return options.append([
-      {
-        id: factId,
-        recordedAt,
-        kind,
-        payload,
-      },
-    ]);
+    return options.append([fact]);
   },
 });

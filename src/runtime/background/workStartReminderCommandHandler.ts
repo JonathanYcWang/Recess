@@ -49,6 +49,12 @@ import type {
   WorkStartReminderPublishedSnapshot,
   WorkStartReminderRuntimeResult,
 } from '../workStartReminderTypes';
+import type { EffectExecutor } from '../effects/effectExecutor';
+import { runWorkHistoryAppendEffectTransition } from '../effects/workHistoryEffectTransition';
+import {
+  createReminderOccurrenceResolvedFact,
+  reminderOccurrenceResolvedFactId,
+} from '@/modules/work-start-reminder/reminderOccurrenceResolved';
 
 const LEGACY_WORK_HOURS_KEY = 'workHours';
 
@@ -161,6 +167,7 @@ export const createWorkStartReminderCommandHandler = (
     adapter?: KeyValueStorageAdapter;
     diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkStartReminderCommandResponse>;
+    effectExecutor?: EffectExecutor;
     createScheduleId?: () => string;
     createOccurrenceId?: () => string;
   }
@@ -316,12 +323,16 @@ export const createWorkStartReminderCommandHandler = (
 
   const commitValue = async (
     nextValue: WorkStartReminderValue,
-    options?: { workSessionStart?: { workSessionId: string; startedAtEpochMs: number } }
+    commitOptions?: { workSessionStart?: { workSessionId: string; startedAtEpochMs: number } }
   ): Promise<WorkStartReminderCommandResponse> => {
     const beforeReminder = cloneWorkStartReminderValue(currentDocument.value);
     const timeZoneId = resolveLocalTimeZoneId();
     const nowEpochMs = clock.nowEpochMs();
-    const resolved = applyOccurrenceResolution(nextValue, nowEpochMs, options?.workSessionStart);
+    const resolved = applyOccurrenceResolution(
+      nextValue,
+      nowEpochMs,
+      commitOptions?.workSessionStart
+    );
     const recalculated = recalculateAllScheduleOccurrences(
       resolved,
       nowEpochMs,
@@ -386,6 +397,24 @@ export const createWorkStartReminderCommandHandler = (
         value: cloneWorkSessionStreakValue(streakDocument.value),
       };
       await syncStreakCoinCredits(streakApplied.coinCredits);
+      if (options.effectExecutor) {
+        for (const outcome of newOutcomes) {
+          await runWorkHistoryAppendEffectTransition({
+            executor: options.effectExecutor,
+            commandId: `reminder-outcome-${outcome.logicalOutcomeId}`,
+            fact: createReminderOccurrenceResolvedFact({
+              factId: reminderOccurrenceResolvedFactId(outcome.logicalOutcomeId),
+              recordedAt: outcome.resolvedAtEpochMs,
+              logicalOutcomeId: outcome.logicalOutcomeId,
+              occurrenceIds: outcome.occurrenceIds,
+              outcome: outcome.outcome,
+              resolvedAtEpochMs: outcome.resolvedAtEpochMs,
+              workSessionId: outcome.workSessionId,
+            }),
+            outcomeRevision: document.revision,
+          });
+        }
+      }
     }
     notifyListeners();
     return toSuccess(publishSnapshot());
