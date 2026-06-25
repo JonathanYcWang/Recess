@@ -7,6 +7,7 @@
     "e2e/**/*.ts"
   ],
   "ignoreIssues": {
+    "src/primitives/**": ["exports", "types"],
     "src/modules/**": ["exports", "types"],
     "src/adapters/browser/**": ["exports", "types"],
     "src/runtime/**": ["exports", "types"],

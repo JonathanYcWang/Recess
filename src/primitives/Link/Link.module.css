@@ -1,0 +1,12 @@
+.link {
+  font-family: var(--font-family-body);
+  font-size: inherit;
+  color: var(--ink-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--ink-muted);
+}

@@ -1,0 +1,52 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chevron {
+  margin-left: var(--spacing-2);
+  color: var(--ink-muted);
+}
+
+.popover {
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevation-medium);
+  min-width: var(--trigger-width, 12rem);
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.listbox {
+  outline: none;
+  padding: var(--spacing-1);
+}
+
+.option {
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-md);
+  color: var(--ink-primary);
+  cursor: pointer;
+  outline: none;
+}
+
+.option[data-focused] {
+  background-color: var(--surface-secondary);
+}
+
+.option[data-selected] {
+  background-color: var(--surface-secondary);
+  color: var(--ink-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.option[data-focus-visible] {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}

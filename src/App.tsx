@@ -3,6 +3,7 @@ import { ThemeApplier } from '@/components/ThemeApplier/ThemeApplier';
 import HomePage from './pages/HomePage/HomePage';
 import OnboardingPage from './pages/OnboardingPage/OnboardingPage';
 import PersonalizationQuizPage from './pages/PersonalizationQuizPage/PersonalizationQuizPage';
+import PrimitiveExamplesPage from './pages/PrimitiveExamplesPage/PrimitiveExamplesPage';
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/quiz" element={<PersonalizationQuizPage />} />
+          <Route path="/primitive-examples" element={<PrimitiveExamplesPage />} />
           <Route path="/personalization-quiz" element={<Navigate to="/quiz" replace />} />
         </Routes>
       </HashRouter>
