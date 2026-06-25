@@ -38,6 +38,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
-  publicDir: 'public'
+  publicDir: 'public',
+  test: {
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**', 'build/**'],
+  },
 });
 

@@ -1,6 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["index.html", "src/background.ts", "src/content.ts"],
+  "entry": [
+    "index.html",
+    "src/background.ts",
+    "src/content.ts",
+    "e2e/**/*.ts"
+  ],
   "ignoreIssues": {
     "src/modules/**": ["exports", "types"],
     "src/adapters/browser/**": ["exports", "types"],
