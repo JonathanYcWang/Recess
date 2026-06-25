@@ -39,7 +39,8 @@ export type WorkstyleProfileCommand =
   | { kind: 'enrich-friction-from-personalization-quiz'; friction: unknown }
   | { kind: 'complete-personalization-quiz'; outcome: unknown }
   | { kind: 'restore-friction-baseline'; friction: unknown }
-  | { kind: 'apply-pet-mood-event'; event: unknown };
+  | { kind: 'apply-pet-mood-event'; event: unknown }
+  | { kind: 'purchase-pet-mood-boost' };
 
 export type WorkstyleProfileDecisionError =
   | { kind: 'invalid-energy' }
@@ -53,7 +54,9 @@ export type WorkstyleProfileDecisionError =
   | { kind: 'invalid-personalization-quiz-outcome' }
   | { kind: 'onboarding-incomplete' }
   | { kind: 'invalid-pet-mapping' }
-  | { kind: 'invalid-pet-mood-event' };
+  | { kind: 'invalid-pet-mood-event' }
+  | { kind: 'no-pet-assigned' }
+  | { kind: 'insufficient-coins'; balance: number; required: number };
 
 const parseEnergy = (value: unknown): Result<EnergyLevel, WorkstyleProfileDecisionError> => {
   if (typeof value !== 'string' || !includes(ENERGY_LEVELS, value)) {
@@ -338,5 +341,7 @@ export const applyWorkstyleProfileCommand = (
       next.petMood = clonePetMoodValue(applied.value);
       return { ok: true, value: next };
     }
+    case 'purchase-pet-mood-boost':
+      return { ok: false, error: { kind: 'invalid-pet-mood-event' } };
   }
 };

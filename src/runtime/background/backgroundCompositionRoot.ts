@@ -135,15 +135,16 @@ export const createBackgroundCompositionRoot = async (options: {
     initialized.value.documents['block-list'],
     { adapter: options.adapter, diagnostics, outcomeStore: blockListOutcomeStore }
   );
-  const workstyleProfileHandler = createWorkstyleProfileCommandHandler(
-    persistence,
-    initialized.value.documents['workstyle-profile'],
-    { diagnostics, outcomeStore: workstyleProfileOutcomeStore }
-  );
+  const clock = createSystemClock();
   const coinHandler = createCoinCommandHandler(persistence, initialized.value.documents.coin, {
     diagnostics,
     outcomeStore: coinOutcomeStore,
   });
+  const workstyleProfileHandler = createWorkstyleProfileCommandHandler(
+    persistence,
+    initialized.value.documents['workstyle-profile'],
+    { diagnostics, outcomeStore: workstyleProfileOutcomeStore, coinHandler, clock }
+  );
 
   const workHistory = createWorkHistoryService(createInMemoryWorkHistoryAdapter());
   const effectExecutor = createEffectExecutor({
@@ -161,7 +162,6 @@ export const createBackgroundCompositionRoot = async (options: {
   });
 
   const alarms: AlarmAdapter = createSafariCompatibleAlarmAdapter() ?? createInMemoryAlarmAdapter();
-  const clock = createSystemClock();
   const browserActivity =
     createSafariCompatibleBrowserActivityAdapter() ??
     createInMemoryBrowserActivityAdapter(createInMemoryBrowserActivityState());

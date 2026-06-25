@@ -15,12 +15,15 @@ import {
   type WorkstyleProfileCommandEnvelope,
   type WorkstyleProfileCommandError,
 } from '../protocol/workstyleProfileCommand';
+import type { CoinCommandHandler } from '../coinTypes';
 import type {
   WorkstyleProfileCommandHandler,
   WorkstyleProfileCommandResponse,
   WorkstyleProfileRuntimeResult,
   WorkstyleProfileSnapshot,
 } from '../workstyleProfileTypes';
+
+export const MOOD_BOOST_COIN_COST = 10;
 
 const cloneSnapshot = (snapshot: WorkstyleProfileSnapshot): WorkstyleProfileSnapshot => ({
   ...snapshot,
@@ -44,12 +47,16 @@ export const createWorkstyleProfileCommandHandler = (
   options?: {
     diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkstyleProfileCommandResponse>;
+    coinHandler?: CoinCommandHandler;
+    clock?: { nowEpochMs: () => number };
   }
 ): WorkstyleProfileCommandHandler => {
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<WorkstyleProfileCommandResponse>();
   const diagnostics = options?.diagnostics;
   const outcomeStore = options?.outcomeStore;
+  const coinHandler = options?.coinHandler;
+  const clock = options?.clock ?? { nowEpochMs: () => Date.now() };
   const listeners = new Set<(snapshot: WorkstyleProfileSnapshot) => void>();
 
   const hydrateLedgerFromStore = async (): Promise<void> => {
@@ -92,6 +99,84 @@ export const createWorkstyleProfileCommandHandler = (
         expectedRevision: envelope.expectedRevision,
         actualRevision: current.revision,
       });
+    }
+
+    if (envelope.command.kind === 'purchase-pet-mood-boost') {
+      if (!coinHandler) {
+        return toFailure({ kind: 'persistence-unavailable' });
+      }
+      if (current.value.activePetId === null) {
+        return toFailure({ kind: 'no-pet-assigned' });
+      }
+      const coinSnapshot = coinHandler.current();
+      if (!coinSnapshot.ok) {
+        return toFailure({ kind: 'persistence-unavailable' });
+      }
+      if (coinSnapshot.value.value.balance < MOOD_BOOST_COIN_COST) {
+        return toFailure({
+          kind: 'insufficient-coins',
+          balance: coinSnapshot.value.value.balance,
+          required: MOOD_BOOST_COIN_COST,
+        });
+      }
+
+      const debit = await coinHandler.execute({
+        protocolVersion: 1,
+        commandId: `${envelope.commandId}:debit`,
+        module: 'coin',
+        command: {
+          kind: 'debit',
+          transactionId: `${envelope.commandId}:debit`,
+          amount: MOOD_BOOST_COIN_COST,
+          recordedAt: clock.nowEpochMs(),
+          reasonCode: 'mood-boost',
+          context: { petId: current.value.activePetId },
+        },
+      });
+      if (!debit.ok) {
+        if (debit.error.kind === 'insufficient-funds') {
+          return toFailure({
+            kind: 'insufficient-coins',
+            balance: coinSnapshot.value.value.balance,
+            required: MOOD_BOOST_COIN_COST,
+          });
+        }
+        return toFailure({ kind: 'persistence-failed' });
+      }
+
+      const decided = applyWorkstyleProfileCommand(current.value, {
+        kind: 'apply-pet-mood-event',
+        event: { kind: 'mood-boost-applied' },
+      });
+      if (!decided.ok) {
+        return toFailure(decided.error);
+      }
+
+      const committed = await persistence.commit([
+        {
+          document: 'workstyle-profile',
+          expectedRevision: current.revision,
+          value: decided.value,
+        },
+      ]);
+      if (!committed.ok) {
+        if (committed.error.kind === 'conflict') {
+          return toFailure({
+            kind: 'stale-revision',
+            expectedRevision: current.revision,
+            actualRevision: committed.error.actualRevision,
+          });
+        }
+        return toFailure({ kind: 'persistence-failed' });
+      }
+
+      const profile = committed.value.documents['workstyle-profile'];
+      if (!profile) {
+        return toFailure({ kind: 'persistence-failed' });
+      }
+      current = cloneSnapshot(profile);
+      notifyListeners();
+      return toSuccess(current);
     }
 
     const decided = applyWorkstyleProfileCommand(current.value, envelope.command);

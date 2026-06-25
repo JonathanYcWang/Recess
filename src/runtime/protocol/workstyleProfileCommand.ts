@@ -17,7 +17,8 @@ export type WorkstyleProfileCommand =
   | { kind: 'enrich-friction-from-personalization-quiz'; friction: unknown }
   | { kind: 'complete-personalization-quiz'; outcome: unknown }
   | { kind: 'restore-friction-baseline'; friction: unknown }
-  | { kind: 'apply-pet-mood-event'; event: unknown };
+  | { kind: 'apply-pet-mood-event'; event: unknown }
+  | { kind: 'purchase-pet-mood-boost' };
 
 export type WorkstyleProfileCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -71,6 +72,8 @@ const parseCommand = (command: unknown): WorkstyleProfileCommand | null => {
       return { kind: 'restore-friction-baseline', friction: command.friction };
     case 'apply-pet-mood-event':
       return { kind: 'apply-pet-mood-event', event: command.event };
+    case 'purchase-pet-mood-boost':
+      return { kind: 'purchase-pet-mood-boost' };
     default:
       return null;
   }
