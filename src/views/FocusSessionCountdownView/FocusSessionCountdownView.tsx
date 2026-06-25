@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import FocusTimer from '../../components/FocusTimer/FocusTimer';
-import Button from '../../components/Button/Button';
 import EnergyCheckDialog from '../../components/EnergyCheckDialog/EnergyCheckDialog';
 import PlayIcon from '../../assets/play.svg?url';
+import WorkRhythmActionButton from '../shared/WorkRhythmActionButton';
 import styles from './FocusSessionCountdownView.module.css';
 
 interface FocusSessionCountdownViewProps {
@@ -54,13 +54,17 @@ const FocusSessionCountdownView = ({
       </div>
       <FocusTimer timer={currentTimer} remainingTimer={currentRemaining} label="starting in" />
       <div className={styles.contentContainer}>
-        <Button
+        <WorkRhythmActionButton
           text="Start Focus Session Now"
           onClick={startFocusSession}
           iconSrc={PlayIcon}
           variant="primary"
         />
-        <Button text="End Work Session Early" onClick={endWorkSessionEarly} variant="tertiary" />
+        <WorkRhythmActionButton
+          text="End Work Session Early"
+          onClick={endWorkSessionEarly}
+          variant="tertiary"
+        />
       </div>
       <EnergyCheckDialog
         open={dialogOpen}

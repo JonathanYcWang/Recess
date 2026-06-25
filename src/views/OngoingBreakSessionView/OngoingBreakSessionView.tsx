@@ -1,7 +1,7 @@
 import RewardLink from '../../components/RewardLink/RewardLink';
 import FocusTimer from '../../components/FocusTimer/FocusTimer';
-import Button from '../../components/Button/Button';
 import { useTimer } from '../../hooks/useTimer';
+import WorkRhythmActionButton from '../shared/WorkRhythmActionButton';
 
 import styles from './OngoingBreakSessionView.module.css';
 
@@ -39,7 +39,11 @@ const OngoingBreakSessionView = ({
             siteUrl={selectedReward.name}
           />
         )}
-        <Button text="Wrap up break early" onClick={endSessionEarly} variant="tertiary" />
+        <WorkRhythmActionButton
+          text="Wrap up break early"
+          onClick={endSessionEarly}
+          variant="tertiary"
+        />
       </div>
     </>
   );
