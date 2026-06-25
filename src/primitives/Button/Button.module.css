@@ -1,0 +1,97 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  min-height: 2.5rem;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-xl);
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard),
+    opacity var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.primary {
+  background-color: var(--ink-primary);
+  color: var(--surface-primary);
+}
+
+.primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.secondary {
+  background-color: var(--surface-primary);
+  color: var(--ink-primary);
+  border-color: var(--ink-primary);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: var(--surface-secondary);
+}
+
+.destructive {
+  background-color: var(--fill-destructive);
+  color: var(--ink-on-destructive);
+}
+
+.destructive:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+[data-theme='dark'] .destructive:not(:disabled):not([aria-disabled='true']) {
+  background-color: var(--core-red);
+  color: var(--core-paper);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--ink-primary);
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: var(--surface-secondary);
+}
+
+.loading {
+  cursor: wait;
+}
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  opacity: 1;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.primary:disabled,
+.primary[aria-disabled='true'] {
+  background-color: var(--surface-secondary);
+  color: var(--ink-disabled);
+}
+
+.secondary:disabled,
+.secondary[aria-disabled='true'] {
+  background-color: var(--surface-secondary);
+  color: var(--ink-disabled);
+  border-color: var(--border-default);
+}
+
+.destructive:disabled,
+.destructive[aria-disabled='true'] {
+  background-color: var(--surface-secondary);
+  color: var(--ink-disabled);
+}
+
+.ghost:disabled,
+.ghost[aria-disabled='true'] {
+  color: var(--ink-disabled);
+}

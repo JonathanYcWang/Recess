@@ -28,4 +28,12 @@ test.describe('keyboard and navigation behavior', () => {
     });
     expect(['0.01ms', '0s']).toContain(animationDuration);
   });
+
+  test('primitive examples route is keyboard reachable', async ({ page }) => {
+    await gotoAppRoute(page, '/#/primitive-examples');
+
+    await page.keyboard.press('Tab');
+    const focused = page.locator(':focus');
+    await expect(focused).toBeVisible();
+  });
 });

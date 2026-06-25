@@ -59,7 +59,10 @@ export const assertNoSeriousAxeViolations = async (page: Page, contextLabel: str
 
   if (blocking.length > 0) {
     const summary = blocking
-      .map((violation) => `${violation.id} (${violation.impact}) on ${violation.nodes.length} node(s)`)
+      .map((violation) => {
+        const nodes = violation.nodes.map((node) => node.html).join(' | ');
+        return `${violation.id} (${violation.impact}) on ${violation.nodes.length} node(s): ${nodes}`;
+      })
       .join('; ');
     throw new Error(`[${contextLabel}] axe serious/critical violations: ${summary}`);
   }
@@ -67,6 +70,7 @@ export const assertNoSeriousAxeViolations = async (page: Page, contextLabel: str
 
 export const routesUnderTest = [
   { path: '/#/onboarding', label: 'onboarding' },
+  { path: '/#/primitive-examples', label: 'primitive-examples' },
 ] as const;
 
 /** Home focus route — add to axe gate after #117 shell migration fixes contrast debt (#112 §7). */
