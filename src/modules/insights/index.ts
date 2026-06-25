@@ -37,3 +37,15 @@ export {
   TIME_OUT_PATTERNS_FORMULA_ID,
   type TimeOutPatternsValue,
 } from './projections/timeOutPatterns';
+
+export {
+  calculateReminderAdherence,
+  REMINDER_ADHERENCE_FORMULA_ID,
+  type ReminderAdherenceValue,
+} from './projections/reminderAdherence';
+
+export {
+  queryInsightsSnapshot,
+  type InsightsSnapshot,
+  type InsightsSnapshotOutcome,
+} from './insightsService';
