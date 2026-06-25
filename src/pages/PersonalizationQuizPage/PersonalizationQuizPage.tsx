@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../components/Button/Button';
+import { PrimitiveAlert, PrimitiveButton, PrimitivePanel } from '@/primitives';
 import {
   applyPersonalizationQuizAnswer,
   frictionProfileFromScores,
@@ -175,7 +175,7 @@ const PersonalizationQuizPage = () => {
               : 'Your workstyle profile is enriched.'}
           </p>
         </header>
-        <section className={styles.section}>
+        <PrimitivePanel className={styles.section}>
           {activePet ? (
             <>
               <p className={styles.result}>{activePet.name}</p>
@@ -186,10 +186,10 @@ const PersonalizationQuizPage = () => {
             <p className={styles.result}>Result: {formatOutcome(completedOutcome)}</p>
           )}
           <div className={styles.actions}>
-            <Button text="Back to Recess" onClick={() => navigate('/')} variant="primary" />
-            <Button text="Retake quiz" onClick={() => void handleRestart()} variant="primary" />
+            <PrimitiveButton onClick={() => navigate('/')}>Back to Recess</PrimitiveButton>
+            <PrimitiveButton onClick={() => void handleRestart()}>Retake quiz</PrimitiveButton>
           </div>
-        </section>
+        </PrimitivePanel>
       </div>
     );
   }
@@ -217,38 +217,44 @@ const PersonalizationQuizPage = () => {
       </header>
 
       {scenario ? (
-        <section className={styles.section} aria-live="polite">
-          <p className={styles.meta}>Question {progress.askedScenarioIds.length + 1} of up to 12</p>
-          <h2>{scenario.text}</h2>
-          <div className={styles.optionList} role="list">
-            {scenario.options.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={styles.option}
-                disabled={submitting}
-                onClick={() => void handleSelectOption(scenario.id, option.id)}
-              >
-                {option.text}
-              </button>
-            ))}
-          </div>
-        </section>
+        <div aria-live="polite">
+          <PrimitivePanel className={styles.section} aria-label="Personalization quiz question">
+            <p className={styles.meta}>
+              Question {progress.askedScenarioIds.length + 1} of up to 12
+            </p>
+            <h2>{scenario.text}</h2>
+            <div className={styles.optionList} role="list">
+              {scenario.options.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={styles.option}
+                  disabled={submitting}
+                  onClick={() => void handleSelectOption(scenario.id, option.id)}
+                >
+                  {option.text}
+                </button>
+              ))}
+            </div>
+          </PrimitivePanel>
+        </div>
       ) : (
-        <section className={styles.section}>
+        <PrimitivePanel className={styles.section}>
           <p>No further questions are available right now.</p>
-        </section>
+        </PrimitivePanel>
       )}
 
-      {error ? <p className={styles.error}>{error}</p> : null}
+      {error ? (
+        <PrimitiveAlert variant="error" title="Could not update quiz">
+          {error}
+        </PrimitiveAlert>
+      ) : null}
 
       <div className={styles.actions}>
-        <Button text="Dismiss for now" onClick={() => void handleDismiss()} variant="primary" />
-        <Button
-          text={submitting ? 'Working…' : 'Restart quiz'}
-          onClick={() => void handleRestart()}
-          variant="primary"
-        />
+        <PrimitiveButton onClick={() => void handleDismiss()}>Dismiss for now</PrimitiveButton>
+        <PrimitiveButton isLoading={submitting} onClick={() => void handleRestart()}>
+          {submitting ? 'Working…' : 'Restart quiz'}
+        </PrimitiveButton>
       </div>
     </div>
   );

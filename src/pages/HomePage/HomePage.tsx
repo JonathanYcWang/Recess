@@ -30,6 +30,7 @@ import BunnyWorkingImage from '../../assets/bunny-working.png';
 
 const DEFAULT_PET_NAME = 'Companion';
 const DEFAULT_PET_IMAGE = BunnyWorkingImage;
+const DEFAULT_PET_ALT = 'Companion working steadily alongside you';
 
 interface NavIconProps {
   className?: string;
@@ -103,7 +104,8 @@ const HomePage = () => {
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
   const activePet = activePetId ? getPetById(activePetId) : undefined;
   const petName = activePet?.name ?? DEFAULT_PET_NAME;
-  const petImage = DEFAULT_PET_IMAGE;
+  const petImage = activePet?.moodAssets.focused.assetPath ?? DEFAULT_PET_IMAGE;
+  const petImageAlt = activePet?.moodAssets.focused.accessibleLabel ?? DEFAULT_PET_ALT;
 
   useEffect(() => {
     if (onboardingCompleted) {
@@ -250,7 +252,7 @@ const HomePage = () => {
                       },
                     ]}
                   /> */}
-                  <FocusPet petName={petName} imgSrc={petImage} />
+                  <FocusPet petName={petName} imgSrc={petImage} imgAlt={petImageAlt} />
                 </section>
               </aside>
             </div>

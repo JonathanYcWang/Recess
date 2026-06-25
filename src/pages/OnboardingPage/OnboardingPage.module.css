@@ -1,47 +1,57 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.5rem;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
   max-width: 36rem;
   margin: 0 auto;
 }
 
 .header h1 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--spacing-2);
 }
 
 .header p,
 .section p {
   margin: 0;
-  color: #4b5563;
+  color: var(--ink-muted);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-4);
 }
 
 .optionList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--spacing-3);
 }
 
 .option,
 .optionSelected {
   text-align: left;
   padding: 0.875rem 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-primary);
+  color: var(--ink-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-xl);
   cursor: pointer;
 }
 
 .optionSelected {
-  border-color: #2563eb;
-  background: #eff6ff;
+  border-color: var(--ink-selection);
+  background: var(--surface-secondary);
+}
+
+.option:focus-visible,
+.optionSelected:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .summary {
@@ -52,9 +62,5 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.error {
-  color: #b91c1c;
+  gap: var(--spacing-3);
 }

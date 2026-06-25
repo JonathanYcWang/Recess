@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../components/Button/Button';
+import { PrimitiveAlert, PrimitiveButton, PrimitivePanel } from '@/primitives';
 import {
   ENERGY_LEVELS,
   FRICTION_DIMENSIONS,
@@ -148,7 +148,7 @@ const OnboardingPage = () => {
       </header>
 
       {draft.step === 0 && (
-        <section className={styles.section}>
+        <PrimitivePanel className={styles.section}>
           <h2>How is your energy right now?</h2>
           <div className={styles.optionList}>
             {ENERGY_LEVELS.map((energy) => (
@@ -162,11 +162,11 @@ const OnboardingPage = () => {
               </button>
             ))}
           </div>
-        </section>
+        </PrimitivePanel>
       )}
 
       {draft.step === 1 && draft.energy && (
-        <section className={styles.section}>
+        <PrimitivePanel className={styles.section}>
           <h2>Which focus rhythm feels most natural?</h2>
           <div className={styles.optionList}>
             {PREFERRED_CADENCES.map((cadence) => (
@@ -180,16 +180,12 @@ const OnboardingPage = () => {
               </button>
             ))}
           </div>
-          <Button
-            text="Back"
-            onClick={() => updateDraft({ ...draft, step: 0 })}
-            variant="primary"
-          />
-        </section>
+          <PrimitiveButton onClick={() => updateDraft({ ...draft, step: 0 })}>Back</PrimitiveButton>
+        </PrimitivePanel>
       )}
 
       {draft.step === 2 && draft.energy && draft.cadence && (
-        <section className={styles.section}>
+        <PrimitivePanel className={styles.section}>
           <h2>What gets in the way most often?</h2>
           <div className={styles.optionList}>
             {FRICTION_DIMENSIONS.map((friction) => (
@@ -205,37 +201,33 @@ const OnboardingPage = () => {
               </button>
             ))}
           </div>
-          <Button
-            text="Back"
-            onClick={() => updateDraft({ ...draft, step: 1 })}
-            variant="primary"
-          />
-        </section>
+          <PrimitiveButton onClick={() => updateDraft({ ...draft, step: 1 })}>Back</PrimitiveButton>
+        </PrimitivePanel>
       )}
 
       {draft.step === 3 && draft.energy && draft.cadence && draft.primaryFriction && (
-        <section className={styles.section}>
+        <PrimitivePanel className={styles.section}>
           <h2>Ready to begin</h2>
           <ul className={styles.summary}>
             <li>Energy: {ENERGY_LABELS[draft.energy]}</li>
             <li>Cadence: {CADENCE_LABELS[draft.cadence]}</li>
             <li>Primary friction: {FRICTION_LABELS[draft.primaryFriction]}</li>
           </ul>
-          {error ? <p className={styles.error}>{error}</p> : null}
+          {error ? (
+            <PrimitiveAlert variant="error" title="Could not continue">
+              {error}
+            </PrimitiveAlert>
+          ) : null}
           <div className={styles.actions}>
-            <Button
-              text={submitting ? 'Saving…' : 'Start Recess'}
-              onClick={() => void handleSubmit()}
-              variant="primary"
-            />
-            <Button
-              text="Back"
-              onClick={() => updateDraft({ ...draft, step: 2 })}
-              variant="primary"
-            />
-            <Button text="Start over" onClick={handleRestart} variant="primary" />
+            <PrimitiveButton isLoading={submitting} onClick={() => void handleSubmit()}>
+              {submitting ? 'Saving…' : 'Start Recess'}
+            </PrimitiveButton>
+            <PrimitiveButton onClick={() => updateDraft({ ...draft, step: 2 })}>
+              Back
+            </PrimitiveButton>
+            <PrimitiveButton onClick={handleRestart}>Start over</PrimitiveButton>
           </div>
-        </section>
+        </PrimitivePanel>
       )}
     </div>
   );

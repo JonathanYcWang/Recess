@@ -1,21 +1,20 @@
+import { PrimitiveCard } from '@/primitives';
 import styles from './FocusPet.module.css';
 
 interface FocusPetProps {
   petName: string;
   imgSrc: string;
+  imgAlt: string;
 }
 
-const FocusPet = ({ petName, imgSrc }: FocusPetProps) => {
+const FocusPet = ({ petName, imgSrc, imgAlt }: FocusPetProps) => {
   return (
-    <section className={styles.focusPet} aria-label={`${petName} focus companion`}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>{petName} in Deep Work</h3>
-      </div>
+    <PrimitiveCard className={styles.focusPet} title={`${petName} in Deep Work`}>
       <p className={styles.description}>Heads down and grinding alongside you.</p>
       <div className={styles.petStage}>
-        <img className={styles.petImage} src={imgSrc} alt="" />
+        <img className={styles.petImage} src={imgSrc} alt={imgAlt} />
       </div>
-    </section>
+    </PrimitiveCard>
   );
 };
 
