@@ -1,0 +1,35 @@
+export {
+  createZeroFrictionScoreEffects,
+  frictionScoreEffects,
+  PERSONALIZATION_QUIZ_BANK_VERSION,
+  type FrictionScoreEffects,
+  type PersonalizationQuizAnswerOption,
+  type PersonalizationQuizBank,
+  type PersonalizationQuizScenario,
+} from './personalizationQuizTypes';
+export {
+  getPersonalizationQuizScenarioById,
+  personalizationQuizBank,
+  personalizationQuizScreeningScenarios,
+  personalizationQuizTieBreakerScenarios,
+} from './personalizationQuizBank';
+export {
+  applyPersonalizationQuizAnswer,
+  BALANCED_STOP_GAP,
+  buildPersonalizationQuizSequence,
+  evaluatePersonalizationQuizResult,
+  frictionProfileFromScores,
+  MAX_SCREENING_QUESTIONS,
+  MAX_TIE_BREAKERS,
+  MAX_TOTAL_QUESTIONS,
+  nextPersonalizationQuizScenarioId,
+  normalizeFrictionPair,
+  pairsNeedingDisambiguation,
+  rankFrictionScores,
+  SCREENING_STOP_GAP,
+  secondToThirdGap,
+  selectDeterministicTieBreakers,
+  topTwoDimensions,
+  type PersonalizationQuizResult,
+  type RankedFriction,
+} from './personalizationQuizEngine';

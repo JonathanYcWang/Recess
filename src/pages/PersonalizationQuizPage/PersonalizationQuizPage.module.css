@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+.header h1 {
+  margin: 0 0 0.5rem;
+}
+
+.header p,
+.section p,
+.meta {
+  margin: 0;
+  color: #4b5563;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.option,
+.optionSelected {
+  text-align: left;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+}
+
+.optionSelected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.result {
+  margin: 0;
+  font-weight: 600;
+}

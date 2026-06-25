@@ -29,6 +29,10 @@ export interface FrictionProfile {
   fatigue: FrictionLevel;
 }
 
+export type PersonalizationQuizOutcome =
+  | { kind: 'top-two'; dimensions: readonly [FrictionDimension, FrictionDimension] }
+  | { kind: 'balanced' };
+
 export interface WorkstyleProfileValue {
   preferredCadence: PreferredCadence;
   energy: EnergyLevel;
@@ -36,6 +40,7 @@ export interface WorkstyleProfileValue {
   friction: FrictionProfile;
   assignedPetId: string | null;
   onboardingCompleted: boolean;
+  personalizationQuizOutcome: PersonalizationQuizOutcome | null;
 }
 
 const DEFAULT_FRICTION: FrictionProfile = {
@@ -54,6 +59,7 @@ export const createDefaultWorkstyleProfileValue = (): WorkstyleProfileValue => (
   friction: { ...DEFAULT_FRICTION },
   assignedPetId: null,
   onboardingCompleted: false,
+  personalizationQuizOutcome: null,
 });
 
 export const frictionDimensionToField = (dimension: FrictionDimension): keyof FrictionProfile => {
@@ -91,4 +97,15 @@ export const cloneWorkstyleProfileValue = (
   friction: cloneFrictionProfile(value.friction),
   assignedPetId: value.assignedPetId,
   onboardingCompleted: value.onboardingCompleted,
+  personalizationQuizOutcome: value.personalizationQuizOutcome
+    ? value.personalizationQuizOutcome.kind === 'balanced'
+      ? { kind: 'balanced' }
+      : {
+          kind: 'top-two',
+          dimensions: [...value.personalizationQuizOutcome.dimensions] as [
+            FrictionDimension,
+            FrictionDimension,
+          ],
+        }
+    : null,
 });

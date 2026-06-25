@@ -19,6 +19,7 @@ export {
   type FrictionLevel,
   type FrictionProfile,
   type MomentumLevel,
+  type PersonalizationQuizOutcome,
   type PreferredCadence,
   type WorkstyleProfileValue,
 } from './workstyleProfileDocument';

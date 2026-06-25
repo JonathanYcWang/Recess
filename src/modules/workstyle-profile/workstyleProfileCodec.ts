@@ -7,17 +7,20 @@ import {
   cloneWorkstyleProfileValue,
   createDefaultWorkstyleProfileValue,
   ENERGY_LEVELS,
+  FRICTION_DIMENSIONS,
   FRICTION_LEVELS,
   MOMENTUM_LEVELS,
   PREFERRED_CADENCES,
   type EnergyLevel,
   type FrictionProfile,
   type MomentumLevel,
+  type PersonalizationQuizOutcome,
   type PreferredCadence,
   type WorkstyleProfileValue,
 } from './workstyleProfileDocument';
 
-export const WORKSTYLE_PROFILE_SCHEMA_VERSION = 1;
+export const WORKSTYLE_PROFILE_SCHEMA_VERSION = 2;
+const SUPPORTED_SCHEMA_VERSIONS = [1, 2] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -47,7 +50,42 @@ const parseFrictionProfile = (value: unknown): Result<FrictionProfile, string> =
   return { ok: true, value: friction };
 };
 
-const parseWorkstyleProfileValue = (value: unknown): Result<WorkstyleProfileValue, string> => {
+const parsePersonalizationQuizOutcome = (
+  value: unknown
+): Result<PersonalizationQuizOutcome | null, string> => {
+  if (value === undefined || value === null) {
+    return { ok: true, value: null };
+  }
+  if (!isRecord(value)) {
+    return { ok: false, error: 'personalizationQuizOutcome must be an object or null' };
+  }
+  if (value.kind === 'balanced') {
+    return { ok: true, value: { kind: 'balanced' } };
+  }
+  if (value.kind !== 'top-two' || !Array.isArray(value.dimensions)) {
+    return { ok: false, error: 'personalizationQuizOutcome must be balanced or top-two' };
+  }
+  const [first, second] = value.dimensions;
+  if (
+    typeof first !== 'string' ||
+    typeof second !== 'string' ||
+    !includes(FRICTION_DIMENSIONS, first) ||
+    !includes(FRICTION_DIMENSIONS, second) ||
+    first === second
+  ) {
+    return { ok: false, error: 'personalizationQuizOutcome dimensions must be distinct frictions' };
+  }
+  const dimensions = (first < second ? [first, second] : [second, first]) as readonly [
+    typeof first,
+    typeof second,
+  ];
+  return { ok: true, value: { kind: 'top-two', dimensions } };
+};
+
+const parseWorkstyleProfileValue = (
+  value: unknown,
+  schemaVersion: number
+): Result<WorkstyleProfileValue, string> => {
   if (!isRecord(value)) {
     return { ok: false, error: 'workstyle profile value must be an object' };
   }
@@ -73,6 +111,13 @@ const parseWorkstyleProfileValue = (value: unknown): Result<WorkstyleProfileValu
   if (typeof value.onboardingCompleted !== 'boolean') {
     return { ok: false, error: 'onboardingCompleted must be a boolean' };
   }
+  const outcome =
+    schemaVersion >= 2
+      ? parsePersonalizationQuizOutcome(value.personalizationQuizOutcome)
+      : { ok: true as const, value: null };
+  if (!outcome.ok) {
+    return { ok: false, error: outcome.error };
+  }
   return {
     ok: true,
     value: {
@@ -82,6 +127,7 @@ const parseWorkstyleProfileValue = (value: unknown): Result<WorkstyleProfileValu
       friction: friction.value,
       assignedPetId: value.assignedPetId === null ? null : String(value.assignedPetId),
       onboardingCompleted: value.onboardingCompleted,
+      personalizationQuizOutcome: outcome.value,
     },
   };
 };
@@ -126,13 +172,19 @@ export const workstyleProfileCodec: DocumentCodec<WorkstyleProfileValue> = {
       };
     }
     if (wire.schemaVersion !== WORKSTYLE_PROFILE_SCHEMA_VERSION) {
-      return {
-        ok: false as const,
-        error: {
-          kind: 'unsupported-version' as const,
-          message: `Unsupported Workstyle Profile schema version ${wire.schemaVersion}`,
-        },
-      };
+      if (
+        !SUPPORTED_SCHEMA_VERSIONS.includes(
+          wire.schemaVersion as (typeof SUPPORTED_SCHEMA_VERSIONS)[number]
+        )
+      ) {
+        return {
+          ok: false as const,
+          error: {
+            kind: 'unsupported-version' as const,
+            message: `Unsupported Workstyle Profile schema version ${wire.schemaVersion}`,
+          },
+        };
+      }
     }
     if (
       typeof wire.revision !== 'number' ||
@@ -148,7 +200,7 @@ export const workstyleProfileCodec: DocumentCodec<WorkstyleProfileValue> = {
         },
       };
     }
-    const value = parseWorkstyleProfileValue(wire.value);
+    const value = parseWorkstyleProfileValue(wire.value, wire.schemaVersion);
     if (!value.ok) {
       return {
         ok: false as const,
@@ -162,7 +214,7 @@ export const workstyleProfileCodec: DocumentCodec<WorkstyleProfileValue> = {
     return {
       ok: true as const,
       value: {
-        schemaVersion: wire.schemaVersion,
+        schemaVersion: WORKSTYLE_PROFILE_SCHEMA_VERSION,
         revision: wire.revision,
         value: value.value,
       },

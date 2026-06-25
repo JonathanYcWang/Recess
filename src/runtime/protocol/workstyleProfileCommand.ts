@@ -13,7 +13,10 @@ export type WorkstyleProfileCommand =
       cadence: unknown;
       primaryFriction: unknown;
     }
-  | { kind: 'assign-pet'; petId: unknown };
+  | { kind: 'assign-pet'; petId: unknown }
+  | { kind: 'enrich-friction-from-personalization-quiz'; friction: unknown }
+  | { kind: 'complete-personalization-quiz'; outcome: unknown }
+  | { kind: 'restore-friction-baseline'; friction: unknown };
 
 export type WorkstyleProfileCommandError =
   | { kind: 'unsupported-protocol'; supportedVersion: number }
@@ -56,6 +59,15 @@ const parseCommand = (command: unknown): WorkstyleProfileCommand | null => {
       };
     case 'assign-pet':
       return { kind: 'assign-pet', petId: command.petId };
+    case 'enrich-friction-from-personalization-quiz':
+      return {
+        kind: 'enrich-friction-from-personalization-quiz',
+        friction: command.friction,
+      };
+    case 'complete-personalization-quiz':
+      return { kind: 'complete-personalization-quiz', outcome: command.outcome };
+    case 'restore-friction-baseline':
+      return { kind: 'restore-friction-baseline', friction: command.friction };
     default:
       return null;
   }
