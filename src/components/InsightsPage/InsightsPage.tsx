@@ -1,4 +1,5 @@
 import type { InsightResult } from '@/modules/insights';
+import { PrimitiveButton, PrimitiveSelect } from '@/primitives';
 import {
   describeInsightResult,
   formatPercent,
@@ -79,118 +80,126 @@ const InsightsPage = ({
   loadState,
   snapshot,
   onRefresh,
-}: InsightsPageProps) => (
-  <section className={styles.page} aria-labelledby="insights-heading">
-    <header className={styles.header}>
-      <h2 id="insights-heading" className={styles.title}>
-        Insights
-      </h2>
-      <p className={styles.lead}>
-        Interpretations derived from immutable Work History. Window selection uses resolved Work
-        Sessions for focus, recovery, and Time Out families, and non-neutral Reminder occurrences
-        for adherence.
-      </p>
-    </header>
+}: InsightsPageProps) => {
+  const windowOptions = INSIGHT_WINDOW_OPTIONS.map((option) => ({
+    id: option.id,
+    label: option.label,
+    value: option.id,
+  }));
 
-    <div className={styles.controls}>
-      <label className={styles.windowLabel} htmlFor="insights-window">
-        Window
-      </label>
-      <select
-        id="insights-window"
-        className={styles.windowSelect}
-        value={window}
-        onChange={(event) =>
-          onWindowChange(event.target.value as (typeof INSIGHT_WINDOW_OPTIONS)[number]['id'])
-        }
-      >
-        {INSIGHT_WINDOW_OPTIONS.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <button type="button" className={styles.refreshButton} onClick={onRefresh}>
-        Refresh
-      </button>
-    </div>
+  return (
+    <section className={styles.page} aria-labelledby="insights-heading">
+      <header className={styles.header}>
+        <h2 id="insights-heading" className={styles.title}>
+          Insights
+        </h2>
+        <p className={styles.lead}>
+          Interpretations derived from immutable Work History. Window selection uses resolved Work
+          Sessions for focus, recovery, and Time Out families, and non-neutral Reminder occurrences
+          for adherence.
+        </p>
+      </header>
 
-    {loadState === 'loading' ? <p role="status">Loading Insights…</p> : null}
-    {loadState === 'error' ? (
-      <p className={styles.error} role="alert">
-        Unable to load Insights right now.
-      </p>
-    ) : null}
+      <div className={styles.controls}>
+        <div className={styles.windowControl}>
+          <PrimitiveSelect
+            id="insights-window"
+            label="Window"
+            options={windowOptions}
+            selectedKey={window}
+            onSelectionChange={(key) => {
+              if (typeof key !== 'string') {
+                return;
+              }
 
-    {snapshot ? (
-      <div className={styles.grid}>
-        <InsightCard
-          title="Estimate accuracy"
-          description="Compares completed Task estimates with full-lifetime Focused Time."
-          result={snapshot.estimateAccuracy}
-          formulaLabel="Accuracy is 100 minus the mean absolute percentage error; variance shows typical over/under estimation."
-          renderCalculated={(value) => (
-            <>
-              <p className={styles.primaryMetric}>{formatPercent(value.accuracyScore)} accurate</p>
-              <p>Signed variance: {formatPercent(value.signedMeanVariancePercent)}</p>
-              <p>{value.taskCount} completed tasks</p>
-            </>
-          )}
-        />
-        <InsightCard
-          title="Focus and recovery"
-          description="Focus and Recess shares among completed Work Sessions in the selected window."
-          result={snapshot.focusRecovery}
-          renderCalculated={(value) => (
-            <>
-              <p className={styles.primaryMetric}>
-                {formatPercent(value.focusPercent)} Focus / {formatPercent(value.recessPercent)}{' '}
-                Recess
-              </p>
-              <p>
-                {formatSeconds(value.focusSeconds)} Focus, {formatSeconds(value.recessSeconds)}{' '}
-                Recess
-              </p>
-              <p>{value.sessionCount} resolved sessions</p>
-            </>
-          )}
-        />
-        <InsightCard
-          title="Time Out patterns"
-          description="Resolved Time Out intervals across selected Work Sessions."
-          result={snapshot.timeOutPatterns}
-          renderCalculated={(value) => (
-            <>
-              <p className={styles.primaryMetric}>{value.count} Time Outs</p>
-              <p>
-                Total {formatSeconds(value.totalSeconds)}, average{' '}
-                {formatSeconds(value.averageSeconds)}
-              </p>
-              <p>
-                {formatPercent(value.sessionsWithTimeOutPercent)} of sessions included a Time Out
-              </p>
-            </>
-          )}
-        />
-        <InsightCard
-          title="Reminder adherence"
-          description="Satisfied versus missed non-neutral Reminder occurrences."
-          result={snapshot.reminderAdherence}
-          renderCalculated={(value) => (
-            <>
-              <p className={styles.primaryMetric}>
-                {formatPercent(value.adherencePercent)} adherence
-              </p>
-              <p>
-                {value.satisfiedCount} satisfied, {value.missedCount} missed (
-                {value.occurrenceCount} occurrences)
-              </p>
-            </>
-          )}
-        />
+              onWindowChange(key as (typeof INSIGHT_WINDOW_OPTIONS)[number]['id']);
+            }}
+          />
+        </div>
+        <PrimitiveButton variant="secondary" className={styles.refreshButton} onClick={onRefresh}>
+          Refresh
+        </PrimitiveButton>
       </div>
-    ) : null}
-  </section>
-);
+
+      {loadState === 'loading' ? <p role="status">Loading Insights…</p> : null}
+      {loadState === 'error' ? (
+        <p className={styles.error} role="alert">
+          Unable to load Insights right now.
+        </p>
+      ) : null}
+
+      {snapshot ? (
+        <div className={styles.grid}>
+          <InsightCard
+            title="Estimate accuracy"
+            description="Compares completed Task estimates with full-lifetime Focused Time."
+            result={snapshot.estimateAccuracy}
+            formulaLabel="Accuracy is 100 minus the mean absolute percentage error; variance shows typical over/under estimation."
+            renderCalculated={(value) => (
+              <>
+                <p className={styles.primaryMetric}>
+                  {formatPercent(value.accuracyScore)} accurate
+                </p>
+                <p>Signed variance: {formatPercent(value.signedMeanVariancePercent)}</p>
+                <p>{value.taskCount} completed tasks</p>
+              </>
+            )}
+          />
+          <InsightCard
+            title="Focus and recovery"
+            description="Focus and Recess shares among completed Work Sessions in the selected window."
+            result={snapshot.focusRecovery}
+            renderCalculated={(value) => (
+              <>
+                <p className={styles.primaryMetric}>
+                  {formatPercent(value.focusPercent)} Focus / {formatPercent(value.recessPercent)}{' '}
+                  Recess
+                </p>
+                <p>
+                  {formatSeconds(value.focusSeconds)} Focus, {formatSeconds(value.recessSeconds)}{' '}
+                  Recess
+                </p>
+                <p>{value.sessionCount} resolved sessions</p>
+              </>
+            )}
+          />
+          <InsightCard
+            title="Time Out patterns"
+            description="Resolved Time Out intervals across selected Work Sessions."
+            result={snapshot.timeOutPatterns}
+            renderCalculated={(value) => (
+              <>
+                <p className={styles.primaryMetric}>{value.count} Time Outs</p>
+                <p>
+                  Total {formatSeconds(value.totalSeconds)}, average{' '}
+                  {formatSeconds(value.averageSeconds)}
+                </p>
+                <p>
+                  {formatPercent(value.sessionsWithTimeOutPercent)} of sessions included a Time Out
+                </p>
+              </>
+            )}
+          />
+          <InsightCard
+            title="Reminder adherence"
+            description="Satisfied versus missed non-neutral Reminder occurrences."
+            result={snapshot.reminderAdherence}
+            renderCalculated={(value) => (
+              <>
+                <p className={styles.primaryMetric}>
+                  {formatPercent(value.adherencePercent)} adherence
+                </p>
+                <p>
+                  {value.satisfiedCount} satisfied, {value.missedCount} missed (
+                  {value.occurrenceCount} occurrences)
+                </p>
+              </>
+            )}
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+};
 
 export default InsightsPage;
