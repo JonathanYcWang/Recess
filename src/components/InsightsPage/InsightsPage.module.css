@@ -1,0 +1,105 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.lead {
+  margin: 0;
+  color: var(--text-secondary, #5f6368);
+  max-width: 48rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.windowLabel {
+  font-weight: 600;
+}
+
+.windowSelect,
+.refreshButton {
+  font: inherit;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.card {
+  border: 1px solid var(--border-subtle, #dadce0);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: var(--surface-elevated, #fff);
+}
+
+.cardHeader {
+  margin-bottom: 0.75rem;
+}
+
+.cardTitle {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.cardDescription {
+  margin: 0;
+  color: var(--text-secondary, #5f6368);
+  font-size: 0.9rem;
+}
+
+.status {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+
+.calculatedValue {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.primaryMetric {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.explanation {
+  margin-top: 0.75rem;
+}
+
+.explanationBody {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.error {
+  color: #b3261e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .refreshButton,
+  .windowSelect {
+    transition: none;
+  }
+}
