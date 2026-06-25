@@ -2,7 +2,7 @@
 
 **Issue:** [#112](https://github.com/JonathanYcWang/Recess/issues/112)  
 **Epic:** [#111 Approved design system and UI migration](https://github.com/JonathanYcWang/Recess/issues/111)  
-**Status:** Implementation evidence recorded; human approval sections marked below.  
+**Status:** Implementation evidence recorded; **human-approved** 2026-06-25 (grilling session).  
 **Source of truth:** Current code under `src/` as of this audit. This document does **not** inherit values from `DESIGN_SYSTEM.md` or prototype guidance.
 
 ---
@@ -145,10 +145,10 @@ Key persistent surfaces: `TaskList`, `TaskPlanner`, `FocusTaskSelection`, `Focus
 
 | Pattern | Occurrences | Proposed semantic role |
 |---------|-------------|------------------------|
-| `#1b1b1b` / `rgba(27,27,27,…)` | shadows, ink | `--color-ink` / `--elevation-shadow` |
-| `#37eb4f` green | primary CTA, timer stroke | `--color-primary-fill` (see §8 palette decision) |
-| `#d32f2f` / `#e24b4a` | destructive, exhausted | `--color-destructive` |
-| `#f9eadf` / `#d85a30` | fatigue widget | `--color-warning-surface` / `--color-warning-ink` |
+| `#1b1b1b` / `rgba(27,27,27,…)` | shadows, ink | `--ink-primary` / `--shadow-elevation-*` |
+| `#37eb4f` green | legacy `--color-primary` usages | **Retire** — replace with `--ink-primary` for selection (§8.1) |
+| `#d32f2f` / `#e24b4a` | destructive, exhausted | `--fill-destructive` |
+| `#f9eadf` / `#d85a30` | legacy fatigue widget | **Retire** — gray fatigue tiers (§8.4) |
 | `0.5rem` radius | globals `--radius` | `--radius-control` |
 | 4px spacing grid | tokens.css | Keep as core spacing |
 
@@ -236,159 +236,194 @@ Used in `EditTimeRangeOverlay` for schedule time picking. Focus ring via `[data-
 
 ---
 
-## 8. Proposed visual direction — **pending human approval**
+## 8. Approved visual direction
 
-> These proposals are derived from current implementation patterns and epic intent. They replace the ad-hoc mix documented above. Sign-off is required before #113 implementation.
+> Human-approved 2026-06-25 via grilling session. Supersedes draft pale-blue / green proposals in the first audit revision. **No accent color** in v1 of the approved system.
 
 ### 8.1 Brand character
 
-| Principle | Proposal | Current evidence |
-|-----------|----------|------------------|
-| Tone | Minimal, warm, playful, grown-up | Handwritten headings, soft gray surfaces, companion pet, reward games |
-| Identity | Black ink on white grounds; handwritten **accents only** | `--color-black` / `--color-white` dominate; Patrick Hand on `body` today (see typography) |
-| Primary accent | **Pale blue** for fills and selection highlights | *Gap:* implementation uses green `#37eb4f` as `--color-primary` today |
-| Focus / links | **Darker blue** distinct from pale accent | *Gap:* `#2563eb` appears only as undeclared fallback in Hall Pass button |
-| Destructive | Keep existing red family (`#d32f2f`, `#e24b4a`) | Used in timers, status |
-| Success / primary action | Resolve green vs pale-blue tension in approval | Green used for CTAs and timer progress today |
+| Principle | Approved decision |
+|-----------|-------------------|
+| Tone | Minimal, warm, playful, grown-up |
+| Identity | Black ink on white grounds; handwritten **headings only** (§9) |
+| Accent color | **None** — no pale blue, no third brand hue |
+| Primary actions | **Black fill + white label** (buttons); not `--color-primary` |
+| Secondary actions | **White fill + black label** |
+| Selection / active | **Black ink** (nav indicator, selected borders) |
+| Focus | **Black ink ring** — 2px solid + 2px offset on `:focus-visible`; off-white ring on dark surfaces |
+| Links | **Ink + underline**; slightly muted ink on hover; no visited styling |
+| Destructive | Red family (`#d32f2f`, `#e24b4a`) for errors and destructive actions |
+| Green `#37eb4f` | **Retire after migration** — transitional alias only, then remove |
+| Warning orange | **Removed** — no fatigue orange palette |
 
-**Proposed pale-blue accent (for approval):** `#b8d4f0` fill on white; **proposed focus/link blue:** `#1e5a9e`.
+### 8.2 Light palette
 
-### 8.2 Light palette (proposed)
+| Token role | Value | Notes |
+|------------|-------|-------|
+| Surface primary | `#ffffff` | `--core-paper` |
+| Surface secondary | `#f5f5f4` | `--core-gray-50` |
+| Ink primary | `#1b1b1b` | `--core-ink` |
+| Ink muted | `#4b5563` | `--core-gray-600` |
+| Border default | `#e7e5e4` | `--core-gray-200` |
+| Border strong | `#929292` | `--core-gray-400` |
+| Action primary fill | `#1b1b1b` | Primary buttons |
+| Ink on action primary | `#ffffff` | Primary button labels |
+| Action secondary fill | `#ffffff` | Secondary buttons |
+| Destructive | `#d32f2f` | Errors, destructive controls |
+| Focus ring | `#1b1b1b` | Light theme |
 
-| Token role | Proposed value | Notes |
-|------------|----------------|-------|
-| Surface primary | `#ffffff` | Matches `--color-white` |
-| Surface secondary | `#f5f5f4` | Matches `--color-gray-50` |
-| Ink primary | `#1b1b1b` | Matches `--color-black` |
-| Ink muted | `#4b5563` | Matches `--color-gray-600` |
-| Border | `#e7e5e4` | Matches `--color-gray-200` |
-| Accent fill | `#b8d4f0` | **Pending approval** |
-| Link / focus | `#1e5a9e` | **Pending approval** |
-| Destructive | `#d32f2f` | Existing |
+### 8.3 Dark palette
 
-### 8.3 Dark palette (proposed)
-
-| Token role | Proposed value | Notes |
-|------------|----------------|-------|
+| Token role | Value | Notes |
+|------------|-------|-------|
 | Surface primary | `#1b1b1b` | Inverted ink |
-| Surface secondary | `#302e2f` | Matches `--color-gray-700` |
+| Surface secondary | `#302e2f` | `--core-gray-700` |
 | Ink primary | `#f5f5f4` | |
-| Ink muted | `#b4b4b4` | `--color-gray-300` |
-| Border | `#4b5563` | |
-| Accent fill | `#3d6a9e` | Dark-mode accent — **pending approval** |
-| Link / focus | `#7eb8e8` | Lighter focus ring for dark — **pending approval** |
-| Destructive | `#e24b4a` | Existing |
+| Ink muted | `#b4b4b4` | `--core-gray-300` |
+| Border default | `#4b5563` | |
+| Action primary fill | `#ffffff` | **Inverted** — white button on dark |
+| Ink on action primary | `#1b1b1b` | |
+| Action secondary fill | transparent / outline | On dark surface |
+| Destructive | `#e24b4a` | |
+| Focus ring | `#f5f5f4` | Off-white on dark |
 
-Contrast evidence for AA will be recorded in #113 with exact computed ratios.
+### 8.4 Fatigue and status (no orange)
+
+| State | Approved treatment |
+|-------|-------------------|
+| Fatigued | Gray surface + text label (not color-only) |
+| Exhausted / worst | Darker gray / ink + text label |
+| Overdue timer | Black ink emphasis — no orange/red decorative glow |
+
+### 8.5 Canonical token names
+
+Single-source knobs and semantic aliases for propagation:
+
+```text
+--core-ink / --core-paper
+--fill-action-primary / --ink-on-action-primary
+--fill-action-secondary / --ink-on-action-secondary
+--ink-primary / --ink-muted
+--surface-primary / --surface-secondary
+--border-default / --border-strong
+--fill-destructive
+--focus-ring
+--font-family-heading / --font-family-body
+```
+
+**Retire after migration:** `--color-primary`, `--color-green`, `--color-orange-*`, `--color-status-fatigued-*`, pale-blue accent tokens from draft #113 implementation.
+
+**Note:** Merged #113 introduced `--core-accent-blue` and kept green as `--color-primary`; a follow-up issue revises tokens to this approved record.
 
 ---
 
-## 9. Typography — **pending human approval**
+## 9. Approved typography
 
-### 9.1 Current implementation
+### 9.1 Current implementation (audit evidence)
 
-| Role | Current font | Issue |
-|------|--------------|-------|
-| `body` | Patrick Hand (cursive) on entire `body` | Violates "body, controls, timers, and data are not handwritten" |
-| Headings / accents | Patrick Hand, BenchNine mixed via undefined aliases | Inconsistent token references |
-| Loaded fonts | Patrick Hand, BenchNine via `index.html` Google Fonts | Not local/system-only |
+| Role | Current font | Migration |
+|------|--------------|-----------|
+| `body` | Patrick Hand on entire `body` | Move to `--font-family-body` (system sans) |
+| Headings | Patrick Hand / BenchNine via undefined aliases | `--font-family-heading` only on `h1`–`h6` |
+| Loading | Google Fonts in `index.html` | Remove network fetch |
 
-### 9.2 Proposed stacks (for approval)
+### 9.2 Approved stacks
 
-| Role | Proposed stack | Rationale |
-|------|----------------|-----------|
-| Heading / accent | `'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive` | Keeps handwritten personality for titles and playful moments |
-| Body / control / timer / data | `system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif` | Readable at small sizes; no network fetch |
-| Monospace data (diagnostics) | `ui-monospace, 'SF Mono', Menlo, Consolas, monospace` | Settings/diagnostics in #126 |
+| Role | Stack |
+|------|-------|
+| Heading | `'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive` |
+| Body / control / timer / data | `system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif` |
+| Monospace (diagnostics) | `ui-monospace, 'SF Mono', Menlo, Consolas, monospace` |
 
-**Decision required:** Confirm Patrick Hand remains heading-only; approve system sans for body. Confirm local bundling strategy (self-host Patrick Hand woff2 vs system cursive fallback).
+**Font loading:** System fonts only — no bundled `woff2`, no Google Fonts.
 
 ---
 
-## 10. Cross-cutting principles (proposed for approval)
+## 10. Approved cross-cutting principles
 
 ### 10.1 Motion
 
-- Reward/game animations (wheel spin, slots, particles) honor `prefers-reduced-motion: reduce` — show static outcome immediately.
-- Decorative entrance animations (HomePage fadeUp) must be disabled under reduced motion.
-- Timer progress may use non-essential motion; remaining time is always visible numerically.
-- Animation never determines selection outcome or domain timing (already true in domain code).
+- Reward/game animations: static outcome immediately under `prefers-reduced-motion: reduce`.
+- Decorative motion (HomePage entrance, pet float, dialog enter): **off** under reduced motion.
+- Timer SVG progress: **may animate**; numeric time always visible and authoritative.
+- Particles / confetti: **disabled** under reduced motion.
+- Animation never determines selection outcome or domain timing.
 
 ### 10.2 Responsive
 
-- Compact extension: support **360×640** through **480×800** without fixed 550px width assumption.
-- Full tab: **≥768px** with sidebar navigation; compact uses bottom or top nav (to be built in #117).
+- Compact extension: **360×640** through **480×800** — **drop** the 550px forced `html` width in `globals.css`.
+- Compact navigation: **bottom tab bar** (Focus, Schedule, Blocked, Insights) — #117.
+- Full tab: **≥768px** with **left sidebar** (existing desktop pattern).
 - Readable max-width for prose/data: ~`40rem` where applicable.
-- Card scaling breakpoints at 700px / 800px / 1000px / 1200px may be retained if audit-proven necessary.
+- Extension popup + detached tab only — no standalone mobile-web product.
 
 ### 10.3 Focus
 
-- All interactive elements expose `:focus-visible` ring using semantic `--color-focus-ring`.
+- `:focus-visible`: `--focus-ring`, 2px solid, 2px offset (ink light / off-white dark).
 - Dialogs trap focus and restore on close (native or React Aria).
 - Skip link to main content in full-tab shell (#117).
 
 ### 10.4 Contrast and states
 
-- Normal text ≥ 4.5:1; large text ≥ 3:1; non-text UI components ≥ 3:1 (WCAG 2.2 AA).
-- Error, disabled, loading, and empty states use text + icon/shape — not color alone.
-- Disabled controls: reduced opacity + `aria-disabled` / `disabled` + non-interactive cursor.
+- WCAG 2.2 AA: normal text ≥ 4.5:1; large text ≥ 3:1; non-text UI ≥ 3:1.
+- Error, disabled, loading, empty: text + icon/shape — not color alone.
+- Disabled: reduced opacity + `disabled` / `aria-disabled` + non-interactive cursor.
 
 ### 10.5 Data density
 
-- Timers and numeric data use body sans at `--font-size-md` minimum.
-- Insights tables remain primary textual encoding; any chart must have table equivalent.
+- Timers and numeric data: body sans at `--font-size-md` minimum.
+- Insights: textual/table encoding primary; charts require table equivalent.
 
 ---
 
-## 11. Primitive inventory needed (feeds #115)
+## 11. Approved primitive inventory (#115)
 
-Based on usage audit — no speculative components:
+Full first slice — no speculative additions:
 
-| Category | Needed primitives | Current stand-in |
-|----------|-------------------|------------------|
-| Action | Button (primary, secondary, destructive, ghost) | `Button` — needs focus states |
-| Link | Text link with focus ring | raw `<a>` / `SecondaryTimerDescription` |
-| Text input | Text field, textarea | native inputs in TaskList, BlockedSites |
-| Select | Single select | native `<select>` in InsightsPage |
-| Checkbox / switch | Toggle, checkbox | `Toggle` (div); native checkboxes sparse |
-| Dialog | Modal with focus trap | MUI Dialog ×2; custom overlay ×2 |
-| Navigation | Tab list, sidebar nav | HomePage custom nav |
-| Status | Alert, badge, live region | ad hoc class names |
-| Surface | Card, panel | repeated panel styles across views |
-| Slider | Duration slider | MUI Slider |
+| Category | Primitives |
+|----------|------------|
+| Action | Button (primary black / secondary white / destructive / ghost) |
+| Link | Ink + underline + focus ring |
+| Text input | Text field, textarea |
+| Select / switch | Single select, switch |
+| Dialog | Modal with focus trap and restore |
+| Navigation | Tab list — bottom bar (compact) + sidebar (full-tab) |
+| Status | Alert, live region (badge text folded into status) |
+| Surface | Card, panel |
+| Slider | Duration slider (replaces MUI) |
 
 ---
 
 ## 12. Human approval checklist
 
-- [ ] **H1.** Confirm minimal warm/playful/grown-up direction (§8.1).
-- [ ] **H2.** Confirm black/white handwritten-inspired identity with handwritten limited to headings/accents (§8.1, §9).
-- [ ] **H3.** Confirm pale-blue accent values (§8.1, §8.2) and resolve green-vs-blue primary CTA question.
-- [ ] **H4.** Confirm darker focus/link blue (§8.1, §8.2).
-- [ ] **H5.** Approve Light palette (§8.2).
-- [ ] **H6.** Approve Dark palette (§8.3).
-- [ ] **H7.** Approve heading font stack and body/control sans stack (§9.2).
-- [ ] **H8.** Approve font loading strategy (local bundle vs system fallback).
-- [ ] **H9.** Approve motion, responsive, focus, contrast, and data-density principles (§10).
-- [ ] **H10.** Approve primitive inventory scope (§11) — no additions without new audit evidence.
+- [x] **H1.** Minimal warm/playful/grown-up direction (§8.1).
+- [x] **H2.** Black/white identity; handwritten limited to headings (§8.1, §9).
+- [x] **H3.** **No accent color**; primary actions are black/white buttons; green retired after migration (§8.1).
+- [x] **H4.** Focus rings use ink (light) / off-white (dark) — not blue (§8.1, §8.2).
+- [x] **H5.** Light palette approved (§8.2).
+- [x] **H6.** Dark palette approved with inverted primary button (§8.3).
+- [x] **H7.** Heading cursive stack + body system sans (§9.2).
+- [x] **H8.** System fonts only — no bundle, no Google Fonts (§9.2).
+- [x] **H9.** Motion, responsive, focus, contrast, data-density (§10).
+- [x] **H10.** Full primitive inventory (§11).
 
-**Approver:** _pending_  
-**Date:** _pending_
+**Approver:** Jon (grilling session)  
+**Date:** 2026-06-25
 
 ---
 
 ## 13. Downstream issue map
 
-| Issue | Depends on this audit |
-|-------|----------------------|
-| #113 Semantic tokens | §4, §8 palettes, §9 typography |
-| #114 Playwright + axe | §2 surface list, §3 viewports |
-| #115 Primitives | §11 inventory |
-| #116 Remove MUI | §5.1 |
-| #117 App shells | §3 compact/full gaps |
-| #118–#126 Feature migrations | §2 full inventory |
-| #127 Visual baselines | §3 viewports + approved palettes |
-| #128 Documentation | This document + implemented artifacts |
+| Issue | Depends on this audit | Post-approval note |
+|-------|----------------------|-------------------|
+| #113 Semantic tokens | §4, §8, §9 | **Merged with pale-blue/green draft** — revise per §8.5 |
+| #114 Playwright + axe | §2 surface list, §3 viewports | Viewport/theme fixtures align |
+| #115 Primitives | §11 inventory | Build full approved set |
+| #116 Remove MUI | §5.1 | After #115 |
+| #117 App shells | §3, §10.2 | Bottom tab bar + 360px + sidebar |
+| #118–#126 Feature migrations | §2 full inventory | Use §8–§10 tokens/primitives |
+| #127 Visual baselines | §3 viewports + §8 palettes | Black/white system |
+| #128 Documentation | This document | Deprecation map includes retired green/orange/accent |
 
 ---
 
