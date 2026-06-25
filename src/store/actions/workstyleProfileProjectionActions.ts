@@ -13,7 +13,8 @@ export const setWorkstyleProfileProjection = createAction<{
   energy: EnergyLevel;
   momentum: MomentumLevel;
   friction: FrictionProfile;
-  assignedPetId: string | null;
+  ownedPetIds: readonly string[];
+  activePetId: string | null;
   onboardingCompleted: boolean;
 }>('workstyleProfileProjection/setProjection');
 

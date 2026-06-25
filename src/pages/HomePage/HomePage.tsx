@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
 import {
-  selectAssignedPetId,
+  selectActivePetId,
   selectOnboardingCompleted,
 } from '../../store/selectors/workstyleProfileProjectionSelectors';
 import { getPetById } from '@/modules/pet-catalog';
@@ -98,10 +98,10 @@ const renderSectionContent = (mainContent: MainSectionId) => {
 const HomePage = () => {
   const navigate = useNavigate();
   const onboardingCompleted = useSelector((state: RootState) => selectOnboardingCompleted(state));
-  const assignedPetId = useSelector((state: RootState) => selectAssignedPetId(state));
+  const activePetId = useSelector((state: RootState) => selectActivePetId(state));
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
-  const assignedPet = assignedPetId ? getPetById(assignedPetId) : undefined;
-  const petName = assignedPet?.name ?? DEFAULT_PET_NAME;
+  const activePet = activePetId ? getPetById(activePetId) : undefined;
+  const petName = activePet?.name ?? DEFAULT_PET_NAME;
   const petImage = DEFAULT_PET_IMAGE;
 
   useEffect(() => {

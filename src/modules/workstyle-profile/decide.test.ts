@@ -29,30 +29,37 @@ describe('applyWorkstyleProfileCommand', () => {
       expect(initialized.value.energy).toBe('low');
       expect(initialized.value.momentum).toBe('steady');
       expect(initialized.value.friction.distraction).toBe('high');
-      expect(initialized.value.assignedPetId).toBeNull();
+      expect(initialized.value.activePetId).toBeNull();
+      expect(initialized.value.ownedPetIds).toEqual([]);
       expect(initialized.value.onboardingCompleted).toBe(true);
     }
   });
 
-  it('assigns a pet exactly once', () => {
+  it('adds pets to the collection and switches the active companion', () => {
     const current = createDefaultWorkstyleProfileValue();
-    const assigned = applyWorkstyleProfileCommand(current, {
+    const first = applyWorkstyleProfileCommand(current, {
       kind: 'assign-pet',
-      petId: 'theo',
+      petId: 'pet-flux',
     });
-    expect(assigned.ok).toBe(true);
+    expect(first.ok).toBe(true);
+    if (!first.ok) {
+      return;
+    }
+    expect(first.value.activePetId).toBe('pet-flux');
+    expect(first.value.ownedPetIds).toEqual(['pet-flux']);
 
-    const replaced = applyWorkstyleProfileCommand(assigned.ok ? assigned.value : current, {
+    const second = applyWorkstyleProfileCommand(first.value, {
       kind: 'assign-pet',
-      petId: 'other',
+      petId: 'pet-tide',
     });
-    expect(replaced).toMatchObject({
-      ok: false,
-      error: { kind: 'pet-already-assigned', existingPetId: 'theo' },
-    });
+    expect(second.ok).toBe(true);
+    if (second.ok) {
+      expect(second.value.activePetId).toBe('pet-tide');
+      expect(second.value.ownedPetIds).toEqual(['pet-flux', 'pet-tide']);
+    }
   });
 
-  it('assigns a pet atomically when completing the personalization quiz', () => {
+  it('assigns the quiz pet and updates the active companion on retake', () => {
     const onboarded = applyWorkstyleProfileCommand(createDefaultWorkstyleProfileValue(), {
       kind: 'initialize-from-onboarding',
       energy: 'steady',
@@ -74,7 +81,8 @@ describe('applyWorkstyleProfileCommand', () => {
         kind: 'top-two',
         dimensions: ['distraction', 'motivation'],
       });
-      expect(completed.value.assignedPetId).toBe('pet-flux');
+      expect(completed.value.activePetId).toBe('pet-flux');
+      expect(completed.value.ownedPetIds).toEqual(['pet-flux']);
     }
 
     const retake = applyWorkstyleProfileCommand(completed.ok ? completed.value : onboarded.value, {
@@ -83,7 +91,8 @@ describe('applyWorkstyleProfileCommand', () => {
     });
     expect(retake.ok).toBe(true);
     if (retake.ok) {
-      expect(retake.value.assignedPetId).toBe('pet-flux');
+      expect(retake.value.activePetId).toBe('pet-tide');
+      expect(retake.value.ownedPetIds).toEqual(['pet-flux', 'pet-tide']);
       expect(retake.value.personalizationQuizOutcome).toEqual({ kind: 'balanced' });
     }
   });

@@ -38,7 +38,8 @@ export interface WorkstyleProfileValue {
   energy: EnergyLevel;
   momentum: MomentumLevel;
   friction: FrictionProfile;
-  assignedPetId: string | null;
+  ownedPetIds: readonly string[];
+  activePetId: string | null;
   onboardingCompleted: boolean;
   personalizationQuizOutcome: PersonalizationQuizOutcome | null;
 }
@@ -57,9 +58,21 @@ export const createDefaultWorkstyleProfileValue = (): WorkstyleProfileValue => (
   energy: 'steady',
   momentum: 'steady',
   friction: { ...DEFAULT_FRICTION },
-  assignedPetId: null,
+  ownedPetIds: [],
+  activePetId: null,
   onboardingCompleted: false,
   personalizationQuizOutcome: null,
+});
+
+export const withActivePet = (
+  value: WorkstyleProfileValue,
+  petId: string
+): WorkstyleProfileValue => ({
+  ...value,
+  ownedPetIds: value.ownedPetIds.includes(petId)
+    ? value.ownedPetIds
+    : [...value.ownedPetIds, petId],
+  activePetId: petId,
 });
 
 export const frictionDimensionToField = (dimension: FrictionDimension): keyof FrictionProfile => {
@@ -95,7 +108,8 @@ export const cloneWorkstyleProfileValue = (
   energy: value.energy,
   momentum: value.momentum,
   friction: cloneFrictionProfile(value.friction),
-  assignedPetId: value.assignedPetId,
+  ownedPetIds: [...value.ownedPetIds],
+  activePetId: value.activePetId,
   onboardingCompleted: value.onboardingCompleted,
   personalizationQuizOutcome: value.personalizationQuizOutcome
     ? value.personalizationQuizOutcome.kind === 'balanced'

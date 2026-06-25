@@ -40,7 +40,7 @@ const PersonalizationQuizPage = () => {
   const [completedOutcome, setCompletedOutcome] = useState<
     { kind: 'balanced' } | { kind: 'top-two'; dimensions: readonly [string, string] } | null
   >(null);
-  const [assignedPetId, setAssignedPetId] = useState<string | null>(null);
+  const [activePetId, setActivePetId] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -60,7 +60,7 @@ const PersonalizationQuizPage = () => {
         setProgress(saved);
       } else if (profile.personalizationQuizOutcome) {
         setCompletedOutcome(profile.personalizationQuizOutcome);
-        setAssignedPetId(profile.assignedPetId);
+        setActivePetId(profile.activePetId);
       } else {
         setProgress(createEmptyPersonalizationQuizProgress(profile.friction));
       }
@@ -100,7 +100,7 @@ const PersonalizationQuizPage = () => {
       const reset = createEmptyPersonalizationQuizProgress(baselineFriction);
       persistProgress(reset);
       setCompletedOutcome(null);
-      setAssignedPetId(null);
+      setActivePetId(null);
     } catch {
       setError('Recess could not reach the background worker. Reload and try again.');
     } finally {
@@ -142,7 +142,7 @@ const PersonalizationQuizPage = () => {
         await clearPersonalizationQuizProgress();
         setProgress(null);
         setCompletedOutcome(applied.value.result);
-        setAssignedPetId(completed.result.snapshot.value.assignedPetId);
+        setActivePetId(completed.result.snapshot.value.activePetId);
         return;
       }
 
@@ -164,23 +164,23 @@ const PersonalizationQuizPage = () => {
   }
 
   if (completedOutcome) {
-    const assignedPet = assignedPetId ? getPetById(assignedPetId) : undefined;
+    const activePet = activePetId ? getPetById(activePetId) : undefined;
     return (
       <div className={styles.container}>
         <header className={styles.header}>
           <h1>Meet your companion</h1>
           <p>
-            {assignedPet
-              ? `${assignedPet.name} is now your Recess companion. This assignment is permanent.`
+            {activePet
+              ? `${activePet.name} is your current Recess companion.`
               : 'Your workstyle profile is enriched.'}
           </p>
         </header>
         <section className={styles.section}>
-          {assignedPet ? (
+          {activePet ? (
             <>
-              <p className={styles.result}>{assignedPet.name}</p>
-              <p>{assignedPet.personalityCopy}</p>
-              <img src={BunnyWorkingImage} alt={assignedPet.moodAssets.calm.accessibleLabel} />
+              <p className={styles.result}>{activePet.name}</p>
+              <p>{activePet.personalityCopy}</p>
+              <img src={BunnyWorkingImage} alt={activePet.moodAssets.calm.accessibleLabel} />
             </>
           ) : (
             <p className={styles.result}>Result: {formatOutcome(completedOutcome)}</p>

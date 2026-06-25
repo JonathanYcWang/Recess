@@ -22,4 +22,5 @@ export {
   type PersonalizationQuizOutcome,
   type PreferredCadence,
   type WorkstyleProfileValue,
+  withActivePet,
 } from './workstyleProfileDocument';

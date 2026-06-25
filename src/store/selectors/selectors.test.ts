@@ -19,7 +19,7 @@ import { startFocusSession, transitionToRewardSelection } from '../actions/timer
 import { setWorkStartReminderProjection } from '../actions/workStartReminderProjectionActions';
 import { setWorkstyleProfileProjection } from '../actions/workstyleProfileProjectionActions';
 import {
-  selectAssignedPetId,
+  selectActivePetId,
   selectBlockedSites,
   selectCurrentQuestion,
   selectFatigueScore,
@@ -125,7 +125,8 @@ describe('Redux selectors', () => {
           starting: 'low',
           fatigue: 'low',
         },
-        assignedPetId: null,
+        ownedPetIds: [],
+        activePetId: null,
         onboardingCompleted: true,
       })
     );
@@ -133,6 +134,6 @@ describe('Redux selectors', () => {
 
     expect(selectWorkstyleProfilePreferredCadence(withProfile)).toBe('15/5');
     expect(selectWorkstyleProfileEnergy(withProfile)).toBe('low');
-    expect(selectAssignedPetId(withProfile)).toBeNull();
+    expect(selectActivePetId(withProfile)).toBeNull();
   });
 });
