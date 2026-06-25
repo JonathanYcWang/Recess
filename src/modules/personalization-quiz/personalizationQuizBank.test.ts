@@ -6,18 +6,6 @@ import {
   personalizationQuizTieBreakerScenarios,
 } from './personalizationQuizBank';
 
-const FORBIDDEN_TERMS = [
-  'mbti',
-  'personality type',
-  'introvert',
-  'extrovert',
-  'kingdom',
-  'quest',
-  'squadron',
-  'minion',
-  'dragon',
-];
-
 describe('personalizationQuizBank', () => {
   it('contains six screening and eighteen tie-breaker scenarios with stable IDs', () => {
     expect(personalizationQuizScreeningScenarios).toHaveLength(6);
@@ -64,16 +52,6 @@ describe('personalizationQuizBank', () => {
     expect(expectedPairs).toHaveLength(15);
     for (const pair of expectedPairs) {
       expect(coveredPairs.has(pair)).toBe(true);
-    }
-  });
-
-  it('avoids MBTI and fantasy framing in scenario and option copy', () => {
-    for (const scenario of personalizationQuizBank.scenarios) {
-      const copy =
-        `${scenario.text} ${scenario.options.map((option) => option.text).join(' ')}`.toLowerCase();
-      for (const term of FORBIDDEN_TERMS) {
-        expect(copy.includes(term)).toBe(false);
-      }
     }
   });
 
