@@ -3,6 +3,8 @@ import { decidePostGameRecess } from '@/modules/scheduler';
 import type { PreferredCadence } from '@/modules/workstyle-profile';
 import type { WorkRhythmRecess, WorkRhythmValue } from './workRhythmDocument';
 import { remainingWorkSessionSecondsAt } from './acceptRecess';
+import { createRecessStartedFact, recessStartedFactId } from './recessStarted';
+import type { WorkHistoryFact } from '@/modules/work-history';
 
 export type CompleteRewardGameError =
   | { kind: 'invalid-phase-for-complete-reward-game' }
@@ -19,6 +21,7 @@ export interface CompleteRewardGameContext {
 export interface CompleteRewardGameOutcome {
   nextValue: WorkRhythmRecess;
   commandId: string;
+  recessStartedFact: WorkHistoryFact;
 }
 
 export const completeRewardGameCommandId = (sessionId: string, roundId: string): string =>
@@ -68,6 +71,14 @@ export const decideCompleteRewardGame = (
         recessDurationSeconds: postGame.recessSeconds,
         schedulerReasons: postGame.reasons.map((reason) => ({ ...reason })),
       },
+      recessStartedFact: createRecessStartedFact({
+        factId: recessStartedFactId(current.sessionId, current.completedFocusBlockIndex),
+        recordedAt: context.nowEpochMs,
+        workSessionId: current.sessionId,
+        focusBlockIndex: current.completedFocusBlockIndex,
+        startedAtEpochMs: context.nowEpochMs,
+        plannedRecessSeconds: postGame.recessSeconds,
+      }),
     },
   };
 };

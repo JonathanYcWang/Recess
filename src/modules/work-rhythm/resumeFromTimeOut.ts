@@ -1,15 +1,18 @@
 import type { Result } from '@/modules/persisted-application-state/types';
+import { createTimeOutEndedFact, timeOutEndedFactId } from './timeOutEnded';
 import type {
   WorkRhythmFocusBlock,
   WorkRhythmTimeOut,
   WorkRhythmValue,
 } from './workRhythmDocument';
+import type { WorkHistoryFact } from '@/modules/work-history';
 
 export type ResumeFromTimeOutError = { kind: 'not-in-time-out' };
 
 export interface ResumeFromTimeOutOutcome {
   nextValue: WorkRhythmFocusBlock;
   commandId: string;
+  timeOutEndedFact: WorkHistoryFact;
 }
 
 export const resumeFromTimeOutCommandId = (sessionId: string): string =>
@@ -26,6 +29,10 @@ export const decideResumeFromTimeOut = (
   const timeOut = current as WorkRhythmTimeOut;
   const focusDurationSeconds = timeOut.settledRemainingFocusSeconds;
   const focusDeadlineAtEpochMs = nowEpochMs + focusDurationSeconds * 1000;
+  const durationSeconds = Math.max(
+    0,
+    Math.floor((nowEpochMs - timeOut.timeOutStartedAtEpochMs) / 1000)
+  );
 
   return {
     ok: true,
@@ -58,6 +65,19 @@ export const decideResumeFromTimeOut = (
         activeTaskId: timeOut.activeTaskId,
         activeTaskIntervalStartedAtEpochMs: timeOut.activeTaskId !== null ? nowEpochMs : null,
       },
+      timeOutEndedFact: createTimeOutEndedFact({
+        factId: timeOutEndedFactId(
+          timeOut.sessionId,
+          timeOut.focusBlockIndex,
+          timeOut.timeOutStartedAtEpochMs
+        ),
+        recordedAt: nowEpochMs,
+        workSessionId: timeOut.sessionId,
+        focusBlockIndex: timeOut.focusBlockIndex,
+        startedAtEpochMs: timeOut.timeOutStartedAtEpochMs,
+        endedAtEpochMs: nowEpochMs,
+        durationSeconds,
+      }),
     },
   };
 };

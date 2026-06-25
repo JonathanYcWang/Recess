@@ -11,6 +11,8 @@ import { gameKindForIndex } from '@/modules/reward-game';
 import type { PreferredCadence } from '@/modules/workstyle-profile';
 import { remainingWorkSessionSecondsAt } from './acceptRecess';
 import { workRhythmCountdownDeadlineEpochMs } from './acceptRecess';
+import { createRecessCompletedFact, recessCompletedFactId } from './recessCompleted';
+import type { WorkHistoryFact } from '@/modules/work-history';
 
 export type EndRecessError = { kind: 'invalid-phase-for-end-recess' } | { kind: 'recess-not-due' };
 
@@ -25,6 +27,7 @@ export interface EndRecessContext {
 export interface EndRecessOutcome {
   nextValue: WorkRhythmBackToWorkCountdown;
   commandId: string;
+  recessCompletedFact: WorkHistoryFact;
 }
 
 export const endRecessCommandId = (sessionId: string, early: boolean): string =>
@@ -45,6 +48,10 @@ export const decideEndRecess = (
   }
 
   const remainingWorkSessionSeconds = remainingWorkSessionSecondsAt(current, context.nowEpochMs);
+  const actualRecessSeconds = Math.max(
+    0,
+    Math.floor((context.nowEpochMs - current.recessStartedAtEpochMs) / 1000)
+  );
   return {
     ok: true,
     value: {
@@ -62,6 +69,20 @@ export const decideEndRecess = (
         countdownStartedAtEpochMs: context.nowEpochMs,
         countdownDeadlineAtEpochMs: workRhythmCountdownDeadlineEpochMs(context.nowEpochMs),
       },
+      recessCompletedFact: createRecessCompletedFact({
+        factId: recessCompletedFactId(
+          current.sessionId,
+          current.nextFocusBlockIndex - 1,
+          context.early
+        ),
+        recordedAt: context.nowEpochMs,
+        workSessionId: current.sessionId,
+        focusBlockIndex: current.nextFocusBlockIndex - 1,
+        startedAtEpochMs: current.recessStartedAtEpochMs,
+        endedAtEpochMs: context.nowEpochMs,
+        actualRecessSeconds,
+        endedEarly: context.early,
+      }),
     },
   };
 };

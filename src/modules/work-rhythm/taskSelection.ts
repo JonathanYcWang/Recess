@@ -18,6 +18,7 @@ import {
   taskFocusedTimeAttributedFactId,
 } from './taskFocusedTimeAttributed';
 import type { WorkHistoryFact } from '@/modules/work-history';
+import { createTaskCompletedFact, taskCompletedFactId } from '@/modules/task-list/taskCompleted';
 
 export type TaskSelectionPhaseValue = WorkRhythmFocusBlock | WorkRhythmTimeOut;
 
@@ -327,6 +328,7 @@ export const decideCompleteTask = (
     nextValue: TaskSelectionPhaseValue;
     nextTaskList: TaskListValue;
     attribution: TaskAttribution | null;
+    taskCompletedFact: WorkHistoryFact;
   },
   TaskSelectionError
 > => {
@@ -405,7 +407,28 @@ export const decideCompleteTask = (
     activeTaskIntervalStartedAtEpochMs,
   };
 
-  return { ok: true, value: { nextValue, nextTaskList, attribution } };
+  const completedTask = nextTaskList.tasks.find((entry) => entry.id === taskId.value);
+  if (!completedTask) {
+    return { ok: false, error: { kind: 'task-not-found', taskId: taskId.value } };
+  }
+
+  return {
+    ok: true,
+    value: {
+      nextValue,
+      nextTaskList,
+      attribution,
+      taskCompletedFact: createTaskCompletedFact({
+        factId: taskCompletedFactId(taskId.value),
+        recordedAt: nowEpochMs,
+        taskId: taskId.value,
+        workSessionId: current.sessionId,
+        originalEstimateMinutes: completedTask.originalEstimateMinutes,
+        totalFocusedTimeSeconds: completedTask.focusedTimeSeconds,
+        completedAtEpochMs: nowEpochMs,
+      }),
+    },
+  };
 };
 
 export const preparePhaseAfterTaskSettlement = (

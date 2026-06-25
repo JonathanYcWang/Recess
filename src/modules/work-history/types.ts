@@ -3,9 +3,15 @@ import type { Result } from '@/modules/persisted-application-state/types';
 export type WorkHistoryFactKind =
   | 'work-session-started'
   | 'work-session-completed'
+  | 'work-session-extended'
   | 'focus-block-completed'
   | 'recess-started'
-  | 'task-focused-time-attributed';
+  | 'recess-completed'
+  | 'time-out-started'
+  | 'time-out-ended'
+  | 'task-focused-time-attributed'
+  | 'task-completed'
+  | 'reminder-occurrence-resolved';
 
 export interface WorkHistoryFact {
   id: string;

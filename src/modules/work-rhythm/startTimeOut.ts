@@ -1,10 +1,12 @@
 import type { Result } from '@/modules/persisted-application-state/types';
 import { computeActualFocusSeconds } from './settleFocusBoundary';
+import { createTimeOutStartedFact, timeOutStartedFactId } from './timeOutStarted';
 import type {
   WorkRhythmFocusBlock,
   WorkRhythmTimeOut,
   WorkRhythmValue,
 } from './workRhythmDocument';
+import type { WorkHistoryFact } from '@/modules/work-history';
 
 export type StartTimeOutError =
   | { kind: 'invalid-phase-for-time-out' }
@@ -13,6 +15,7 @@ export type StartTimeOutError =
 export interface StartTimeOutOutcome {
   nextValue: WorkRhythmTimeOut;
   commandId: string;
+  timeOutStartedFact: WorkHistoryFact;
 }
 
 export const startTimeOutCommandId = (sessionId: string): string => `start-time-out-${sessionId}`;
@@ -67,6 +70,14 @@ export const decideStartTimeOut = (
         activeTaskId: focus.activeTaskId,
         activeTaskIntervalStartedAtEpochMs: null,
       },
+      timeOutStartedFact: createTimeOutStartedFact({
+        factId: timeOutStartedFactId(focus.sessionId, focus.focusBlockIndex),
+        recordedAt: nowEpochMs,
+        workSessionId: focus.sessionId,
+        focusBlockIndex: focus.focusBlockIndex,
+        startedAtEpochMs: nowEpochMs,
+        focusSecondsBeforeTimeOut: actualFocusSeconds,
+      }),
     },
   };
 };

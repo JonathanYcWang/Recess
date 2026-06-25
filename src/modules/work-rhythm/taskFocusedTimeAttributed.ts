@@ -1,4 +1,5 @@
 import type { WorkHistoryFact } from '@/modules/work-history';
+import { withSchemaVersion } from '@/modules/work-history/factCodec';
 
 export interface TaskFocusedTimeAttributedContext {
   factId: string;
@@ -21,17 +22,18 @@ export const taskFocusedTimeAttributedFactId = (
 
 export const createTaskFocusedTimeAttributedFact = (
   context: TaskFocusedTimeAttributedContext
-): WorkHistoryFact => ({
-  id: context.factId,
-  recordedAt: context.recordedAt,
-  kind: 'task-focused-time-attributed',
-  payload: {
-    workSessionId: context.workSessionId,
-    taskId: context.taskId,
-    seconds: context.seconds,
-    attributedAt: context.attributedAt,
-    focusBlockIndex: context.focusBlockIndex,
-    intervalStartedAt: context.intervalStartedAt,
-    intervalEndedAt: context.intervalEndedAt,
-  },
-});
+): WorkHistoryFact =>
+  withSchemaVersion({
+    id: context.factId,
+    recordedAt: context.recordedAt,
+    kind: 'task-focused-time-attributed',
+    payload: {
+      workSessionId: context.workSessionId,
+      taskId: context.taskId,
+      seconds: context.seconds,
+      attributedAt: context.attributedAt,
+      focusBlockIndex: context.focusBlockIndex,
+      intervalStartedAt: context.intervalStartedAt,
+      intervalEndedAt: context.intervalEndedAt,
+    },
+  });

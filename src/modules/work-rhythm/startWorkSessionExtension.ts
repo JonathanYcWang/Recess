@@ -2,12 +2,14 @@ import type { Result } from '@/modules/persisted-application-state/types';
 import { decideFocusRecessCycle } from '@/modules/scheduler';
 import type { RewardGameBudget } from '@/modules/scheduler';
 import type { PreferredCadence } from '@/modules/workstyle-profile';
+import { createWorkSessionExtendedFact, workSessionExtendedFactId } from './workSessionExtended';
 import {
   isValidWorkSessionExtensionSeconds,
   remainingWorkSessionExtensionSeconds,
 } from './workSessionExtension';
 import type { WorkRhythmValue, WorkRhythmWorkSessionCompleted } from './workRhythmDocument';
 import { emptyTaskSelectionState } from './workRhythmDocument';
+import type { WorkHistoryFact } from '@/modules/work-history';
 
 export type StartWorkSessionExtensionError =
   | { kind: 'invalid-phase-for-extension' }
@@ -24,6 +26,7 @@ export interface StartWorkSessionExtensionContext {
 export interface StartWorkSessionExtensionOutcome {
   nextValue: import('./workRhythmDocument').WorkRhythmFocusBlock;
   commandId: string;
+  workSessionExtendedFact: WorkHistoryFact;
 }
 
 export const startWorkSessionExtensionCommandId = (
@@ -97,6 +100,14 @@ export const decideStartWorkSessionExtension = (
         extensionBaselineCount: completed.extensionCount,
         ...emptyTaskSelectionState(),
       },
+      workSessionExtendedFact: createWorkSessionExtendedFact({
+        factId: workSessionExtendedFactId(completed.sessionId, extensionOrdinal),
+        recordedAt: context.nowEpochMs,
+        workSessionId: completed.sessionId,
+        extensionOrdinal,
+        extensionSeconds,
+        extendedAtEpochMs: context.nowEpochMs,
+      }),
     },
   };
 };
