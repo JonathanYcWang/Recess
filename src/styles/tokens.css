@@ -1,32 +1,57 @@
-/* Recess Design System - Core Tokens */
+/* Recess Design System — core + semantic tokens (#113) */
+
+/* ---------------------------------- */
+/*           Core palette             */
+/* ---------------------------------- */
 
 :root {
+  --core-ink: #1b1b1b;
+  --core-paper: #ffffff;
+  --core-green: #37eb4f;
+  --core-red: #d32f2f;
+  --core-red-dark: #e24b4a;
+  --core-orange-light: #f9eadf;
+  --core-orange-dark: #d85a30;
+  --core-accent-blue: #b8d4f0;
+  --core-focus-blue: #1e5a9e;
+  --core-focus-blue-dark: #7eb8e8;
+  --core-accent-blue-dark: #3d6a9e;
+
+  --core-gray-50: #f5f5f4;
+  --core-gray-100: #f1f0f0;
+  --core-gray-200: #e7e5e4;
+  --core-gray-250: #d8d8d8;
+  --core-gray-300: #b4b4b4;
+  --core-gray-400: #929292;
+  --core-gray-500: #717171;
+  --core-gray-600: #4b5563;
+  --core-gray-700: #302e2f;
+
   /* ---------------------------------- */
-  /*             Typography             */
+  /*         Core typography            */
   /* ---------------------------------- */
 
-  /* Font Families */
-  --font-family-primary: 'Patrick Hand', cursive;
-  --font-family-secondary: 'BenchNine', sans-serif;
+  --font-family-heading: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', cursive;
+  --font-family-body:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-data: var(--font-family-body);
+  --font-family-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* Font Weights */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  /* Font Sizes (Type Scale) */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-md: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 2rem; /* 32px */
-  --font-size-4xl: 3rem; /* 48px */
-  --font-size-5xl: 4rem; /* 64px */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 3rem;
+  --font-size-5xl: 4rem;
 
-  /* Line Heights */
   --line-height-xs: 1.1;
   --line-height-sm: 1.2;
   --line-height-md: 1.3;
@@ -38,7 +63,7 @@
   --line-height-5xl: 1.2;
 
   /* ---------------------------------- */
-  /*               Spacing              */
+  /*            Core spacing            */
   /* ---------------------------------- */
 
   --spacing-0: 0;
@@ -54,38 +79,183 @@
   --spacing-16: 64px;
 
   /* ---------------------------------- */
-  /*               Colors               */
+  /*         Core shape / motion        */
   /* ---------------------------------- */
 
-  /* Palette */
-  --color-black: #1b1b1b;
-  --color-white: #ffffff;
-  --color-green: #37eb4f;
-  --color-red: #d32f2f;
-  --color-orange-light: #f9eadf;
-  --color-orange-dark: #d85a30;
-  --color-red-dark: #e24b4a;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --motion-duration-fast: 150ms;
+  --motion-duration-normal: 250ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  --color-gray-50: #f5f5f4;
-  --color-gray-100: #f1f0f0;
-  --color-gray-200: #e7e5e4;
-  --color-gray-250: #d8d8d8;
-  --color-gray-300: #b4b4b4;
-  --color-gray-400: #929292;
-  --color-gray-500: #717171;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #302e2f;
+/* ---------------------------------- */
+/*      Semantic tokens — light         */
+/* ---------------------------------- */
 
-  /* Semantic Colors */
-  --color-primary: var(--color-green);
-  --color-text-primary: var(--color-black);
-  --color-text-secondary: var(--color-gray-600);
-  --color-text-disabled: var(--color-gray-400);
-  --color-background-primary: var(--color-white);
-  --color-background-secondary: var(--color-gray-50);
-  --color-border-primary: var(--color-gray-200);
-  --color-border-secondary: var(--color-gray-400);
-  --color-status-fatigued-background: var(--color-orange-light);
-  --color-status-fatigued-border: var(--color-orange-dark);
-  --color-status-exhausted-background: var(--color-red-dark);
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --surface-primary: var(--core-paper);
+  --surface-secondary: var(--core-gray-50);
+  --surface-muted: var(--core-gray-100);
+  --surface-destructive: var(--core-red);
+  --surface-warning: var(--core-orange-light);
+  --surface-success: #e8f9eb;
+
+  --ink-primary: var(--core-ink);
+  --ink-muted: var(--core-gray-600);
+  --ink-disabled: var(--core-gray-400);
+  --ink-on-primary: var(--core-paper);
+  --ink-on-destructive: var(--core-paper);
+  --ink-link: var(--core-focus-blue);
+  --ink-warning: var(--core-orange-dark);
+
+  --border-default: var(--core-gray-200);
+  --border-strong: var(--core-gray-400);
+  --border-warning: var(--core-orange-dark);
+
+  --fill-primary: var(--core-accent-blue);
+  --fill-primary-hover: #a3c8e8;
+  --fill-destructive: var(--core-red);
+  --fill-selection: var(--core-accent-blue);
+
+  --focus-ring: var(--core-focus-blue);
+  --focus-ring-offset: var(--core-paper);
+
+  --shadow-elevation-low: 0 1px 2px rgb(27 27 27 / 8%);
+  --shadow-elevation-medium: 0 4px 12px rgb(27 27 27 / 12%);
+
+  --status-fatigued-background: var(--core-orange-light);
+  --status-fatigued-border: var(--core-orange-dark);
+  --status-exhausted-background: var(--core-red-dark);
+
+  /* HSL shims for React Aria TimeField */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10.6%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 211 68% 37%;
+  --radius: 0.5rem;
+  --primary: 211 68% 37%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 10.6%;
+  --accent: 207 56% 83%;
+  --accent-foreground: 0 0% 10.6%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+}
+
+/* ---------------------------------- */
+/*      Semantic tokens — dark          */
+/* ---------------------------------- */
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --surface-primary: var(--core-ink);
+  --surface-secondary: var(--core-gray-700);
+  --surface-muted: var(--core-gray-600);
+  --surface-destructive: var(--core-red-dark);
+  --surface-warning: #4a3028;
+  --surface-success: #1a3d22;
+
+  --ink-primary: var(--core-gray-50);
+  --ink-muted: var(--core-gray-300);
+  --ink-disabled: var(--core-gray-500);
+  --ink-on-primary: var(--core-ink);
+  --ink-on-destructive: var(--core-paper);
+  --ink-link: var(--core-focus-blue-dark);
+  --ink-warning: #f0a88a;
+
+  --border-default: var(--core-gray-600);
+  --border-strong: var(--core-gray-400);
+  --border-warning: #f0a88a;
+
+  --fill-primary: var(--core-accent-blue-dark);
+  --fill-primary-hover: #4d7cb0;
+  --fill-destructive: var(--core-red-dark);
+  --fill-selection: var(--core-accent-blue-dark);
+
+  --focus-ring: var(--core-focus-blue-dark);
+  --focus-ring-offset: var(--core-ink);
+
+  --shadow-elevation-low: 0 1px 2px rgb(0 0 0 / 35%);
+  --shadow-elevation-medium: 0 4px 12px rgb(0 0 0 / 45%);
+
+  --status-fatigued-background: #4a3028;
+  --status-fatigued-border: #f0a88a;
+  --status-exhausted-background: var(--core-red-dark);
+
+  --background: 0 0% 10.6%;
+  --foreground: 0 0% 96.1%;
+  --muted: 0 0% 18%;
+  --muted-foreground: 0 0% 70%;
+  --border: 0 0% 29%;
+  --input: 0 0% 29%;
+  --ring: 207 68% 70%;
+  --primary: 207 68% 70%;
+  --primary-foreground: 0 0% 10.6%;
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 0 0% 96.1%;
+  --accent: 211 38% 43%;
+  --accent-foreground: 0 0% 96.1%;
+  --destructive: 0 62% 55%;
+  --destructive-foreground: 0 0% 100%;
+}
+
+/* ---------------------------------- */
+/*   Legacy aliases (migration only)   */
+/* ---------------------------------- */
+
+:root,
+[data-theme='light'],
+[data-theme='dark'] {
+  --font-family-primary: var(--font-family-heading);
+  --font-family-secondary: var(--font-family-body);
+
+  --color-black: var(--core-ink);
+  --color-white: var(--core-paper);
+  --color-green: var(--core-green);
+  --color-red: var(--core-red);
+  --color-orange-light: var(--core-orange-light);
+  --color-orange-dark: var(--core-orange-dark);
+  --color-red-dark: var(--core-red-dark);
+
+  --color-gray-50: var(--core-gray-50);
+  --color-gray-100: var(--core-gray-100);
+  --color-gray-200: var(--core-gray-200);
+  --color-gray-250: var(--core-gray-250);
+  --color-gray-300: var(--core-gray-300);
+  --color-gray-400: var(--core-gray-400);
+  --color-gray-500: var(--core-gray-500);
+  --color-gray-600: var(--core-gray-600);
+  --color-gray-700: var(--core-gray-700);
+
+  /* Preserves pre-migration green primary CTA appearance */
+  --color-primary: var(--core-green);
+  --color-text-primary: var(--ink-primary);
+  --color-text-secondary: var(--ink-muted);
+  --color-text-disabled: var(--ink-disabled);
+  --color-background-primary: var(--surface-primary);
+  --color-background-secondary: var(--surface-secondary);
+  --color-border-primary: var(--border-default);
+  --color-border-secondary: var(--border-strong);
+  --color-status-fatigued-background: var(--status-fatigued-background);
+  --color-status-fatigued-border: var(--status-fatigued-border);
+  --color-status-exhausted-background: var(--status-exhausted-background);
+  --color-accent: var(--fill-primary);
+
+  /* Undefined aliases used in CSS modules — mapped without component edits */
+  --font-bench-nine: var(--font-family-heading);
+  --font-patrick: var(--font-family-heading);
+  --text-size-12: var(--font-size-xs);
+  --text-size-14: var(--font-size-sm);
+  --text-size-20: var(--font-size-xl);
+  --text-size-48: var(--font-size-4xl);
 }

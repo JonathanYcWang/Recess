@@ -2,23 +2,9 @@
 @import './breakpoints.module.css';
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10.6%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 10.6%;
-    --radius: 0.5rem;
-    --primary: 142 76% 57%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 10.6%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 10.6%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+  html {
+    background-color: var(--surface-primary);
+    color: var(--ink-primary);
   }
 }
 
@@ -44,11 +30,26 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Patrick Hand', cursive;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-xl);
+  color: var(--ink-primary);
+  background-color: var(--surface-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   width: 100%;
   min-height: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-regular);
+  color: var(--ink-primary);
 }
 
 #root {
@@ -67,11 +68,27 @@ button {
 
 a {
   text-decoration: none;
-  color: inherit;
+  color: var(--ink-link);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 img {
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
