@@ -52,6 +52,42 @@ describe('applyWorkstyleProfileCommand', () => {
     });
   });
 
+  it('assigns a pet atomically when completing the personalization quiz', () => {
+    const onboarded = applyWorkstyleProfileCommand(createDefaultWorkstyleProfileValue(), {
+      kind: 'initialize-from-onboarding',
+      energy: 'steady',
+      cadence: '25/5',
+      primaryFriction: 'motivation',
+    });
+    expect(onboarded.ok).toBe(true);
+    if (!onboarded.ok) {
+      return;
+    }
+
+    const completed = applyWorkstyleProfileCommand(onboarded.value, {
+      kind: 'complete-personalization-quiz',
+      outcome: { kind: 'top-two', dimensions: ['motivation', 'distraction'] },
+    });
+    expect(completed.ok).toBe(true);
+    if (completed.ok) {
+      expect(completed.value.personalizationQuizOutcome).toEqual({
+        kind: 'top-two',
+        dimensions: ['distraction', 'motivation'],
+      });
+      expect(completed.value.assignedPetId).toBe('pet-flux');
+    }
+
+    const retake = applyWorkstyleProfileCommand(completed.ok ? completed.value : onboarded.value, {
+      kind: 'complete-personalization-quiz',
+      outcome: { kind: 'balanced' },
+    });
+    expect(retake.ok).toBe(true);
+    if (retake.ok) {
+      expect(retake.value.assignedPetId).toBe('pet-flux');
+      expect(retake.value.personalizationQuizOutcome).toEqual({ kind: 'balanced' });
+    }
+  });
+
   it('returns caller-safe validation errors', () => {
     const current = createDefaultWorkstyleProfileValue();
     const invalid = applyWorkstyleProfileCommand(current, {

@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
-import { selectOnboardingCompleted } from '../../store/selectors/workstyleProfileProjectionSelectors';
+import {
+  selectAssignedPetId,
+  selectOnboardingCompleted,
+} from '../../store/selectors/workstyleProfileProjectionSelectors';
+import { getPetById } from '@/modules/pet-catalog';
 // import PrizeWheel from '@/components/PrizeWheel/PrizeWheel';
 import FocusPet from '@/components/FocusPet/FocusPet';
 import WorkPage from '@/components/WorkPage/WorkPage';
@@ -22,6 +26,9 @@ import styles from './HomePage.module.css';
 // } from '@/components/PrizeWheel/PrizeIcons';
 
 import BunnyWorkingImage from '../../assets/bunny-working.png';
+
+const DEFAULT_PET_NAME = 'Companion';
+const DEFAULT_PET_IMAGE = BunnyWorkingImage;
 
 interface NavIconProps {
   className?: string;
@@ -91,7 +98,11 @@ const renderSectionContent = (mainContent: MainSectionId) => {
 const HomePage = () => {
   const navigate = useNavigate();
   const onboardingCompleted = useSelector((state: RootState) => selectOnboardingCompleted(state));
+  const assignedPetId = useSelector((state: RootState) => selectAssignedPetId(state));
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
+  const assignedPet = assignedPetId ? getPetById(assignedPetId) : undefined;
+  const petName = assignedPet?.name ?? DEFAULT_PET_NAME;
+  const petImage = DEFAULT_PET_IMAGE;
 
   useEffect(() => {
     if (onboardingCompleted) {
@@ -234,7 +245,7 @@ const HomePage = () => {
                       },
                     ]}
                   /> */}
-                  <FocusPet petName={'Theo'} imgSrc={BunnyWorkingImage} />
+                  <FocusPet petName={petName} imgSrc={petImage} />
                 </section>
               </aside>
             </div>

@@ -1,4 +1,5 @@
 import type { Result } from '@/modules/persisted-application-state/types';
+import { getPetById, resolvePetIdFromQuizOutcome } from '@/modules/pet-catalog';
 import {
   cloneFrictionProfile,
   cloneWorkstyleProfileValue,
@@ -48,7 +49,8 @@ export type WorkstyleProfileDecisionError =
   | { kind: 'pet-already-assigned'; existingPetId: string }
   | { kind: 'invalid-friction-profile' }
   | { kind: 'invalid-personalization-quiz-outcome' }
-  | { kind: 'onboarding-incomplete' };
+  | { kind: 'onboarding-incomplete' }
+  | { kind: 'invalid-pet-mapping' };
 
 const parseEnergy = (value: unknown): Result<EnergyLevel, WorkstyleProfileDecisionError> => {
   if (typeof value !== 'string' || !includes(ENERGY_LEVELS, value)) {
@@ -263,6 +265,13 @@ export const applyWorkstyleProfileCommand = (
         return outcome;
       }
       next.personalizationQuizOutcome = outcome.value;
+      if (next.assignedPetId === null) {
+        const petId = resolvePetIdFromQuizOutcome(outcome.value);
+        if (!petId || !getPetById(petId)) {
+          return { ok: false, error: { kind: 'invalid-pet-mapping' } };
+        }
+        next.assignedPetId = petId;
+      }
       return { ok: true, value: next };
     }
     case 'restore-friction-baseline': {
