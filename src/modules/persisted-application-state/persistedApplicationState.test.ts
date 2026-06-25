@@ -38,7 +38,6 @@ describe('settings codec', () => {
       expect(invalid.error.kind).toBe('unsupported-version');
     }
   });
-
 });
 
 describe('document registry initialize', () => {

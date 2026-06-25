@@ -1,7 +1,4 @@
-import type {
-  SettingsValue,
-  VersionedDocument,
-} from '@/modules/persisted-application-state';
+import type { SettingsValue, VersionedDocument } from '@/modules/persisted-application-state';
 import type { SettingsCommandEnvelope, SettingsCommandError } from './protocol/settingsCommand';
 import type { SettingsRuntimeTransportError } from './messaging/messages';
 import type { RuntimeCommandResponse } from './protocol/types';
