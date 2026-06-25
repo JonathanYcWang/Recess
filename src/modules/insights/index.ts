@@ -25,3 +25,9 @@ export {
   queryEstimateAccuracy,
   type EstimateAccuracyValue,
 } from './projections/estimateAccuracy';
+
+export {
+  calculateFocusRecoveryDistribution,
+  FOCUS_RECOVERY_FORMULA_ID,
+  type FocusRecoveryValue,
+} from './projections/focusRecoveryDistribution';
