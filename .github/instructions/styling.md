@@ -11,4 +11,5 @@ Use when changing CSS Modules, design tokens, layout, accessibility states, or v
 - Do not add new design tokens without approval.
 - Preserve `:focus-visible`, hover, disabled, and reduced-motion states where relevant.
 - Keep styling changes scoped to the affected component or view.
+- Recess uses a single presentation; no Light/Dark theme tokens or `data-theme`.
 

@@ -2,7 +2,7 @@
 
 **Issue:** [#112](https://github.com/JonathanYcWang/Recess/issues/112)  
 **Epic:** [#111 Approved design system and UI migration](https://github.com/JonathanYcWang/Recess/issues/111)  
-**Status:** Implementation evidence recorded; **human-approved** 2026-06-25 (grilling session).  
+**Status:** Implementation evidence recorded; §8–§12 are **provisional direction** (grilling 2026-06-25). Visual application is **frozen** until #230 (human re-confirm). Themes removed — single presentation (#229).  
 **Source of truth:** Current code under `src/` as of this audit. This document does **not** inherit values from `DESIGN_SYSTEM.md` or prototype guidance.
 
 ---
@@ -19,7 +19,7 @@ Evidence was gathered from:
 - Settings persistence (`src/modules/persisted-application-state/settings/settingsDocument.ts`)
 - Manual viewport review at **360×640**, **480×800**, and **≥768px** widths in Chromium extension popup and detached tab
 
-Screenshots referenced below are captured during PR review at those viewports in Light mode (Dark mode CSS is not yet implemented; see §6).
+Screenshots referenced below are captured during PR review at those viewports (single presentation).
 
 ---
 
@@ -184,16 +184,9 @@ Used in `EditTimeRangeOverlay` for schedule time picking. Focus ring via `[data-
 
 ---
 
-## 6. Theme and settings
+## 6. Presentation
 
-| Layer | Current state |
-|-------|---------------|
-| Persistence | `themePreference: 'system' \| 'light' \| 'dark'` in settings document; default `'system'` |
-| Redux / commands | Read/write pipeline exists |
-| UI | **No Settings page** exposes theme control; `useSettings` hook exists but is unused |
-| CSS | **Light only** — single `:root` block in `tokens.css` and `globals.css`; no `prefers-color-scheme` rules, no `[data-theme]` attribute |
-
-**Gap:** Theme preference is backend-ready but disconnected from presentation (#113 scope).
+Recess uses **one presentation** — current light appearance, single `:root` token set. Light/Dark/System theme preference is **removed** ([#229](https://github.com/JonathanYcWang/Recess/issues/229)): no `themePreference` in settings, no `data-theme`, no `prefers-color-scheme` rules.
 
 ---
 
@@ -236,9 +229,9 @@ Used in `EditTimeRangeOverlay` for schedule time picking. Focus ring via `[data-
 
 ---
 
-## 8. Approved visual direction
+## 8. Provisional visual direction
 
-> Human-approved 2026-06-25 via grilling session. Supersedes draft pale-blue / green proposals in the first audit revision. **No accent color** in v1 of the approved system.
+> Recorded 2026-06-25 via grilling session. **Not applied in code** — visual application frozen until #230. Supersedes draft pale-blue / green proposals in the first audit revision. **No accent color** in the provisional system.
 
 ### 8.1 Brand character
 
@@ -250,13 +243,13 @@ Used in `EditTimeRangeOverlay` for schedule time picking. Focus ring via `[data-
 | Primary actions | **Black fill + white label** (buttons); not `--color-primary` |
 | Secondary actions | **White fill + black label** |
 | Selection / active | **Black ink** (nav indicator, selected borders) |
-| Focus | **Black ink ring** — 2px solid + 2px offset on `:focus-visible`; off-white ring on dark surfaces |
+| Focus | **Black ink ring** — 2px solid + 2px offset on `:focus-visible` |
 | Links | **Ink + underline**; slightly muted ink on hover; no visited styling |
 | Destructive | Red family (`#d32f2f`, `#e24b4a`) for errors and destructive actions |
 | Green `#37eb4f` | **Retire after migration** — transitional alias only, then remove |
 | Warning orange | **Removed** — no fatigue orange palette |
 
-### 8.2 Light palette
+### 8.2 Palette (single presentation)
 
 | Token role | Value | Notes |
 |------------|-------|-------|
@@ -270,24 +263,9 @@ Used in `EditTimeRangeOverlay` for schedule time picking. Focus ring via `[data-
 | Ink on action primary | `#ffffff` | Primary button labels |
 | Action secondary fill | `#ffffff` | Secondary buttons |
 | Destructive | `#d32f2f` | Errors, destructive controls |
-| Focus ring | `#1b1b1b` | Light theme |
+| Focus ring | `#1b1b1b` | Single presentation |
 
-### 8.3 Dark palette
-
-| Token role | Value | Notes |
-|------------|-------|-------|
-| Surface primary | `#1b1b1b` | Inverted ink |
-| Surface secondary | `#302e2f` | `--core-gray-700` |
-| Ink primary | `#f5f5f4` | |
-| Ink muted | `#b4b4b4` | `--core-gray-300` |
-| Border default | `#4b5563` | |
-| Action primary fill | `#ffffff` | **Inverted** — white button on dark |
-| Ink on action primary | `#1b1b1b` | |
-| Action secondary fill | transparent / outline | On dark surface |
-| Destructive | `#e24b4a` | |
-| Focus ring | `#f5f5f4` | Off-white on dark |
-
-### 8.4 Fatigue and status (no orange)
+### 8.3 Fatigue and status (no orange)
 
 | State | Approved treatment |
 |-------|-------------------|
@@ -295,7 +273,7 @@ Used in `EditTimeRangeOverlay` for schedule time picking. Focus ring via `[data-
 | Exhausted / worst | Darker gray / ink + text label |
 | Overdue timer | Black ink emphasis — no orange/red decorative glow |
 
-### 8.5 Canonical token names
+### 8.4 Canonical token names
 
 Single-source knobs and semantic aliases for propagation:
 
@@ -313,11 +291,11 @@ Single-source knobs and semantic aliases for propagation:
 
 **Retire after migration:** `--color-primary`, `--color-green`, `--color-orange-*`, `--color-status-fatigued-*`, pale-blue accent tokens from draft #113 implementation.
 
-**Note:** Merged #113 introduced `--core-accent-blue` and kept green as `--color-primary`; a follow-up issue revises tokens to this approved record.
+**Note:** #113 adds semantic **aliases** to current values (zero visual delta). #225 applies provisional palette values after #230 re-confirm.
 
 ---
 
-## 9. Approved typography
+## 9. Provisional typography
 
 ### 9.1 Current implementation (audit evidence)
 
@@ -352,14 +330,14 @@ Single-source knobs and semantic aliases for propagation:
 ### 10.2 Responsive
 
 - Compact extension: **360×640** through **480×800** — **drop** the 550px forced `html` width in `globals.css`.
-- Compact navigation: **bottom tab bar** (Focus, Schedule, Blocked, Insights) — #117.
+- Compact navigation: **reachability** restored below 768px (#117) — bottom tab bar **design** deferred until #230
 - Full tab: **≥768px** with **left sidebar** (existing desktop pattern).
 - Readable max-width for prose/data: ~`40rem` where applicable.
 - Extension popup + detached tab only — no standalone mobile-web product.
 
 ### 10.3 Focus
 
-- `:focus-visible`: `--focus-ring`, 2px solid, 2px offset (ink light / off-white dark).
+- `:focus-visible`: `--focus-ring`, 2px solid, 2px offset (ink).
 - Dialogs trap focus and restore on close (native or React Aria).
 - Skip link to main content in full-tab shell (#117).
 
@@ -394,41 +372,44 @@ Full first slice — no speculative additions:
 
 ---
 
-## 12. Human approval checklist
+## 12. Provisional direction checklist
 
 - [x] **H1.** Minimal warm/playful/grown-up direction (§8.1).
 - [x] **H2.** Black/white identity; handwritten limited to headings (§8.1, §9).
 - [x] **H3.** **No accent color**; primary actions are black/white buttons; green retired after migration (§8.1).
-- [x] **H4.** Focus rings use ink (light) / off-white (dark) — not blue (§8.1, §8.2).
-- [x] **H5.** Light palette approved (§8.2).
-- [x] **H6.** Dark palette approved with inverted primary button (§8.3).
-- [x] **H7.** Heading cursive stack + body system sans (§9.2).
-- [x] **H8.** System fonts only — no bundle, no Google Fonts (§9.2).
+- [x] **H4.** Focus rings use ink — not blue (§8.1, §8.2).
+- [x] **H5.** Single-presentation palette recorded (§8.2).
+- [ ] **H6.** ~~Dark palette~~ — **withdrawn**; themes removed (#229).
+- [x] **H7.** Heading cursive stack + body system sans (§9.2) — provisional, not applied.
+- [x] **H8.** System fonts only — no bundle, no Google Fonts (§9.2) — provisional, not applied.
 - [x] **H9.** Motion, responsive, focus, contrast, data-density (§10).
 - [x] **H10.** Full primitive inventory (§11).
 
-**Approver:** Jon (grilling session)  
-**Date:** 2026-06-25
+**Recorded:** Jon (grilling session 2026-06-25)  
+**Visual application:** Blocked until #230 re-confirm
 
 ---
 
 ## 13. Downstream issue map
 
-| Issue | Depends on this audit | Post-approval note |
-|-------|----------------------|-------------------|
-| #113 Semantic tokens | §4, §8, §9 | **Merged with pale-blue/green draft** — revise per §8.5 |
-| #114 Playwright + axe | §2 surface list, §3 viewports | Viewport/theme fixtures align |
-| #115 Primitives | §11 inventory | Build full approved set |
-| #116 Remove MUI | §5.1 | After #115 |
-| #117 App shells | §3, §10.2 | Bottom tab bar + 360px + sidebar |
-| #118–#126 Feature migrations | §2 full inventory | Use §8–§10 tokens/primitives |
-| #127 Visual baselines | §3 viewports + §8 palettes | Black/white system |
-| #128 Documentation | This document | Deprecation map includes retired green/orange/accent |
+| Issue | Depends on this audit | Note |
+|-------|----------------------|------|
+| #229 Remove theme preference | §6 | Single presentation; unblocks #113 |
+| #113 Semantic alias tokens | §4, §8, §9 | Aliases to **current** values; zero visual delta |
+| #114 Playwright + axe | §2 surface list, §3 viewports | Viewport matrix only (no theme dimension) |
+| #115 Primitives | §11 inventory | Pixel-parity with current UI |
+| #116 Remove MUI | §5.1 | After #115; pixel-parity |
+| #117 App shells | §3, §10.2 | Functional fixes; nav reachability, not tab-bar redesign |
+| #118–#126 Feature migrations | §2 full inventory | Structural migration; pixel parity |
+| #230 Visual re-confirm | §8–§12 | Human gate before palette application |
+| #225 Apply palette | §8 | After #230; visible changes |
+| #127 Visual baselines | §3 viewports | Single presentation |
+| #128 Documentation | This document | Phase 1 unblocked; Phase 2 after #127 |
 
 ---
 
 ## 14. Deliberate exclusions
 
-- Values and structures from `DESIGN_SYSTEM.md` at repo root are **not** adopted; that file remains legacy until retired in #128.
+- Root `DESIGN_SYSTEM.md` is retired; see `docs/design-system/README.md` (#128).
 - Dormant PrizeWheel/Slots/HomePage demo code is inventoried but not prioritized for migration ahead of active session flow.
 - `QuizPage` orphan is noted; migration decision deferred to #118.
