@@ -31,3 +31,9 @@ export {
   FOCUS_RECOVERY_FORMULA_ID,
   type FocusRecoveryValue,
 } from './projections/focusRecoveryDistribution';
+
+export {
+  calculateTimeOutPatterns,
+  TIME_OUT_PATTERNS_FORMULA_ID,
+  type TimeOutPatternsValue,
+} from './projections/timeOutPatterns';
