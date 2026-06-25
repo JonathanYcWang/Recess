@@ -140,6 +140,9 @@ const HomePage = () => {
   }
   return (
     <div className={styles.homePage}>
+      <a className={styles.skipLink} href="#main-content">
+        Skip to main content
+      </a>
       <div className={styles.layout}>
         <aside className={styles.desktopSidebar} aria-label="Primary navigation">
           <div className={styles.sidebarTop}>
@@ -156,6 +159,7 @@ const HomePage = () => {
               {navItems.map((item) => (
                 <button
                   key={item.id}
+                  aria-current={item.id === mainContent ? 'page' : undefined}
                   className={`${styles.navButton} ${
                     item.id === mainContent ? styles.navButtonActive : ''
                   }`}
@@ -169,7 +173,7 @@ const HomePage = () => {
             </nav>
           </div>
         </aside>
-        <main className={styles.mainPane}>
+        <main className={styles.mainPane} id="main-content">
           <div className={styles.content}>
             <header className={styles.header}>
               <div>
@@ -252,20 +256,22 @@ const HomePage = () => {
             </div>
           </div>
         </main>
-        {/* <nav className={styles.mobileNav} aria-label="Primary navigation">
+        <nav className={styles.mobileNav} aria-label="Primary navigation">
           {navItems.map((item) => (
             <button
               key={item.id}
               aria-label={item.label}
+              aria-current={item.id === mainContent ? 'page' : undefined}
               className={`${styles.mobileNavButton} ${
-                item.id === 'focus' ? styles.mobileNavButtonActive : ''
+                item.id === mainContent ? styles.mobileNavButtonActive : ''
               }`}
               type="button"
+              onClick={() => setMainContent(item.id)}
             >
               <item.icon className={styles.mobileNavIcon} />
             </button>
           ))}
-        </nav> */}
+        </nav>
       </div>
     </div>
   );

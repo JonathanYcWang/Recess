@@ -6,12 +6,11 @@
   box-sizing: border-box;
 }
 
-/* Popup-specific sizing - applies when window width is 600px or less (extension popup) */
+/* Popup-specific sizing - extension popup viewports */
 @media (max-width: 600px) {
   html {
-    width: 550px;
-    min-height: 600px;
-    max-height: 800px;
+    width: 100%;
+    min-height: 100%;
   }
 
   body {
