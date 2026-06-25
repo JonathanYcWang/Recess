@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { decideFocusRecessCycle, type RewardGameBudget, type SchedulerInput } from './index';
+import {
+  decideFocusRecessCycle,
+  MIN_TASK_CAP_SECONDS,
+  type RewardGameBudget,
+  type SchedulerInput,
+} from './index';
 import { cadenceToBaseDurations } from './cadence';
 
 const baseInput = (overrides: Partial<SchedulerInput> = {}): SchedulerInput => ({
@@ -7,7 +12,7 @@ const baseInput = (overrides: Partial<SchedulerInput> = {}): SchedulerInput => (
   energy: 'steady',
   momentum: 'steady',
   workSessionProgressRatio: 0,
-  selectedTaskRemainingMinutes: null,
+  selectedTaskRemainingSeconds: null,
   remainingWorkSessionSeconds: 90 * 60,
   gameBudget: { kind: 'wheel' },
   ...overrides,
@@ -25,6 +30,7 @@ describe('decideFocusRecessCycle', () => {
   it('begins from preferred cadence with 25/5 default behavior', () => {
     const decision = decideFocusRecessCycle(baseInput());
     expect(decision.focusMinutes).toBe(25);
+    expect(decision.focusDurationSeconds).toBe(25 * 60);
     expect(decision.recessMinutes).toBe(5);
     expect(decision.reasons.map((reason) => reason.code)).toContain('base-cadence');
   });
@@ -59,14 +65,78 @@ describe('decideFocusRecessCycle', () => {
     expect(decision.recessMinutes).toBeLessThanOrEqual(20);
   });
 
-  it('caps proposed focus by eligible selected task remaining work', () => {
+  it('caps proposed ordinary focus to exact eligible selected task remaining seconds', () => {
     const decision = decideFocusRecessCycle(
       baseInput({
-        selectedTaskRemainingMinutes: 18,
+        selectedTaskRemainingSeconds: 18 * 60,
       })
     );
-    expect(decision.focusMinutes).toBe(18);
+    expect(decision.focusDurationSeconds).toBe(18 * 60);
     expect(decision.reasons.some((reason) => reason.code === 'task-cap')).toBe(true);
+  });
+
+  it('preserves modifier ordering before task cap', () => {
+    const decision = decideFocusRecessCycle(
+      baseInput({
+        energy: 'low',
+        selectedTaskRemainingSeconds: 19 * 60,
+      })
+    );
+    expect(decision.reasons.map((reason) => reason.code)).toEqual([
+      'base-cadence',
+      'energy-low',
+      'task-cap',
+    ]);
+    expect(decision.focusDurationSeconds).toBe(19 * 60);
+  });
+
+  it.each([
+    ['below fifteen-minute threshold', 14 * 60 + 59],
+    ['equal to proposed focus', 25 * 60],
+    ['above proposed focus', 40 * 60],
+    ['absent selection', null],
+  ] as const)('does not apply task cap when remaining work is %s', (_label, remainingSeconds) => {
+    const decision = decideFocusRecessCycle(
+      baseInput({
+        selectedTaskRemainingSeconds: remainingSeconds,
+      })
+    );
+    expect(decision.focusDurationSeconds).toBe(25 * 60);
+    expect(decision.reasons.some((reason) => reason.code === 'task-cap')).toBe(false);
+  });
+
+  it('uses rounding-free seconds for task cap duration', () => {
+    const decision = decideFocusRecessCycle(
+      baseInput({
+        selectedTaskRemainingSeconds: 18 * 60 + 30,
+      })
+    );
+    expect(decision.focusDurationSeconds).toBe(18 * 60 + 30);
+    expect(decision.reasons.some((reason) => reason.code === 'task-cap')).toBe(true);
+  });
+
+  it('does not apply task cap for overrun tasks with zero derived remaining seconds', () => {
+    const decision = decideFocusRecessCycle(
+      baseInput({
+        selectedTaskRemainingSeconds: 0,
+      })
+    );
+    expect(decision.focusDurationSeconds).toBe(25 * 60);
+    expect(decision.reasons.some((reason) => reason.code === 'task-cap')).toBe(false);
+  });
+
+  it('does not apply task cap for final focus blocks', () => {
+    const decision = decideFocusRecessCycle(
+      baseInput({
+        remainingWorkSessionSeconds: 8 * 60,
+        gameBudget: { kind: 'cards' },
+        selectedTaskRemainingSeconds: 20 * 60,
+      })
+    );
+    expect(decision.isFinalFocus).toBe(true);
+    expect(decision.focusDurationSeconds).toBe(8 * 60);
+    expect(decision.reasons.some((reason) => reason.code === 'task-cap')).toBe(false);
+    expect(decision.reasons.some((reason) => reason.code === 'final-focus-exact')).toBe(true);
   });
 
   it('marks the current focus final when game budget cannot fit', () => {
@@ -92,6 +162,11 @@ describe('decideFocusRecessCycle', () => {
     );
     expect(decision.isFinalFocus).toBe(true);
     expect(decision.focusMinutes).toBe(8);
+    expect(decision.focusDurationSeconds).toBe(8 * 60);
     expect(decision.recessMinutes).toBe(0);
+  });
+
+  it('documents the fifteen-minute task cap eligibility floor', () => {
+    expect(MIN_TASK_CAP_SECONDS).toBe(15 * 60);
   });
 });

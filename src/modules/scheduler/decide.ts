@@ -10,12 +10,14 @@ import {
   type RewardGameBudget,
 } from './cadence';
 
+export const MIN_TASK_CAP_SECONDS = MIN_FOCUS_MINUTES * 60;
+
 export interface SchedulerInput {
   preferredCadence: PreferredCadence;
   energy: EnergyLevel;
   momentum: MomentumLevel;
   workSessionProgressRatio: number;
-  selectedTaskRemainingMinutes: number | null;
+  selectedTaskRemainingSeconds: number | null;
   remainingWorkSessionSeconds: number;
   gameBudget: RewardGameBudget;
 }
@@ -45,6 +47,7 @@ export interface SchedulerReason {
 
 export interface SchedulerDecision {
   focusMinutes: number;
+  focusDurationSeconds: number;
   recessMinutes: number;
   isFinalFocus: boolean;
   reasons: SchedulerReason[];
@@ -187,6 +190,28 @@ const clampRecess = (recessMinutes: number, reasons: SchedulerReason[]): number 
   return recessMinutes;
 };
 
+const applyEligibleTaskCap = (
+  focusDurationSeconds: number,
+  proposedFocusMinutes: number,
+  selectedTaskRemainingSeconds: number | null,
+  reasons: SchedulerReason[]
+): number => {
+  if (
+    selectedTaskRemainingSeconds === null ||
+    selectedTaskRemainingSeconds < MIN_TASK_CAP_SECONDS ||
+    selectedTaskRemainingSeconds >= focusDurationSeconds
+  ) {
+    return focusDurationSeconds;
+  }
+
+  reasons.push({
+    code: 'task-cap',
+    focusDeltaMinutes: selectedTaskRemainingSeconds / 60 - proposedFocusMinutes,
+    recessDeltaMinutes: 0,
+  });
+  return selectedTaskRemainingSeconds;
+};
+
 export const decideFocusRecessCycle = (input: SchedulerInput): SchedulerDecision => {
   const reasons: SchedulerReason[] = [];
   const cadence = input.preferredCadence ?? DEFAULT_CADENCE;
@@ -218,28 +243,27 @@ export const decideFocusRecessCycle = (input: SchedulerInput): SchedulerDecision
     reasons
   ));
 
-  focusMinutes = clampFocus(focusMinutes, reasons);
+  const proposedFocusMinutes = clampFocus(focusMinutes, reasons);
   recessMinutes = clampRecess(recessMinutes, reasons);
-
-  if (
-    input.selectedTaskRemainingMinutes !== null &&
-    input.selectedTaskRemainingMinutes > 0 &&
-    focusMinutes > input.selectedTaskRemainingMinutes
-  ) {
-    const delta = input.selectedTaskRemainingMinutes - focusMinutes;
-    focusMinutes = input.selectedTaskRemainingMinutes;
-    reasons.push({
-      code: 'task-cap',
-      focusDeltaMinutes: delta,
-      recessDeltaMinutes: 0,
-    });
-  }
 
   const remainingMinutes = input.remainingWorkSessionSeconds / 60;
   const fitsOrdinaryCycle = canFitOrdinaryCycle(
     input.remainingWorkSessionSeconds,
     input.gameBudget
   );
+  let focusDurationSeconds = proposedFocusMinutes * 60;
+
+  if (fitsOrdinaryCycle && focusDurationSeconds <= input.remainingWorkSessionSeconds) {
+    focusDurationSeconds = applyEligibleTaskCap(
+      focusDurationSeconds,
+      proposedFocusMinutes,
+      input.selectedTaskRemainingSeconds,
+      reasons
+    );
+    focusMinutes = focusDurationSeconds / 60;
+  } else {
+    focusMinutes = proposedFocusMinutes;
+  }
 
   if (!fitsOrdinaryCycle) {
     reasons.push({
@@ -248,6 +272,7 @@ export const decideFocusRecessCycle = (input: SchedulerInput): SchedulerDecision
       recessDeltaMinutes: 0,
     });
     const exactFocusMinutes = Math.max(0, Math.floor(remainingMinutes));
+    const exactFocusDurationSeconds = exactFocusMinutes * 60;
     reasons.push({
       code: 'final-focus-exact',
       focusDeltaMinutes: exactFocusMinutes - focusMinutes,
@@ -255,14 +280,16 @@ export const decideFocusRecessCycle = (input: SchedulerInput): SchedulerDecision
     });
     return {
       focusMinutes: exactFocusMinutes,
+      focusDurationSeconds: exactFocusDurationSeconds,
       recessMinutes: 0,
       isFinalFocus: true,
       reasons,
     };
   }
 
-  if (focusMinutes > remainingMinutes) {
+  if (focusDurationSeconds > input.remainingWorkSessionSeconds) {
     const exactFocusMinutes = Math.max(0, Math.floor(remainingMinutes));
+    const exactFocusDurationSeconds = exactFocusMinutes * 60;
     reasons.push({
       code: 'final-focus-exact',
       focusDeltaMinutes: exactFocusMinutes - focusMinutes,
@@ -270,6 +297,7 @@ export const decideFocusRecessCycle = (input: SchedulerInput): SchedulerDecision
     });
     return {
       focusMinutes: exactFocusMinutes,
+      focusDurationSeconds: exactFocusDurationSeconds,
       recessMinutes: 0,
       isFinalFocus: true,
       reasons,
@@ -277,7 +305,7 @@ export const decideFocusRecessCycle = (input: SchedulerInput): SchedulerDecision
   }
 
   const postGameRemainingMinutes =
-    remainingMinutes - focusMinutes - gameBudgetSeconds(input.gameBudget) / 60;
+    remainingMinutes - focusDurationSeconds / 60 - gameBudgetSeconds(input.gameBudget) / 60;
   if (postGameRemainingMinutes < recessMinutes) {
     const exactRecessMinutes = clamp(
       Math.floor(Math.max(0, postGameRemainingMinutes)),
@@ -296,6 +324,7 @@ export const decideFocusRecessCycle = (input: SchedulerInput): SchedulerDecision
 
   return {
     focusMinutes,
+    focusDurationSeconds,
     recessMinutes,
     isFinalFocus: false,
     reasons,

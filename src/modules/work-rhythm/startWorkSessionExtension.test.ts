@@ -12,7 +12,7 @@ import { WORK_SESSION_EXTENSION_CUMULATIVE_MAX_SECONDS } from './workSessionExte
 const extensionContext = {
   nowEpochMs: 5_000_000,
   preferredCadence: '25/5' as const,
-  selectedTaskRemainingMinutes: null,
+  selectedTaskRemainingSeconds: null,
   gameBudget: { kind: 'cards' as const },
 };
 

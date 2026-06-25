@@ -1087,4 +1087,127 @@ describe('workRhythmCommandHandler task attribution', () => {
     const second = await root.value.workRhythm.command(envelope);
     expect(second).toEqual(first);
   });
+
+  it('completes the active task and advances to the next selected task', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+
+    const first = await root.value.taskList.createTask({
+      title: 'Plan',
+      originalEstimateMinutes: 30,
+    });
+    const second = await root.value.taskList.createTask({
+      title: 'Build',
+      originalEstimateMinutes: 45,
+    });
+    if (!first.ok || !second.ok) {
+      throw new Error('expected tasks');
+    }
+    const firstId = first.snapshot.snapshot.incompleteTasks[0]?.id;
+    const secondId = second.snapshot.snapshot.incompleteTasks.find(
+      (task) => task.id !== firstId
+    )?.id;
+    if (!firstId || !secondId) {
+      throw new Error('expected task ids');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'select-tasks', taskIds: [firstId, secondId] })
+    );
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'set-active-task', taskId: firstId })
+    );
+
+    const persistence = createPersistedApplicationState({ adapter });
+    const hydrated = await persistence.initialize();
+    if (!hydrated.ok) {
+      throw new Error('expected hydration');
+    }
+    const workRhythmDoc = hydrated.value.documents['work-rhythm'];
+    if (workRhythmDoc.value.phase !== 'focus-block') {
+      throw new Error('expected focus');
+    }
+
+    const handler = await createWorkRhythmHandlerForTests(persistence, workRhythmDoc, {
+      clock: createFixedClock(workRhythmDoc.value.activeTaskIntervalStartedAtEpochMs! + 45_000),
+      alarms: createInMemoryAlarmAdapter(),
+    });
+
+    const completed = await handler.execute(
+      createWorkRhythmCommandEnvelope({ kind: 'complete-task', taskId: firstId })
+    );
+    expect(completed.ok).toBe(true);
+    if (completed.ok && completed.snapshot.snapshot.phase === 'focus-block') {
+      expect(completed.snapshot.snapshot.selectedTaskIds).toEqual([secondId]);
+      expect(completed.snapshot.snapshot.activeTaskId).toBe(secondId);
+    }
+
+    const reloaded = await persistence.initialize();
+    if (!reloaded.ok) {
+      throw new Error('expected reload');
+    }
+    const firstTask = reloaded.value.documents['task-list'].value.tasks.find(
+      (task) => task.id === firstId
+    );
+    const secondTask = reloaded.value.documents['task-list'].value.tasks.find(
+      (task) => task.id === secondId
+    );
+    expect(firstTask?.status).toBe('completed');
+    expect(firstTask?.focusedTimeSeconds).toBe(45);
+    expect(secondTask?.status).toBe('in-progress');
+  });
+
+  it('replays duplicate complete-task command ids', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+
+    const created = await root.value.taskList.createTask({
+      title: 'Ship',
+      originalEstimateMinutes: 30,
+    });
+    if (!created.ok) {
+      throw new Error('expected task');
+    }
+    const taskId = created.snapshot.snapshot.incompleteTasks[0]?.id;
+    if (!taskId) {
+      throw new Error('expected task id');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'select-tasks', taskIds: [taskId] })
+    );
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'set-active-task', taskId })
+    );
+
+    const envelope = createWorkRhythmCommandEnvelope(
+      { kind: 'complete-task', taskId },
+      { commandId: 'complete-task-once' }
+    );
+    const first = await root.value.workRhythm.command(envelope);
+    const second = await root.value.workRhythm.command(envelope);
+    expect(second).toEqual(first);
+  });
 });

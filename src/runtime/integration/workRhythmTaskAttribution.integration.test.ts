@@ -127,4 +127,103 @@ describe('work rhythm task attribution integration', () => {
       expect(current.value.snapshot.selectedTaskIds).toEqual([]);
     }
   });
+
+  it('completes the active task and advances through the runtime', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+
+    const first = await root.value.taskList.createTask({
+      title: 'Plan',
+      originalEstimateMinutes: 30,
+    });
+    const second = await root.value.taskList.createTask({
+      title: 'Build',
+      originalEstimateMinutes: 45,
+    });
+    if (!first.ok || !second.ok) {
+      throw new Error('expected tasks');
+    }
+    const firstId = first.snapshot.snapshot.incompleteTasks[0]?.id;
+    const secondId = second.snapshot.snapshot.incompleteTasks.find(
+      (task) => task.id !== firstId
+    )?.id;
+    if (!firstId || !secondId) {
+      throw new Error('expected task ids');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'select-tasks', taskIds: [firstId, secondId] })
+    );
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'set-active-task', taskId: firstId })
+    );
+
+    const completed = await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'complete-task', taskId: firstId })
+    );
+    expect(completed.ok).toBe(true);
+    if (completed.ok && completed.snapshot.snapshot.phase === 'focus-block') {
+      expect(completed.snapshot.snapshot.selectedTaskIds).toEqual([secondId]);
+      expect(completed.snapshot.snapshot.activeTaskId).toBe(secondId);
+    }
+
+    const taskList = root.value.taskListHandler.getDocument();
+    expect(taskList.value.tasks.find((task) => task.id === firstId)?.status).toBe('completed');
+    expect(taskList.value.tasks.find((task) => task.id === secondId)?.status).toBe('in-progress');
+  });
+
+  it('clears task selection when the last selected task is completed', async () => {
+    const adapter = createInMemoryKeyValueAdapter();
+    const root = await createBackgroundCompositionRoot({ adapter });
+    if (!root.ok) {
+      throw new Error('expected root');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({
+        kind: 'start-work-session',
+        goalSeconds: DEFAULT_WORK_SESSION_GOAL_SECONDS,
+        energy: 'steady',
+      })
+    );
+
+    const created = await root.value.taskList.createTask({
+      title: 'Only task',
+      originalEstimateMinutes: 30,
+    });
+    if (!created.ok) {
+      throw new Error('expected task');
+    }
+    const taskId = created.snapshot.snapshot.incompleteTasks[0]?.id;
+    if (!taskId) {
+      throw new Error('expected task id');
+    }
+
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'select-tasks', taskIds: [taskId] })
+    );
+    await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'set-active-task', taskId })
+    );
+
+    const completed = await root.value.workRhythm.command(
+      createWorkRhythmCommandEnvelope({ kind: 'complete-task', taskId })
+    );
+    expect(completed.ok).toBe(true);
+    if (completed.ok && completed.snapshot.snapshot.phase === 'focus-block') {
+      expect(completed.snapshot.snapshot.selectedTaskIds).toEqual([]);
+      expect(completed.snapshot.snapshot.activeTaskId).toBeNull();
+    }
+  });
 });

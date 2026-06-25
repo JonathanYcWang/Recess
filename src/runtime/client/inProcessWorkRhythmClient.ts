@@ -13,6 +13,8 @@ export const createInProcessWorkRhythmClient = (
     handler.execute(createWorkRhythmCommandEnvelope({ kind: 'select-tasks', taskIds }, options)),
   setActiveTask: async (taskId, options) =>
     handler.execute(createWorkRhythmCommandEnvelope({ kind: 'set-active-task', taskId }, options)),
+  completeTask: async (taskId, options) =>
+    handler.execute(createWorkRhythmCommandEnvelope({ kind: 'complete-task', taskId }, options)),
   subscribe: (listener) => handler.subscribe(listener),
 });
 

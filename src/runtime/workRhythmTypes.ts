@@ -53,6 +53,10 @@ export interface WorkRhythmClient {
     taskId: string | null,
     options?: { commandId?: string; expectedRevision?: number }
   ): Promise<WorkRhythmClientCommandResult>;
+  completeTask(
+    taskId: string,
+    options?: { commandId?: string; expectedRevision?: number }
+  ): Promise<WorkRhythmClientCommandResult>;
   subscribe(
     listener: (snapshot: WorkRhythmPublishedSnapshot) => void,
     options?: { onTransportLoss?: () => void }
