@@ -15,8 +15,9 @@ export const selectWorkstyleProfileMomentum = (state: RootState) =>
 export const selectWorkstyleProfileFriction = (state: RootState) =>
   state.workstyleProfileProjection.friction;
 
-export const selectAssignedPetId = (state: RootState) =>
-  state.workstyleProfileProjection.assignedPetId;
+export const selectActivePetId = (state: RootState) => state.workstyleProfileProjection.activePetId;
+
+export const selectOwnedPetIds = (state: RootState) => state.workstyleProfileProjection.ownedPetIds;
 
 export const selectOnboardingCompleted = (state: RootState) =>
   state.workstyleProfileProjection.onboardingCompleted;

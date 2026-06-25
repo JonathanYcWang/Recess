@@ -1,4 +1,5 @@
 import type { Result } from '@/modules/persisted-application-state/types';
+import { getPetById, resolvePetIdFromQuizOutcome } from '@/modules/pet-catalog';
 import {
   cloneFrictionProfile,
   cloneWorkstyleProfileValue,
@@ -16,6 +17,7 @@ import {
   type PersonalizationQuizOutcome,
   type PreferredCadence,
   type WorkstyleProfileValue,
+  withActivePet,
 } from './workstyleProfileDocument';
 
 const includes = <T extends string>(values: readonly T[], candidate: string): candidate is T =>
@@ -45,10 +47,10 @@ export type WorkstyleProfileDecisionError =
   | { kind: 'invalid-friction-level' }
   | { kind: 'invalid-primary-friction' }
   | { kind: 'invalid-pet-id' }
-  | { kind: 'pet-already-assigned'; existingPetId: string }
   | { kind: 'invalid-friction-profile' }
   | { kind: 'invalid-personalization-quiz-outcome' }
-  | { kind: 'onboarding-incomplete' };
+  | { kind: 'onboarding-incomplete' }
+  | { kind: 'invalid-pet-mapping' };
 
 const parseEnergy = (value: unknown): Result<EnergyLevel, WorkstyleProfileDecisionError> => {
   if (typeof value !== 'string' || !includes(ENERGY_LEVELS, value)) {
@@ -230,18 +232,14 @@ export const applyWorkstyleProfileCommand = (
       return { ok: true, value: next };
     }
     case 'assign-pet': {
-      if (current.assignedPetId !== null) {
-        return {
-          ok: false,
-          error: { kind: 'pet-already-assigned', existingPetId: current.assignedPetId },
-        };
-      }
       const petId = parsePetId(command.petId);
       if (!petId.ok) {
         return petId;
       }
-      next.assignedPetId = petId.value;
-      return { ok: true, value: next };
+      if (!getPetById(petId.value)) {
+        return { ok: false, error: { kind: 'invalid-pet-mapping' } };
+      }
+      return { ok: true, value: withActivePet(next, petId.value) };
     }
     case 'enrich-friction-from-personalization-quiz': {
       if (!current.onboardingCompleted) {
@@ -263,7 +261,11 @@ export const applyWorkstyleProfileCommand = (
         return outcome;
       }
       next.personalizationQuizOutcome = outcome.value;
-      return { ok: true, value: next };
+      const petId = resolvePetIdFromQuizOutcome(outcome.value);
+      if (!petId || !getPetById(petId)) {
+        return { ok: false, error: { kind: 'invalid-pet-mapping' } };
+      }
+      return { ok: true, value: withActivePet(next, petId) };
     }
     case 'restore-friction-baseline': {
       if (!current.onboardingCompleted) {

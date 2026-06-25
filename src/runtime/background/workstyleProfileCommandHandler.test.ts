@@ -24,7 +24,8 @@ describe('workstyleProfileCommandHandler', () => {
       expect(response.snapshot.value.preferredCadence).toBe('45/10');
       expect(response.snapshot.value.energy).toBe('high');
       expect(response.snapshot.value.friction.starting).toBe('high');
-      expect(response.snapshot.value.assignedPetId).toBeNull();
+      expect(response.snapshot.value.activePetId).toBeNull();
+      expect(response.snapshot.value.ownedPetIds).toEqual([]);
     }
   });
 
@@ -36,14 +37,15 @@ describe('workstyleProfileCommandHandler', () => {
     }
 
     await root.value.workstyleProfile.command(
-      createWorkstyleProfileCommandEnvelope({ kind: 'assign-pet', petId: 'theo' })
+      createWorkstyleProfileCommandEnvelope({ kind: 'assign-pet', petId: 'pet-flux' })
     );
-    const replaced = await root.value.workstyleProfile.command(
-      createWorkstyleProfileCommandEnvelope({ kind: 'assign-pet', petId: 'other' })
+    const switched = await root.value.workstyleProfile.command(
+      createWorkstyleProfileCommandEnvelope({ kind: 'assign-pet', petId: 'pet-tide' })
     );
-    expect(replaced).toMatchObject({
-      ok: false,
-      error: { kind: 'pet-already-assigned' },
-    });
+    expect(switched.ok).toBe(true);
+    if (switched.ok) {
+      expect(switched.snapshot.value.activePetId).toBe('pet-tide');
+      expect(switched.snapshot.value.ownedPetIds).toEqual(['pet-flux', 'pet-tide']);
+    }
   });
 });

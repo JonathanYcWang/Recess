@@ -19,8 +19,8 @@ import {
   type WorkstyleProfileValue,
 } from './workstyleProfileDocument';
 
-export const WORKSTYLE_PROFILE_SCHEMA_VERSION = 2;
-const SUPPORTED_SCHEMA_VERSIONS = [1, 2] as const;
+export const WORKSTYLE_PROFILE_SCHEMA_VERSION = 3;
+const SUPPORTED_SCHEMA_VERSIONS = [1, 2, 3] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -82,6 +82,57 @@ const parsePersonalizationQuizOutcome = (
   return { ok: true, value: { kind: 'top-two', dimensions } };
 };
 
+const parseOwnedPetIds = (value: unknown): Result<readonly string[], string> => {
+  if (!Array.isArray(value)) {
+    return { ok: false, error: 'ownedPetIds must be an array' };
+  }
+  const ownedPetIds: string[] = [];
+  for (const petId of value) {
+    if (typeof petId !== 'string' || petId.trim().length === 0) {
+      return { ok: false, error: 'ownedPetIds must contain non-empty strings' };
+    }
+    if (!ownedPetIds.includes(petId)) {
+      ownedPetIds.push(petId);
+    }
+  }
+  return { ok: true, value: ownedPetIds };
+};
+
+const parsePetCollection = (
+  value: unknown,
+  schemaVersion: number
+): Result<Pick<WorkstyleProfileValue, 'ownedPetIds' | 'activePetId'>, string> => {
+  if (schemaVersion >= 3) {
+    if (!isRecord(value)) {
+      return { ok: false, error: 'workstyle profile value must be an object' };
+    }
+    const ownedPetIds = parseOwnedPetIds(value.ownedPetIds);
+    if (!ownedPetIds.ok) {
+      return ownedPetIds;
+    }
+    if (value.activePetId !== null && typeof value.activePetId !== 'string') {
+      return { ok: false, error: 'activePetId must be a string or null' };
+    }
+    const activePetId = value.activePetId === null ? null : String(value.activePetId);
+    if (activePetId !== null && !ownedPetIds.value.includes(activePetId)) {
+      return { ok: false, error: 'activePetId must be included in ownedPetIds' };
+    }
+    return { ok: true, value: { ownedPetIds: ownedPetIds.value, activePetId } };
+  }
+
+  const assignedPetId =
+    isRecord(value) && value.assignedPetId !== null && typeof value.assignedPetId === 'string'
+      ? String(value.assignedPetId)
+      : null;
+  return {
+    ok: true,
+    value: {
+      ownedPetIds: assignedPetId ? [assignedPetId] : [],
+      activePetId: assignedPetId,
+    },
+  };
+};
+
 const parseWorkstyleProfileValue = (
   value: unknown,
   schemaVersion: number
@@ -105,8 +156,9 @@ const parseWorkstyleProfileValue = (
   if (!friction.ok) {
     return { ok: false, error: friction.error };
   }
-  if (value.assignedPetId !== null && typeof value.assignedPetId !== 'string') {
-    return { ok: false, error: 'assignedPetId must be a string or null' };
+  const pets = parsePetCollection(value, schemaVersion);
+  if (!pets.ok) {
+    return pets;
   }
   if (typeof value.onboardingCompleted !== 'boolean') {
     return { ok: false, error: 'onboardingCompleted must be a boolean' };
@@ -125,7 +177,8 @@ const parseWorkstyleProfileValue = (
       energy: value.energy as EnergyLevel,
       momentum: value.momentum as MomentumLevel,
       friction: friction.value,
-      assignedPetId: value.assignedPetId === null ? null : String(value.assignedPetId),
+      ownedPetIds: pets.value.ownedPetIds,
+      activePetId: pets.value.activePetId,
       onboardingCompleted: value.onboardingCompleted,
       personalizationQuizOutcome: outcome.value,
     },
