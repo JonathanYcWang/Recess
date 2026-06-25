@@ -6,7 +6,10 @@ import type {
 import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
-import { decodeSettingsCommandEnvelope, type SettingsCommandError } from '../protocol/settingsCommand';
+import {
+  decodeSettingsCommandEnvelope,
+  type SettingsCommandError,
+} from '../protocol/settingsCommand';
 import type {
   SettingsCommandHandler,
   SettingsCommandResponse,
