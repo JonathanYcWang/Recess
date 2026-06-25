@@ -1,4 +1,4 @@
-import Toggle from '../Toggle/Toggle';
+import { PrimitiveSwitch } from '@/primitives';
 import { toPressableDivProps } from '@/utils/pressable';
 import styles from './WorkWindow.module.css';
 
@@ -21,10 +21,17 @@ const WorkWindow = ({ timeRange, days, enabled, onToggle, onEdit }: WorkWindowPr
       <p className={styles.days}>{days}</p>
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- isolate toggle clicks from row edit handler */}
       <div
+        className={styles.toggleContainer}
         onClick={(event) => event.stopPropagation()}
         onKeyDown={(event) => event.stopPropagation()}
       >
-        <Toggle isOn={enabled} onToggle={handleToggle} />
+        <PrimitiveSwitch
+          label={`${timeRange} reminder enabled`}
+          isSelected={enabled}
+          onChange={handleToggle}
+          hideLabel
+          className={styles.toggle}
+        />
       </div>
     </div>
   );

@@ -46,3 +46,15 @@
   width: 100%;
   max-width: 500px;
 }
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+.skipButton {
+  min-width: 8rem;
+}
