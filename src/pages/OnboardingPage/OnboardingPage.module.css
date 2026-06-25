@@ -5,7 +5,6 @@
   padding: 1.5rem;
   max-width: 36rem;
   margin: 0 auto;
-  color: var(--ink-primary);
 }
 
 .header h1 {
@@ -15,7 +14,7 @@
 .header p,
 .section p {
   margin: 0;
-  color: var(--ink-muted);
+  color: #4b5563;
 }
 
 .section {
@@ -35,21 +34,14 @@
   text-align: left;
   padding: 0.875rem 1rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--border-default);
-  background: var(--surface-primary);
-  color: var(--ink-primary);
+  border: 1px solid #d1d5db;
+  background: #fff;
   cursor: pointer;
 }
 
 .optionSelected {
-  border-color: var(--ink-primary);
-  background: var(--surface-secondary);
-}
-
-.option:focus-visible,
-.optionSelected:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  border-color: #2563eb;
+  background: #eff6ff;
 }
 
 .summary {
@@ -64,5 +56,5 @@
 }
 
 .error {
-  color: var(--fill-destructive);
+  color: #b91c1c;
 }
