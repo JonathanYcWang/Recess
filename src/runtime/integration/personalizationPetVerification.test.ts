@@ -33,7 +33,7 @@ describe('personalization and pet verification', () => {
     }
   });
 
-  it('keeps pet assignment immutable across profile enrichment and retakes', () => {
+  it('adds quiz pets to the collection and switches the active companion on retake', () => {
     let profile = createDefaultWorkstyleProfileValue();
     const onboarded = applyWorkstyleProfileCommand(profile, {
       kind: 'initialize-from-onboarding',
@@ -55,8 +55,8 @@ describe('personalization and pet verification', () => {
     if (!completed.ok) {
       return;
     }
-    const firstPet = completed.value.assignedPetId;
-    expect(firstPet).toBe('pet-nudge');
+    expect(completed.value.activePetId).toBe('pet-nudge');
+    expect(completed.value.ownedPetIds).toEqual(['pet-nudge']);
 
     const retake = applyWorkstyleProfileCommand(completed.value, {
       kind: 'complete-personalization-quiz',
@@ -64,7 +64,8 @@ describe('personalization and pet verification', () => {
     });
     expect(retake.ok).toBe(true);
     if (retake.ok) {
-      expect(retake.value.assignedPetId).toBe(firstPet);
+      expect(retake.value.activePetId).toBe('pet-tide');
+      expect(retake.value.ownedPetIds).toEqual(['pet-nudge', 'pet-tide']);
     }
   });
 
