@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 
+import { PrimitiveDialog, PrimitiveSlider } from '@/primitives';
 import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
-import { toPressableDivProps } from '@/utils/pressable';
 import TimesIcon from '../../assets/times.svg?url';
-import Slider from '@mui/material/Slider';
 
 import styles from './DurationInputDialog.module.css';
 
@@ -49,35 +48,27 @@ const DurationInputDialog = ({
   useEffect(() => {
     onConfirm(minutesToSeconds(time));
   }, [time, onConfirm]);
-  if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} {...toPressableDivProps(onClose)}>
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- stop overlay dismissal when interacting with dialog content */}
-      <div className={styles.dialog} onMouseDown={(event) => event.stopPropagation()}>
+    <PrimitiveDialog
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title="Set Work Duration"
+    >
+      <div className={styles.dialogBody}>
         <div className={styles.headerContainer}>
-          <h2 className={styles.title}>Set Work Duration</h2>
           <Icon src={TimesIcon} alt="Close" size="sm" onClick={onClose} />
         </div>
         <p className={styles.description}>{minutesToDisplay(time)}</p>
-        <Slider
-          sx={{
-            color: 'var(--color-text-primary)',
-            height: 8,
-
-            '& .MuiSlider-thumb': {
-              height: 20,
-              width: 20,
-              backgroundColor: 'var(--color-background-primary)',
-              border: '2px solid currentColor',
-            },
-          }}
-          aria-label="Work Session Duration"
+        <PrimitiveSlider
+          label="Work Session Duration"
           value={time}
           step={15}
-          min={15}
-          max={480}
-          onChange={(_e: Event, value: number) => setTime(value)}
+          minValue={15}
+          maxValue={480}
+          onChange={setTime}
         />
         <div className={styles.presetTimes}>
           {PRESET_TIMES_MINUTES.map((minutes) => (
@@ -90,7 +81,7 @@ const DurationInputDialog = ({
           ))}
         </div>
       </div>
-    </div>
+    </PrimitiveDialog>
   );
 };
 

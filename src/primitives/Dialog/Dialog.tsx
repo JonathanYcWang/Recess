@@ -6,10 +6,12 @@ import styles from './Dialog.module.css';
 
 export interface PrimitiveDialogProps {
   isOpen: boolean;
-  title: string;
+  title?: string;
   description?: string;
   children?: ReactNode;
   onOpenChange: (isOpen: boolean) => void;
+  variant?: 'default' | 'unframed';
+  'aria-label'?: string;
 }
 
 export const PrimitiveDialog = ({
@@ -18,6 +20,8 @@ export const PrimitiveDialog = ({
   description,
   children,
   onOpenChange,
+  variant = 'default',
+  'aria-label': ariaLabel,
 }: PrimitiveDialogProps) => (
   <ModalOverlay
     isOpen={isOpen}
@@ -26,10 +30,15 @@ export const PrimitiveDialog = ({
     className={styles.overlay}
   >
     <Modal className={styles.modal}>
-      <Dialog className={`${styles.dialog} ${interaction.focusVisible}`}>
-        <Heading slot="title" className={styles.title}>
-          {title}
-        </Heading>
+      <Dialog
+        className={`${styles.dialog} ${variant === 'unframed' ? styles.unframed : ''} ${interaction.focusVisible}`}
+        aria-label={title ? undefined : ariaLabel}
+      >
+        {title ? (
+          <Heading slot="title" className={styles.title}>
+            {title}
+          </Heading>
+        ) : null}
         {description ? <p className={styles.description}>{description}</p> : null}
         <div className={styles.content}>{children}</div>
       </Dialog>
