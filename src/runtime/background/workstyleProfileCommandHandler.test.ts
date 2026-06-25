@@ -47,7 +47,7 @@ describe('workstyleProfileCommandHandler', () => {
     }
   });
 
-  it('rejects pet reassignment after first assignment', async () => {
+  it('allows switching active pet after first assignment', async () => {
     const adapter = createInMemoryKeyValueAdapter();
     const root = await createBackgroundCompositionRoot({ adapter });
     if (!root.ok) {

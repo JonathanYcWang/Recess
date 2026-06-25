@@ -105,7 +105,7 @@ export const createWorkstyleProfileCommandHandler = (
       if (!coinHandler) {
         return toFailure({ kind: 'persistence-unavailable' });
       }
-      if (current.value.assignedPetId === null) {
+      if (current.value.activePetId === null) {
         return toFailure({ kind: 'no-pet-assigned' });
       }
       const coinSnapshot = coinHandler.current();
@@ -130,7 +130,7 @@ export const createWorkstyleProfileCommandHandler = (
           amount: MOOD_BOOST_COIN_COST,
           recordedAt: clock.nowEpochMs(),
           reasonCode: 'mood-boost',
-          context: { petId: current.value.assignedPetId },
+          context: { petId: current.value.activePetId },
         },
       });
       if (!debit.ok) {
