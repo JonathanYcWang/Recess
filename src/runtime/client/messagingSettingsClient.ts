@@ -1,4 +1,3 @@
-import { RUNTIME_PROTOCOL_VERSION } from '../protocol/types';
 import type { SettingsClient, SettingsCommandHandler, SettingsSnapshot } from '../types';
 import {
   SETTINGS_RUNTIME_CHANNEL,
@@ -7,9 +6,6 @@ import {
   type SettingsRuntimeRequest,
 } from '../messaging/messages';
 import type { RuntimeMessagePort, RuntimeMessageTransport } from '../messaging/runtimeTransport';
-
-const createCommandId = (): string =>
-  `cmd-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 const unwrapCurrent = (response: SettingsRuntimeMessageResponse) => {
   if (!response.ok) {
@@ -42,20 +38,6 @@ export const createMessagingSettingsClient = (
         channel: SETTINGS_RUNTIME_CHANNEL,
         action: 'command',
         envelope,
-      })
-    ),
-  setThemePreference: async (preference, options) =>
-    unwrapCommand(
-      await transport.send({
-        channel: SETTINGS_RUNTIME_CHANNEL,
-        action: 'command',
-        envelope: {
-          protocolVersion: RUNTIME_PROTOCOL_VERSION,
-          commandId: options?.commandId ?? createCommandId(),
-          module: 'settings',
-          expectedRevision: options?.expectedRevision,
-          command: { kind: 'set-theme-preference', preference },
-        },
       })
     ),
   subscribe(listener, options) {

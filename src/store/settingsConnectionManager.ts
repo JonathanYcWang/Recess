@@ -22,7 +22,6 @@ const projectSnapshot = (dispatch: AppDispatch, snapshot: SettingsSnapshot): voi
   dispatch(
     setSettingsProjection({
       revision: snapshot.revision,
-      themePreference: snapshot.value.themePreference,
     })
   );
 };

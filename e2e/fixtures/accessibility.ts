@@ -1,8 +1,6 @@
 import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-export type ThemeFixture = 'light' | 'dark';
-
 const FOCUSABLE_TAGS = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA'];
 
 export const installExtensionApiFixture = async (page: Page) => {
@@ -32,15 +30,6 @@ export const installExtensionApiFixture = async (page: Page) => {
     });
   });
 };
-
-export const applyThemeFixture = async (page: Page, theme: ThemeFixture) => {
-  await page.evaluate((resolvedTheme) => {
-    document.documentElement.setAttribute('data-theme', resolvedTheme);
-  }, theme);
-};
-
-export const resolveThemeFromColorScheme = (colorScheme: 'light' | 'dark' | null | undefined): ThemeFixture =>
-  colorScheme === 'dark' ? 'dark' : 'light';
 
 export const gotoAppRoute = async (page: Page, path: string) => {
   await installExtensionApiFixture(page);

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { RUNTIME_PROTOCOL_VERSION } from '../protocol/types';
 import type { SettingsClient } from '../types';
 
 export const describeSettingsClientContractTests = (
@@ -11,42 +12,28 @@ export const describeSettingsClientContractTests = (
       const current = await client.current();
       expect(current).toMatchObject({
         ok: true,
-        value: { revision: 0, value: { themePreference: 'system' } },
+        value: { revision: 0, value: { hasOnboarded: false } },
       });
     });
 
-    it('commits a theme preference through command', async () => {
+    it('allows subscribing to snapshot updates', async () => {
       const client = await createClient();
-      const changed = await client.setThemePreference('dark');
-      expect(changed).toMatchObject({
-        ok: true,
-        revision: 1,
-        snapshot: { value: { themePreference: 'dark' } },
-      });
-    });
-
-    it('publishes subscription updates after commands', async () => {
-      const client = await createClient();
-      const snapshots: number[] = [];
-      const unsubscribe = client.subscribe((snapshot) => {
-        snapshots.push(snapshot.revision);
-      });
-
-      const initial = await client.current();
-      expect(initial.ok).toBe(true);
-
-      await client.setThemePreference('light');
+      const unsubscribe = client.subscribe(() => undefined);
+      expect(typeof unsubscribe).toBe('function');
       unsubscribe();
-
-      expect(snapshots).toContain(1);
     });
 
-    it('rejects invalid preferences without committing', async () => {
+    it('rejects unsupported commands', async () => {
       const client = await createClient();
-      const rejected = await client.setThemePreference('sepia' as never);
+      const rejected = await client.command({
+        protocolVersion: RUNTIME_PROTOCOL_VERSION,
+        commandId: 'cmd-unsupported',
+        module: 'settings',
+        command: { kind: 'unsupported-command' },
+      } as never);
       expect(rejected).toEqual({
         ok: false,
-        error: { kind: 'invalid-theme-preference' },
+        error: { kind: 'malformed-command', message: 'unsupported Settings command kind' },
       });
     });
   });

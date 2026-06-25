@@ -12,7 +12,6 @@ const snapshot: SettingsSnapshot = {
   schemaVersion: 1,
   revision: 3,
   value: {
-    themePreference: 'dark',
     workHours: [],
     blockedSites: [],
     hasOnboarded: false,
@@ -36,7 +35,6 @@ const createMockClient = (): SettingsClient & { subscribe: ReturnType<typeof vi.
   return {
     current: vi.fn(async () => ({ ok: true as const, value: snapshot })),
     command: vi.fn(),
-    setThemePreference: vi.fn(),
     subscribe,
   };
 };
@@ -54,6 +52,6 @@ describe('settings projection subscription', () => {
     await vi.waitFor(() => {
       expect(client.subscribe).toHaveBeenCalledTimes(1);
     });
-    expect(store.getState().settingsProjection.themePreference).toBe('dark');
+    expect(store.getState().settingsProjection.revision).toBe(3);
   });
 });

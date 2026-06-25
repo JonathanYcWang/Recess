@@ -39,24 +39,10 @@ export default defineConfig({
       },
     },
     {
-      name: 'compact-dark-360',
-      use: {
-        viewport: { width: 360, height: 640 },
-        colorScheme: 'dark',
-      },
-    },
-    {
       name: 'full-tab-light-768',
       use: {
         viewport: { width: 768, height: 900 },
         colorScheme: 'light',
-      },
-    },
-    {
-      name: 'full-tab-dark-1024',
-      use: {
-        viewport: { width: 1024, height: 900 },
-        colorScheme: 'dark',
       },
     },
     {

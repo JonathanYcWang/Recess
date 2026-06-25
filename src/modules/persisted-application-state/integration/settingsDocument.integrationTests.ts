@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
 import { createPersistedApplicationState } from '../persistedApplicationState';
+import { createDefaultSettingsValue } from '../settings/settingsDocument';
 import type { KeyValueStorageAdapter } from '../types';
 
 export const describeSettingsDocumentIntegrationTests = (
@@ -24,17 +25,9 @@ export const describeSettingsDocumentIntegrationTests = (
       const state = createPersistedApplicationState({ adapter });
       await state.initialize();
       const nextValue = {
-        themePreference: 'system' as const,
-        workHours: [],
+        ...createDefaultSettingsValue(),
         blockedSites: ['example.com'],
         hasOnboarded: true,
-        windDownSoundEnabled: false,
-        quiz: {
-          currentQuestionId: 'Q1',
-          selectedChoices: [],
-          isComplete: false,
-          results: null,
-        },
       };
       const committed = await state.commit([
         { document: 'settings', expectedRevision: 0, value: nextValue },
@@ -66,17 +59,8 @@ export const describeSettingsDocumentIntegrationTests = (
           document: 'settings',
           expectedRevision: 0,
           value: {
-            themePreference: 'system',
-            workHours: [],
-            blockedSites: [],
+            ...createDefaultSettingsValue(),
             hasOnboarded: true,
-            windDownSoundEnabled: false,
-            quiz: {
-              currentQuestionId: 'Q1',
-              selectedChoices: [],
-              isComplete: false,
-              results: null,
-            },
           },
         },
       ]);
@@ -86,17 +70,8 @@ export const describeSettingsDocumentIntegrationTests = (
           document: 'settings',
           expectedRevision: 0,
           value: {
-            themePreference: 'system',
-            workHours: [],
-            blockedSites: [],
+            ...createDefaultSettingsValue(),
             hasOnboarded: false,
-            windDownSoundEnabled: false,
-            quiz: {
-              currentQuestionId: 'Q1',
-              selectedChoices: [],
-              isComplete: false,
-              results: null,
-            },
           },
         },
       ]);

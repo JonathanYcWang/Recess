@@ -211,18 +211,4 @@ describe('extension runtime messaging', () => {
       expect(JSON.stringify(current.value)).not.toContain('[object Object]');
     }
   });
-
-  it('delivers subscription snapshots over runtime ports', async () => {
-    const client = await createExtensionMessagingClient();
-    const revisions: number[] = [];
-    const unsubscribe = client.subscribe((snapshot) => {
-      revisions.push(snapshot.revision);
-    });
-
-    await client.setThemePreference('dark');
-    unsubscribe();
-
-    expect(revisions).toContain(1);
-    expect(revisions.length).toBeGreaterThanOrEqual(1);
-  });
 });

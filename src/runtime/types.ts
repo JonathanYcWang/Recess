@@ -1,6 +1,5 @@
 import type {
   SettingsValue,
-  ThemePreference,
   VersionedDocument,
 } from '@/modules/persisted-application-state';
 import type { SettingsCommandEnvelope, SettingsCommandError } from './protocol/settingsCommand';
@@ -44,10 +43,6 @@ export interface SettingsCommandHandler {
 export interface SettingsClient {
   current(): Promise<SettingsClientCurrentResult>;
   command(envelope: SettingsCommandEnvelope): Promise<SettingsClientCommandResult>;
-  setThemePreference(
-    preference: ThemePreference,
-    options?: { commandId?: string; expectedRevision?: number }
-  ): Promise<SettingsClientCommandResult>;
   subscribe(
     listener: (snapshot: SettingsSnapshot) => void,
     options?: SettingsSubscribeOptions

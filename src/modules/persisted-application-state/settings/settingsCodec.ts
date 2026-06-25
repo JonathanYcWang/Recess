@@ -5,7 +5,6 @@ import {
   type QuizResults,
   type QuizState,
   type SettingsValue,
-  THEME_PREFERENCES,
   type WorkHoursEntry,
 } from './settingsDocument';
 
@@ -16,9 +15,6 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((entry) => typeof entry === 'string');
-
-const isThemePreference = (value: unknown): value is SettingsValue['themePreference'] =>
-  typeof value === 'string' && THEME_PREFERENCES.some((preference) => preference === value);
 
 const parseWorkHoursEntry = (value: unknown): Result<WorkHoursEntry, string> => {
   if (!isRecord(value)) {
@@ -114,10 +110,6 @@ const parseSettingsValue = (value: unknown): Result<SettingsValue, string> => {
   if (!Array.isArray(value.workHours)) {
     return { ok: false, error: 'workHours must be an array' };
   }
-  const themePreference = value.themePreference ?? 'system';
-  if (!isThemePreference(themePreference)) {
-    return { ok: false, error: 'themePreference must be system, light, or dark' };
-  }
   const workHours: WorkHoursEntry[] = [];
   for (const entry of value.workHours) {
     const parsed = parseWorkHoursEntry(entry);
@@ -148,7 +140,6 @@ const parseSettingsValue = (value: unknown): Result<SettingsValue, string> => {
   return {
     ok: true,
     value: {
-      themePreference,
       workHours,
       blockedSites: value.blockedSites,
       hasOnboarded: value.hasOnboarded,

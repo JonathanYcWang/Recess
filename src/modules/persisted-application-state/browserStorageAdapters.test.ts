@@ -7,6 +7,7 @@ import {
   describeKeyValueAdapterIntegrationTests,
   describeSettingsDocumentIntegrationTests,
 } from '@/modules/persisted-application-state';
+import { createDefaultSettingsValue } from '@/modules/persisted-application-state/settings/settingsDocument';
 
 describeKeyValueAdapterIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');
 
@@ -139,17 +140,9 @@ describe('browser adapter parity', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
-          themePreference: 'system',
-          workHours: [],
+          ...createDefaultSettingsValue(),
           blockedSites: ['parity.test'],
           hasOnboarded: true,
-          windDownSoundEnabled: false,
-          quiz: {
-            currentQuestionId: 'Q1',
-            selectedChoices: [],
-            isComplete: false,
-            results: null,
-          },
         },
       },
     ]);
@@ -185,17 +178,9 @@ describe('browser adapter parity', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
-          themePreference: 'system',
-          workHours: [],
+          ...createDefaultSettingsValue(),
           blockedSites: ['parity.test'],
           hasOnboarded: true,
-          windDownSoundEnabled: false,
-          quiz: {
-            currentQuestionId: 'Q1',
-            selectedChoices: [],
-            isComplete: false,
-            results: null,
-          },
         },
       },
     ]);

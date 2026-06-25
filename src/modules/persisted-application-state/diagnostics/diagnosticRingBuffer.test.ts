@@ -6,6 +6,7 @@ import {
   DIAGNOSTIC_BUFFER_LIMIT,
 } from '@/modules/persisted-application-state';
 import { SETTINGS_DOCUMENT_KEY } from '@/modules/persisted-application-state/registry/documentRegistry';
+import { createDefaultSettingsValue } from '@/modules/persisted-application-state/settings/settingsDocument';
 
 describe('diagnostic ring buffer', () => {
   it('retains at most 500 entries and evicts oldest deterministically', () => {
@@ -58,17 +59,8 @@ describe('diagnostic ring buffer', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
-          themePreference: 'system',
-          workHours: [],
+          ...createDefaultSettingsValue(),
           blockedSites: ['diag.test'],
-          hasOnboarded: false,
-          windDownSoundEnabled: false,
-          quiz: {
-            currentQuestionId: 'Q1',
-            selectedChoices: [],
-            isComplete: false,
-            results: null,
-          },
         },
       },
     ]);

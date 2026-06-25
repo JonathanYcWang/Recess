@@ -8,6 +8,7 @@ import {
   DATA_EXPORT_FORMAT_VERSION,
 } from '@/modules/persisted-application-state';
 import { createWorkHistoryService } from '@/modules/work-history';
+import { createDefaultSettingsValue } from '@/modules/persisted-application-state/settings/settingsDocument';
 
 describe('data control service', () => {
   it('exports all operational documents, work history, and diagnostics', async () => {
@@ -79,11 +80,9 @@ describe('data control service', () => {
         document: 'settings',
         expectedRevision: 0,
         value: {
-          themePreference: 'system',
-          workHours: [],
+          ...createDefaultSettingsValue(),
           blockedSites: ['delete.me'],
           hasOnboarded: true,
-          windDownSoundEnabled: false,
           quiz: {
             currentQuestionId: 'Q2',
             selectedChoices: [],

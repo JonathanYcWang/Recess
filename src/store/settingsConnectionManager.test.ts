@@ -7,6 +7,7 @@ import {
   createMessagingSettingsClient,
 } from '@/runtime/client/messagingSettingsClient';
 import type { SettingsClient, SettingsSnapshot } from '@/runtime';
+import { RUNTIME_PROTOCOL_VERSION } from '@/runtime/protocol/types';
 import settingsProjectionReducer from './reducers/settingsProjectionReducer';
 import {
   resetSettingsConnectionManagerForTests,
@@ -16,11 +17,10 @@ import {
 import { createConnectionAwareSettingsClient } from './settingsConnectionAwareClient';
 import { resetAppSettingsClientForTests } from './settingsClient';
 
-const snapshot = (revision: number, theme: 'light' | 'dark' = 'light'): SettingsSnapshot => ({
+const snapshot = (revision: number): SettingsSnapshot => ({
   schemaVersion: 1,
   revision,
   value: {
-    themePreference: theme,
     workHours: [],
     blockedSites: [],
     hasOnboarded: false,
@@ -84,7 +84,7 @@ describe('SettingsConnectionManager', () => {
     const store = createStore();
     store.dispatch({
       type: 'settingsProjection/setProjection',
-      payload: { revision: 1, themePreference: 'dark' },
+      payload: { revision: 1 },
     });
     const client = await createTestClient({
       current: async () => ({ ok: false, error: { kind: 'missing-receiver' } }),
@@ -100,7 +100,7 @@ describe('SettingsConnectionManager', () => {
 
     expect(store.getState().settingsProjection.connectionState).toBe('disconnected');
     expect(store.getState().settingsProjection.revision).toBe(1);
-    expect(store.getState().settingsProjection.themePreference).toBe('dark');
+    expect(store.getState().settingsProjection.revision).toBe(1);
   });
 
   it('rejects commands while disconnected', async () => {
@@ -115,7 +115,12 @@ describe('SettingsConnectionManager', () => {
     });
     await vi.runAllTimersAsync();
 
-    const result = await client.setThemePreference('dark');
+    const result = await client.command({
+      protocolVersion: RUNTIME_PROTOCOL_VERSION,
+      commandId: 'cmd-disconnected',
+      module: 'settings',
+      command: { kind: 'unsupported-command' },
+    } as never);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.kind).toBe('transport-unavailable');
@@ -128,10 +133,10 @@ describe('SettingsConnectionManager', () => {
     let currentRevision = 2;
     let subscribeCount = 0;
     const client = await createTestClient({
-      current: async () => ({ ok: true, value: snapshot(currentRevision, 'dark') }),
+      current: async () => ({ ok: true, value: snapshot(currentRevision) }),
       onSubscribe: (listener) => {
         subscribeCount += 1;
-        listener(snapshot(currentRevision, 'dark'));
+        listener(snapshot(currentRevision));
         return () => undefined;
       },
     });

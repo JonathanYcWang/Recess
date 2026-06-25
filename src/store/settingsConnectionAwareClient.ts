@@ -23,15 +23,4 @@ export const createConnectionAwareSettingsClient = (client: SettingsClient): Set
     }
     return result;
   },
-  setThemePreference: async (preference, options) => {
-    const manager = getSettingsConnectionManager();
-    if (manager?.getConnectionState() === 'disconnected') {
-      return transportUnavailable();
-    }
-    const result = await client.setThemePreference(preference, options);
-    if (!result.ok && isSettingsTransportError(result.error)) {
-      manager?.markDisconnected();
-    }
-    return result;
-  },
 });

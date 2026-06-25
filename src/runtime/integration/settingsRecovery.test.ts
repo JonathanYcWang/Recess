@@ -2,31 +2,24 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
 import type { KeyValueStorageAdapter } from '@/modules/persisted-application-state';
 import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import { createDefaultSettingsValue } from '@/modules/persisted-application-state/settings/settingsDocument';
 import { createBackgroundCompositionRoot } from '@/runtime/background/backgroundCompositionRoot';
-import { createSettingsCommandHandler } from '@/runtime/background/settingsCommandHandler';
 import {
   registerSettingsRuntimeListener,
   resetSettingsRuntimeListenerForTests,
 } from '@/runtime/background/settingsRuntimeListener';
+import { resetSharedBackgroundCompositionRootForTests } from '@/runtime/background/sharedCompositionRoot';
 import {
   createInProcessRuntimeTransport,
   createMessagingSettingsClient,
 } from '@/runtime/client/messagingSettingsClient';
-import { createCommandOutcomeStore } from '@/runtime/commandOutcomeStore';
-import { createEffectExecutor } from '@/runtime/effects/effectExecutor';
-import { createEffectOutcomeStore } from '@/runtime/effects/effectOutcomeStore';
-import { createFixtureEffectAdapter } from '@/runtime/effects/integration/fixtureEffectAdapter';
 import { createExtensionRuntimeTransport } from '@/runtime/messaging/extensionRuntimeTransport';
 import type {
   ExtensionRuntimeApi,
   ExtensionRuntimePort,
 } from '@/runtime/messaging/extensionRuntimeApi';
 import { RUNTIME_PROTOCOL_VERSION } from '@/runtime/protocol/types';
-import type {
-  SettingsClient,
-  SettingsCommandHandler,
-  SettingsCommandResponse,
-} from '@/runtime/types';
+import type { SettingsClient, SettingsCommandHandler } from '@/runtime/types';
 
 type RecoveryFixture = {
   adapter: KeyValueStorageAdapter;
@@ -34,19 +27,32 @@ type RecoveryFixture = {
   restartWorker: () => Promise<SettingsClient>;
 };
 
-const commandEnvelope = (
-  commandId: string,
-  options?: { preference?: 'dark' | 'light'; expectedRevision?: number }
-) => ({
+const commandEnvelope = (commandId: string) => ({
   protocolVersion: RUNTIME_PROTOCOL_VERSION,
   commandId,
   module: 'settings' as const,
-  expectedRevision: options?.expectedRevision,
-  command: {
-    kind: 'set-theme-preference' as const,
-    preference: options?.preference ?? 'dark',
-  },
+  command: { kind: 'unsupported-command' },
 });
+
+const malformedCommand = {
+  ok: false as const,
+  error: { kind: 'malformed-command' as const, message: 'unsupported Settings command kind' },
+};
+
+const commitSettings = async (
+  adapter: KeyValueStorageAdapter,
+  value: Partial<ReturnType<typeof createDefaultSettingsValue>>
+) => {
+  const persistence = createPersistedApplicationState({ adapter });
+  await persistence.initialize();
+  return persistence.commit([
+    {
+      document: 'settings',
+      expectedRevision: 0,
+      value: { ...createDefaultSettingsValue(), ...value },
+    },
+  ]);
+};
 
 const createMockExtensionRuntime = () => {
   const onMessageListeners = new Set<
@@ -170,6 +176,7 @@ const createExtensionRecoveryFixture = async (): Promise<RecoveryFixture> => {
 
   const registerWorker = () => {
     resetSettingsRuntimeListenerForTests();
+    resetSharedBackgroundCompositionRootForTests();
     registerSettingsRuntimeListener({ adapter, runtime });
   };
 
@@ -197,13 +204,12 @@ const describeSettingsRecoveryMatrix = (
   describe(`settings recovery matrix (${suiteName})`, () => {
     afterEach(() => {
       resetSettingsRuntimeListenerForTests();
+      resetSharedBackgroundCompositionRootForTests();
     });
 
     it('reconstructs the same Settings snapshot and revision from durable documents', async () => {
       const fixture = await createFixture();
-      const client = await fixture.createClient();
-      const committed = await client.setThemePreference('dark');
-      expect(committed.ok).toBe(true);
+      await commitSettings(fixture.adapter, { hasOnboarded: true });
 
       const restarted = await fixture.restartWorker();
       const current = await restarted.current();
@@ -211,7 +217,7 @@ const describeSettingsRecoveryMatrix = (
         ok: true,
         value: {
           revision: 1,
-          value: { themePreference: 'dark' },
+          value: { hasOnboarded: true },
         },
       });
     });
@@ -223,12 +229,7 @@ const describeSettingsRecoveryMatrix = (
       const first = await client.command(envelope);
       const second = await client.command(envelope);
       expect(first).toEqual(second);
-
-      const current = await client.current();
-      expect(current).toMatchObject({
-        ok: true,
-        value: { revision: 1, value: { themePreference: 'dark' } },
-      });
+      expect(first).toEqual(malformedCommand);
     });
 
     it('returns one committed outcome for duplicate delivery after restart', async () => {
@@ -236,51 +237,16 @@ const describeSettingsRecoveryMatrix = (
       const client = await fixture.createClient();
       const envelope = commandEnvelope('cmd-duplicate-after');
       const first = await client.command(envelope);
-      expect(first.ok).toBe(true);
+      expect(first).toEqual(malformedCommand);
 
       const restarted = await fixture.restartWorker();
       const replay = await restarted.command(envelope);
       expect(replay).toEqual(first);
-
-      const current = await restarted.current();
-      expect(current).toMatchObject({
-        ok: true,
-        value: { revision: 1, value: { themePreference: 'dark' } },
-      });
-    });
-
-    it('fails stale revisions safely and lets current recover the client', async () => {
-      const fixture = await createFixture();
-      const client = await fixture.createClient();
-      const stale = await client.command(commandEnvelope('cmd-stale', { expectedRevision: 9 }));
-      expect(stale).toEqual({
-        ok: false,
-        error: { kind: 'stale-revision', expectedRevision: 9, actualRevision: 0 },
-      });
-
-      const current = await client.current();
-      expect(current.ok).toBe(true);
-      if (!current.ok) {
-        return;
-      }
-
-      const recovered = await client.command(
-        commandEnvelope('cmd-recover', {
-          preference: 'light',
-          expectedRevision: current.value.revision,
-        })
-      );
-      expect(recovered).toMatchObject({
-        ok: true,
-        revision: 1,
-        snapshot: { value: { themePreference: 'light' } },
-      });
     });
 
     it('resubscribes after worker restart without losing the latest snapshot', async () => {
       const fixture = await createFixture();
-      const client = await fixture.createClient();
-      await client.setThemePreference('dark');
+      await commitSettings(fixture.adapter, { hasOnboarded: true });
 
       const restarted = await fixture.restartWorker();
       const unsubscribe = restarted.subscribe(() => undefined);
@@ -288,7 +254,7 @@ const describeSettingsRecoveryMatrix = (
       const current = await restarted.current();
       expect(current).toMatchObject({
         ok: true,
-        value: { revision: 1, value: { themePreference: 'dark' } },
+        value: { revision: 1, value: { hasOnboarded: true } },
       });
       unsubscribe();
     });
@@ -298,66 +264,3 @@ const describeSettingsRecoveryMatrix = (
 describeSettingsRecoveryMatrix('in-process transport', createInProcessRecoveryFixture);
 describeSettingsRecoveryMatrix('chromium transport', createExtensionRecoveryFixture);
 describeSettingsRecoveryMatrix('safari-compatible transport', createExtensionRecoveryFixture);
-
-describe('settings recovery matrix (journal and pending effects)', () => {
-  it('rolls forward pending effects after journal recovery without duplicate delivery', async () => {
-    const adapter = createInMemoryKeyValueAdapter();
-    const persistence = createPersistedApplicationState({ adapter });
-    const initialized = await persistence.initialize();
-    if (!initialized.ok) {
-      throw new Error('expected initialization to succeed');
-    }
-
-    const fixtureAdapter = createFixtureEffectAdapter({
-      failIntentIds: new Set(['effect-cmd-journal-recovery']),
-    });
-    const store = createEffectOutcomeStore(adapter);
-    const executor = createEffectExecutor({
-      store,
-      adapters: [fixtureAdapter],
-    });
-    const outcomeStore = createCommandOutcomeStore<SettingsCommandResponse>(adapter);
-    const handler = createSettingsCommandHandler(
-      persistence,
-      initialized.value.documents.settings,
-      {
-        effectExecutor: executor,
-        outcomeStore,
-      }
-    );
-
-    const response = await handler.execute(commandEnvelope('cmd-journal-recovery'));
-    expect(response.ok).toBe(true);
-    expect(fixtureAdapter.deliveredIntentIds).toEqual([]);
-
-    const reinitialized = await persistence.initialize();
-    if (!reinitialized.ok) {
-      throw new Error('expected reinitialization to succeed');
-    }
-    const reconstructedExecutor = createEffectExecutor({
-      store: createEffectOutcomeStore(adapter),
-      adapters: [
-        createFixtureEffectAdapter({
-          deliveredIntentIds: [...fixtureAdapter.deliveredIntentIds],
-        }),
-      ],
-    });
-    const rolledForward = await reconstructedExecutor.rollForwardPending();
-    expect(rolledForward).toHaveLength(1);
-    expect(rolledForward[0]?.phase).toBe('completed');
-
-    const reconstructedHandler = createSettingsCommandHandler(
-      persistence,
-      reinitialized.value.documents.settings,
-      { effectExecutor: reconstructedExecutor, outcomeStore }
-    );
-    const current = reconstructedHandler.current();
-    expect(current).toMatchObject({
-      ok: true,
-      value: { revision: 1, value: { themePreference: 'dark' } },
-    });
-
-    const replay = await reconstructedHandler.execute(commandEnvelope('cmd-journal-recovery'));
-    expect(replay).toEqual(response);
-  });
-});

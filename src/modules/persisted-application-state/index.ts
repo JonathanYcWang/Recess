@@ -31,9 +31,7 @@ export {
   createDefaultSettingsValue,
 } from './registry/documentRegistry';
 export {
-  THEME_PREFERENCES,
   type SettingsValue,
-  type ThemePreference,
   type WorkHoursEntry,
   type QuizState,
 } from './settings/settingsDocument';
