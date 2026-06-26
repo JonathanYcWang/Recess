@@ -3,6 +3,7 @@ import type {
   Result,
   StorageError,
 } from '@/modules/persisted-application-state/types';
+import { toStorageError, unavailableResult } from '../storageAdapterErrors';
 
 type BrowserStorage = {
   get(keys: string[]): Promise<Record<string, unknown>>;
@@ -59,24 +60,11 @@ const getSafariStorage = (): BrowserStorage | null => {
   return null;
 };
 
-const toStorageError = (cause: unknown): StorageError => {
-  if (
-    typeof cause === 'object' &&
-    cause !== null &&
-    'message' in cause &&
-    typeof cause.message === 'string' &&
-    cause.message.includes('QUOTA')
-  ) {
-    return { kind: 'quota-exceeded' };
-  }
-  return { kind: 'write-failed', cause };
-};
-
 export const createSafariKeyValueAdapter = (): KeyValueStorageAdapter => ({
   async get(key: string): Promise<Result<string | null, StorageError>> {
     const storage = getSafariStorage();
     if (!storage) {
-      return { ok: false, error: { kind: 'unavailable' } };
+      return unavailableResult();
     }
     try {
       const result = await storage.get([key]);
@@ -99,7 +87,7 @@ export const createSafariKeyValueAdapter = (): KeyValueStorageAdapter => ({
   async set(key: string, value: string): Promise<Result<void, StorageError>> {
     const storage = getSafariStorage();
     if (!storage) {
-      return { ok: false, error: { kind: 'unavailable' } };
+      return unavailableResult();
     }
     try {
       await storage.set({ [key]: value });
@@ -112,7 +100,7 @@ export const createSafariKeyValueAdapter = (): KeyValueStorageAdapter => ({
   async remove(key: string): Promise<Result<void, StorageError>> {
     const storage = getSafariStorage();
     if (!storage) {
-      return { ok: false, error: { kind: 'unavailable' } };
+      return unavailableResult();
     }
     try {
       await storage.remove([key]);
@@ -125,7 +113,7 @@ export const createSafariKeyValueAdapter = (): KeyValueStorageAdapter => ({
   async removeAll(keys: readonly string[]): Promise<Result<void, StorageError>> {
     const storage = getSafariStorage();
     if (!storage) {
-      return { ok: false, error: { kind: 'unavailable' } };
+      return unavailableResult();
     }
     try {
       await storage.remove([...keys]);

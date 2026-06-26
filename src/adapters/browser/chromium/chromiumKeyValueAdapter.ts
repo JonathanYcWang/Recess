@@ -3,27 +3,15 @@ import type {
   Result,
   StorageError,
 } from '@/modules/persisted-application-state/types';
+import { toStorageError, unavailableResult } from '../storageAdapterErrors';
 
 const isChromeStorageAvailable = (): boolean =>
   typeof globalThis.chrome !== 'undefined' && globalThis.chrome?.storage?.local !== undefined;
 
-const toStorageError = (cause: unknown): StorageError => {
-  if (
-    typeof cause === 'object' &&
-    cause !== null &&
-    'message' in cause &&
-    typeof cause.message === 'string' &&
-    cause.message.includes('QUOTA')
-  ) {
-    return { kind: 'quota-exceeded' };
-  }
-  return { kind: 'write-failed', cause };
-};
-
 export const createChromiumKeyValueAdapter = (): KeyValueStorageAdapter => ({
   get(key: string): Promise<Result<string | null, StorageError>> {
     if (!isChromeStorageAvailable()) {
-      return Promise.resolve({ ok: false, error: { kind: 'unavailable' } });
+      return Promise.resolve(unavailableResult());
     }
     return new Promise((resolve) => {
       globalThis.chrome.storage.local.get([key], (result) => {
@@ -51,7 +39,7 @@ export const createChromiumKeyValueAdapter = (): KeyValueStorageAdapter => ({
 
   set(key: string, value: string): Promise<Result<void, StorageError>> {
     if (!isChromeStorageAvailable()) {
-      return Promise.resolve({ ok: false, error: { kind: 'unavailable' } });
+      return Promise.resolve(unavailableResult());
     }
     return new Promise((resolve) => {
       globalThis.chrome.storage.local.set({ [key]: value }, () => {
@@ -67,7 +55,7 @@ export const createChromiumKeyValueAdapter = (): KeyValueStorageAdapter => ({
 
   remove(key: string): Promise<Result<void, StorageError>> {
     if (!isChromeStorageAvailable()) {
-      return Promise.resolve({ ok: false, error: { kind: 'unavailable' } });
+      return Promise.resolve(unavailableResult());
     }
     return new Promise((resolve) => {
       globalThis.chrome.storage.local.remove([key], () => {
@@ -83,7 +71,7 @@ export const createChromiumKeyValueAdapter = (): KeyValueStorageAdapter => ({
 
   removeAll(keys: readonly string[]): Promise<Result<void, StorageError>> {
     if (!isChromeStorageAvailable()) {
-      return Promise.resolve({ ok: false, error: { kind: 'unavailable' } });
+      return Promise.resolve(unavailableResult());
     }
     return new Promise((resolve) => {
       globalThis.chrome.storage.local.remove([...keys], () => {
