@@ -186,8 +186,12 @@ const PersonalizationQuizPage = () => {
             <p className={styles.result}>Result: {formatOutcome(completedOutcome)}</p>
           )}
           <div className={styles.actions}>
-            <PrimitiveButton onClick={() => navigate('/')}>Back to Recess</PrimitiveButton>
-            <PrimitiveButton onClick={() => void handleRestart()}>Retake quiz</PrimitiveButton>
+            <PrimitiveButton className={styles.actionButton} onClick={() => navigate('/')}>
+              Back to Recess
+            </PrimitiveButton>
+            <PrimitiveButton className={styles.actionButton} onClick={() => void handleRestart()}>
+              Retake quiz
+            </PrimitiveButton>
           </div>
         </PrimitivePanel>
       </div>
@@ -225,15 +229,15 @@ const PersonalizationQuizPage = () => {
             <h2>{scenario.text}</h2>
             <div className={styles.optionList} role="list">
               {scenario.options.map((option) => (
-                <button
+                <PrimitiveButton
                   key={option.id}
-                  type="button"
+                  variant="ghost"
                   className={styles.option}
                   disabled={submitting}
                   onClick={() => void handleSelectOption(scenario.id, option.id)}
                 >
                   {option.text}
-                </button>
+                </PrimitiveButton>
               ))}
             </div>
           </PrimitivePanel>
@@ -251,8 +255,14 @@ const PersonalizationQuizPage = () => {
       ) : null}
 
       <div className={styles.actions}>
-        <PrimitiveButton onClick={() => void handleDismiss()}>Dismiss for now</PrimitiveButton>
-        <PrimitiveButton isLoading={submitting} onClick={() => void handleRestart()}>
+        <PrimitiveButton className={styles.actionButton} onClick={() => void handleDismiss()}>
+          Dismiss for now
+        </PrimitiveButton>
+        <PrimitiveButton
+          className={styles.actionButton}
+          isLoading={submitting}
+          onClick={() => void handleRestart()}
+        >
           {submitting ? 'Working…' : 'Restart quiz'}
         </PrimitiveButton>
       </div>

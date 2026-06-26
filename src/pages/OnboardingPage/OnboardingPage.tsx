@@ -152,14 +152,14 @@ const OnboardingPage = () => {
           <h2>How is your energy right now?</h2>
           <div className={styles.optionList}>
             {ENERGY_LEVELS.map((energy) => (
-              <button
+              <PrimitiveButton
                 key={energy}
-                type="button"
+                variant="ghost"
                 className={draft.energy === energy ? styles.optionSelected : styles.option}
                 onClick={() => updateDraft({ ...draft, energy, step: 1 })}
               >
                 {ENERGY_LABELS[energy]}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
         </PrimitivePanel>
@@ -170,17 +170,22 @@ const OnboardingPage = () => {
           <h2>Which focus rhythm feels most natural?</h2>
           <div className={styles.optionList}>
             {PREFERRED_CADENCES.map((cadence) => (
-              <button
+              <PrimitiveButton
                 key={cadence}
-                type="button"
+                variant="ghost"
                 className={draft.cadence === cadence ? styles.optionSelected : styles.option}
                 onClick={() => updateDraft({ ...draft, cadence, step: 2 })}
               >
                 {CADENCE_LABELS[cadence]}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
-          <PrimitiveButton onClick={() => updateDraft({ ...draft, step: 0 })}>Back</PrimitiveButton>
+          <PrimitiveButton
+            className={styles.actionButton}
+            onClick={() => updateDraft({ ...draft, step: 0 })}
+          >
+            Back
+          </PrimitiveButton>
         </PrimitivePanel>
       )}
 
@@ -189,19 +194,24 @@ const OnboardingPage = () => {
           <h2>What gets in the way most often?</h2>
           <div className={styles.optionList}>
             {FRICTION_DIMENSIONS.map((friction) => (
-              <button
+              <PrimitiveButton
                 key={friction}
-                type="button"
+                variant="ghost"
                 className={
                   draft.primaryFriction === friction ? styles.optionSelected : styles.option
                 }
                 onClick={() => updateDraft({ ...draft, primaryFriction: friction, step: 3 })}
               >
                 {FRICTION_LABELS[friction]}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
-          <PrimitiveButton onClick={() => updateDraft({ ...draft, step: 1 })}>Back</PrimitiveButton>
+          <PrimitiveButton
+            className={styles.actionButton}
+            onClick={() => updateDraft({ ...draft, step: 1 })}
+          >
+            Back
+          </PrimitiveButton>
         </PrimitivePanel>
       )}
 
@@ -219,13 +229,22 @@ const OnboardingPage = () => {
             </PrimitiveAlert>
           ) : null}
           <div className={styles.actions}>
-            <PrimitiveButton isLoading={submitting} onClick={() => void handleSubmit()}>
+            <PrimitiveButton
+              className={styles.actionButton}
+              isLoading={submitting}
+              onClick={() => void handleSubmit()}
+            >
               {submitting ? 'Saving…' : 'Start Recess'}
             </PrimitiveButton>
-            <PrimitiveButton onClick={() => updateDraft({ ...draft, step: 2 })}>
+            <PrimitiveButton
+              className={styles.actionButton}
+              onClick={() => updateDraft({ ...draft, step: 2 })}
+            >
               Back
             </PrimitiveButton>
-            <PrimitiveButton onClick={handleRestart}>Start over</PrimitiveButton>
+            <PrimitiveButton className={styles.actionButton} onClick={handleRestart}>
+              Start over
+            </PrimitiveButton>
           </div>
         </PrimitivePanel>
       )}

@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { PrimitiveButton, PrimitiveDialog } from '@/primitives';
 import FocusTimer from '../../components/FocusTimer/FocusTimer';
 import PausedTimer from '../../components/PausedTimer/PausedTimer';
-import Button from '../../components/Button/Button';
 import PauseIcon from '../../assets/pause.svg?url';
 import PlayIcon from '../../assets/play.svg?url';
+import WorkRhythmActionButton from '../shared/WorkRhythmActionButton';
 import styles from './OngoingFocusSessionView.module.css';
 
 const TOTAL_SESSIONS = 5;
@@ -115,16 +116,20 @@ const OngoingFocusSessionView = ({
 
       {isPaused ? (
         <div className={styles.contentContainer}>
-          <Button
+          <WorkRhythmActionButton
             text="Resume Focus Session"
             onClick={resumeSession}
             iconSrc={PlayIcon}
             variant="primary"
           />
-          <Button text="End Focus Session Early" onClick={endSessionEarly} variant="tertiary" />
+          <WorkRhythmActionButton
+            text="End Focus Session Early"
+            onClick={endSessionEarly}
+            variant="tertiary"
+          />
         </div>
       ) : (
-        <Button
+        <WorkRhythmActionButton
           text="Pause Focus Session"
           onClick={() => setShowPauseConfirm(true)}
           iconSrc={PauseIcon}
@@ -132,31 +137,37 @@ const OngoingFocusSessionView = ({
         />
       )}
 
-      {showPauseConfirm && (
-        <div className={styles.dialogBackdrop} role="presentation">
-          <div className={styles.confirmDialog} role="dialog" aria-modal="true">
-            <div className={styles.confirmIcon} aria-hidden="true">
-              <CoffeeIcon />
-            </div>
-            <h3 className={styles.confirmTitle}>Take a break?</h3>
-            <p className={styles.confirmCopy}>
-              Are you sure you want to pause your deep work session?
-            </p>
-            <div className={styles.confirmActions}>
-              <button
-                className={styles.cancelButton}
-                type="button"
-                onClick={() => setShowPauseConfirm(false)}
-              >
-                No
-              </button>
-              <button className={styles.confirmButton} type="button" onClick={handleConfirmPause}>
-                Yes
-              </button>
-            </div>
+      <PrimitiveDialog
+        isOpen={showPauseConfirm}
+        onOpenChange={setShowPauseConfirm}
+        variant="unframed"
+        aria-label="Pause focus session"
+        overlayClassName={styles.confirmOverlay}
+        modalClassName={styles.confirmModal}
+        contentClassName={styles.confirmContent}
+      >
+        <div className={styles.confirmDialog}>
+          <div className={styles.confirmIcon} aria-hidden="true">
+            <CoffeeIcon />
+          </div>
+          <h3 className={styles.confirmTitle}>Take a break?</h3>
+          <p className={styles.confirmCopy}>
+            Are you sure you want to pause your deep work session?
+          </p>
+          <div className={styles.confirmActions}>
+            <PrimitiveButton
+              className={styles.cancelButton}
+              variant="ghost"
+              onClick={() => setShowPauseConfirm(false)}
+            >
+              No
+            </PrimitiveButton>
+            <PrimitiveButton className={styles.confirmButton} onClick={handleConfirmPause}>
+              Yes
+            </PrimitiveButton>
           </div>
         </div>
-      )}
+      </PrimitiveDialog>
     </>
   );
 };

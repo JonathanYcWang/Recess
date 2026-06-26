@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { PrimitiveButton } from '@/primitives';
 import type { RootState } from '@/store';
 import {
   selectWorkRhythmConnectionState,
@@ -61,17 +62,22 @@ const WorkRhythmProjectionView = () => {
             Balance: {hallPassProjection.snapshot.coinBalance} Coins
           </p>
           <div className={styles.hallPassActions}>
-            <button
-              type="button"
+            <PrimitiveButton
               className={styles.confirmButton}
+              variant="primary"
               disabled={hallPassProjection.snapshot.coinBalance < 1}
               onClick={confirmHallPass}
             >
               Confirm
-            </button>
-            <button type="button" className={styles.cancelButton} onClick={cancelHallPass}>
+            </PrimitiveButton>
+            <PrimitiveButton
+              type="button"
+              className={styles.cancelButton}
+              variant="secondary"
+              onClick={cancelHallPass}
+            >
               Cancel
-            </button>
+            </PrimitiveButton>
           </div>
         </div>
       ) : null}
@@ -79,9 +85,14 @@ const WorkRhythmProjectionView = () => {
         <div className={styles.hallPassActive} aria-label="Active Hall Pass">
           <p className={styles.hallPassTitle}>Hall Pass active: {activePass.destination}</p>
           <p className={styles.hallPassBalance}>Billed minutes: {activePass.billedMinuteCount}</p>
-          <button type="button" className={styles.cancelButton} onClick={revokeHallPass}>
+          <PrimitiveButton
+            type="button"
+            className={styles.cancelButton}
+            variant="secondary"
+            onClick={revokeHallPass}
+          >
             Revoke
-          </button>
+          </PrimitiveButton>
         </div>
       ) : null}
     </section>

@@ -31,6 +31,8 @@
 
 .option,
 .optionSelected {
+  justify-content: flex-start;
+  min-height: 0;
   text-align: left;
   padding: 0.875rem 1rem;
   border-radius: var(--radius-md);
@@ -63,4 +65,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-3);
+}
+
+.actionButton {
+  border-radius: var(--spacing-6);
+  border: 2px solid transparent;
+  background-color: var(--color-text-primary);
+  padding: var(--spacing-2) var(--spacing-4);
+  min-height: 0;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+  color: var(--color-background-primary);
+}
+
+.actionButton:hover:not(:disabled) {
+  opacity: 0.8;
 }

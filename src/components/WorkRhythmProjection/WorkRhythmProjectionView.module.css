@@ -43,6 +43,8 @@
 
 .confirmButton,
 .cancelButton {
+  min-height: unset;
+  min-width: unset;
   border: 0;
   border-radius: 0.375rem;
   padding: 0.375rem 0.75rem;

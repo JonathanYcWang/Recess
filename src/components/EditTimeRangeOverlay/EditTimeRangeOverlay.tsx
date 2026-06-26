@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Time } from '@internationalized/date';
+import { PrimitiveButton } from '@/primitives';
+import { formatDisplayTimeString, parseDisplayTimeString } from '@/modules/work-start-reminder';
 import { TimeField } from '../TimeField/TimeField';
-import Button from '../Button/Button';
 import styles from './EditTimeRangeOverlay.module.css';
 
 interface EditTimeRangeOverlayProps {
@@ -12,21 +13,18 @@ interface EditTimeRangeOverlayProps {
   onDelete?: () => void;
 }
 
-// Helper function to parse time string (e.g., "09:00 AM") to Time object
+const defaultTime = new Time(9, 0);
+
 const parseTimeString = (timeStr: string): Time => {
-  const [time, period] = timeStr.split(' ');
-  const [hours, minutes] = time.split(':').map(Number);
-  let hour24 = hours;
-  if (period === 'PM' && hours !== 12) hour24 = hours + 12;
-  if (period === 'AM' && hours === 12) hour24 = 0;
-  return new Time(hour24, minutes);
+  const parsed = parseDisplayTimeString(timeStr);
+  if (!parsed.ok) {
+    return defaultTime;
+  }
+  return new Time(parsed.value.hour, parsed.value.minute);
 };
+
 const formatTimeToString = (time: Time): string => {
-  let hours = time.hour;
-  const period = hours >= 12 ? 'PM' : 'AM';
-  if (hours > 12) hours -= 12;
-  if (hours === 0) hours = 12;
-  return `${hours}:${time.minute.toString().padStart(2, '0')} ${period}`;
+  return formatDisplayTimeString({ hour: time.hour, minute: time.minute });
 };
 
 const EditTimeRangeOverlay = ({
@@ -64,23 +62,32 @@ const EditTimeRangeOverlay = ({
           <p className={styles.repeatLabel}>Repeat:</p>
           <div className={styles.daySelectionContainer}>
             {dayLabels.map((day, index) => (
-              <button
+              <PrimitiveButton
                 key={index}
+                variant={days[index] ? 'primary' : 'secondary'}
                 className={`${styles.dayButton} ${
                   days[index] ? styles.dayButtonSelected : styles.dayButtonUnselected
                 }`}
+                type="button"
+                aria-pressed={days[index]}
                 onClick={() => toggleDay(index)}
               >
                 {day}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
         </div>
         <div className={styles.actionsContainer}>
-          {onDelete && <Button text="Delete" onClick={onDelete} variant="tertiary" />}
+          {onDelete && (
+            <PrimitiveButton variant="ghost" onClick={onDelete}>
+              Delete
+            </PrimitiveButton>
+          )}
           <div className={styles.saveCancelContainer}>
-            <Button text="Cancel" onClick={onCancel} variant="secondary" />
-            <Button text="Save" onClick={handleSave} variant="primary" />
+            <PrimitiveButton variant="secondary" onClick={onCancel}>
+              Cancel
+            </PrimitiveButton>
+            <PrimitiveButton onClick={handleSave}>Save</PrimitiveButton>
           </div>
         </div>
       </div>

@@ -1,105 +1,113 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem 0;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 0;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--spacing-2);
 }
 
 .title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
+  color: var(--ink-primary);
 }
 
 .lead {
   margin: 0;
-  color: var(--text-secondary, #5f6368);
+  color: var(--ink-muted);
   max-width: 48rem;
 }
 
 .controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--spacing-3);
   align-items: center;
 }
 
-.windowLabel {
-  font-weight: 600;
+.windowControl {
+  min-width: 14rem;
 }
 
-.windowSelect,
 .refreshButton {
-  font: inherit;
+  align-self: flex-end;
 }
 
 .grid {
   display: grid;
-  gap: 1rem;
+  gap: var(--spacing-4);
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
 }
 
 .card {
-  border: 1px solid var(--border-subtle, #dadce0);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  background: var(--surface-elevated, #fff);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  background: var(--surface-primary);
 }
 
 .cardHeader {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--spacing-3);
 }
 
 .cardTitle {
-  margin: 0 0 0.25rem;
-  font-size: 1.1rem;
+  margin: 0 0 var(--spacing-1);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+  color: var(--ink-primary);
 }
 
 .cardDescription {
   margin: 0;
-  color: var(--text-secondary, #5f6368);
-  font-size: 0.9rem;
+  color: var(--ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-lg);
 }
 
 .status {
-  margin: 0 0 0.75rem;
-  font-weight: 600;
+  margin: 0 0 var(--spacing-3);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-primary);
 }
 
 .calculatedValue {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--spacing-1);
 }
 
 .primaryMetric {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--ink-primary);
 }
 
 .explanation {
-  margin-top: 0.75rem;
+  margin-top: var(--spacing-3);
 }
 
 .explanationBody {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-lg);
+  color: var(--ink-primary);
 }
 
 .error {
-  color: #b3261e;
+  color: var(--fill-destructive);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card,
-  .refreshButton,
-  .windowSelect {
+  .refreshButton {
     transition: none;
   }
 }

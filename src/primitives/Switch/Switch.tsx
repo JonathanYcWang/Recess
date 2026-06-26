@@ -10,6 +10,8 @@ export interface PrimitiveSwitchProps {
   isDisabled?: boolean;
   onChange?: (isSelected: boolean) => void;
   id?: string;
+  hideLabel?: boolean;
+  className?: string;
 }
 
 export const PrimitiveSwitch = ({
@@ -19,6 +21,8 @@ export const PrimitiveSwitch = ({
   isDisabled,
   onChange,
   id,
+  hideLabel = false,
+  className = '',
 }: PrimitiveSwitchProps) => (
   <Switch
     id={id}
@@ -26,11 +30,11 @@ export const PrimitiveSwitch = ({
     defaultSelected={defaultSelected}
     isDisabled={isDisabled}
     onChange={onChange}
-    className={`${styles.switch} ${interaction.focusVisible}`}
+    className={`${styles.switch} ${interaction.focusVisible} ${className}`}
   >
     <span className={styles.track} aria-hidden="true">
       <span className={styles.thumb} />
     </span>
-    <span className={styles.label}>{label}</span>
+    <span className={`${styles.label} ${hideLabel ? styles.labelHidden : ''}`}>{label}</span>
   </Switch>
 );
