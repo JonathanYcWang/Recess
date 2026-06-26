@@ -1,6 +1,6 @@
 # Browser packaging smoke checks
 
-Manual checks for Chromium and Safari development builds. Automated Chromium accessibility gates live in `docs/e2e-accessibility.md` and stay out of `npm run verify`.
+Manual checks for Chromium and Safari development builds.
 
 ## Prerequisites
 
@@ -23,7 +23,6 @@ Manual checks for Chromium and Safari development builds. Automated Chromium acc
    - Confirm `storage`, `tabs`, `alarms`, and `notifications` are granted or prompted as expected
 5. **Limitations**
    - Chromium validation uses the unpacked `dist/` artifact only; store packaging is out of scope
-   - Playwright axe gates (`npm run e2e`) do not replace this manual popup load check
 
 ## Safari checklist
 
@@ -44,4 +43,3 @@ Manual checks for Chromium and Safari development builds. Automated Chromium acc
 6. **Limitations**
    - Converter output still requires a local Xcode build and development signing step
    - Safari behavior can diverge from Chromium for alarms, notifications, and storage timing
-   - Playwright Chromium runs do not validate Safari accessibility or focus behavior

@@ -26,7 +26,7 @@ import styles from './HomePage.module.css';
 //   SwitchIcon,
 // } from '@/components/PrizeWheel/PrizeIcons';
 
-import BunnyWorkingImage from '../../assets/bunny-working.png';
+import BunnyWorkingImage from '../../assets/bunny.png';
 
 const DEFAULT_PET_NAME = 'Companion';
 const DEFAULT_PET_IMAGE = BunnyWorkingImage;

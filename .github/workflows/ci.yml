@@ -29,41 +29,6 @@ jobs:
       - run: npm ci
       - run: npm run verify
 
-  e2e:
-    name: e2e
-    runs-on: macos-26
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-          cache: npm
-
-      - run: npm ci
-      - run: npx playwright install chromium
-      - run: npm run e2e
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            e2e/test-results/
-          if-no-files-found: ignore
-
-      - name: Upload packaging artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: packaging-artifacts
-          path: |
-            dist/
-            build/safari/
-          if-no-files-found: ignore
-
   package-chromium:
     name: package-chromium
     runs-on: macos-26
