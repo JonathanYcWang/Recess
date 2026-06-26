@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { PrimitiveDialog } from '@/primitives';
-import Button from '../Button/Button';
+import { PrimitiveAlert, PrimitiveButton, PrimitiveDialog } from '@/primitives';
 import WorkWindow from '../WorkWindow/WorkWindow';
 import EditTimeRangeOverlay from '../EditTimeRangeOverlay/EditTimeRangeOverlay';
-import { selectWorkStartReminderSchedules } from '../../store/selectors/workStartReminderProjectionSelectors';
+import {
+  selectIsWorkStartReminderDisconnected,
+  selectWorkStartReminderSchedules,
+} from '../../store/selectors/workStartReminderProjectionSelectors';
 import type { RootState } from '../../store';
 import { createAppWorkStartReminderClient } from '../../store/workStartReminderClient';
 
@@ -14,14 +16,42 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DEFAULT_TIME = '09:00 AM';
 const DEFAULT_DAYS = [false, true, true, true, true, true, false];
 
+const toReminderErrorMessage = (kind: string): string => {
+  switch (kind) {
+    case 'invalid-time-input':
+      return 'Please enter a valid reminder time.';
+    case 'invalid-weekdays':
+      return 'Select at least one valid weekday.';
+    case 'schedule-not-found':
+      return 'That reminder was not found. Refresh and try again.';
+    case 'no-planned-occurrence':
+      return 'No upcoming reminder is available to skip.';
+    case 'stale-revision':
+      return 'Reminders changed in another view. Try again.';
+    case 'transport-unavailable':
+    case 'missing-receiver':
+    case 'closed-channel':
+    case 'extension-shutdown':
+      return 'Work Start Reminder is temporarily unavailable.';
+    case 'notification-delivery-failed':
+      return 'Reminder was saved, but notification delivery failed.';
+    default:
+      return 'Could not update reminders. Please try again.';
+  }
+};
+
 const WorkHoursSettings = () => {
   const entries = useSelector((state: RootState) => selectWorkStartReminderSchedules(state));
   const revision = useSelector((state: RootState) => state.workStartReminderProjection.revision);
+  const disconnected = useSelector((state: RootState) =>
+    selectIsWorkStartReminderDisconnected(state)
+  );
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTime, setEditTime] = useState('09:00 AM');
   const [editDays, setEditDays] = useState([false, true, true, true, true, true, false]);
+  const [commandError, setCommandError] = useState<string>('');
 
   const client = createAppWorkStartReminderClient();
 
@@ -38,11 +68,15 @@ const WorkHoursSettings = () => {
     setEditingId(null);
   };
 
-  const handleToggle = (id: string) => {
+  const handleToggle = async (id: string) => {
     if (!client) {
+      setCommandError('Work Start Reminder is unavailable in this context.');
       return;
     }
-    void client.toggleScheduleEnabled(id, { expectedRevision: revision ?? undefined });
+    const result = await client.toggleScheduleEnabled(id, {
+      expectedRevision: revision ?? undefined,
+    });
+    setCommandError(result.ok ? '' : toReminderErrorMessage(result.error.kind));
   };
 
   const formatDays = (selectedDays: boolean[]) => {
@@ -52,28 +86,51 @@ const WorkHoursSettings = () => {
     return selectedDayNames.length > 0 ? selectedDayNames.join(', ') : 'No days selected';
   };
 
-  const handleSave = (time: string, days: boolean[]) => {
+  const handleSave = async (time: string, days: boolean[]) => {
     if (!client) {
+      setCommandError('Work Start Reminder is unavailable in this context.');
       return;
     }
-    if (editingId) {
-      void client.updateSchedule(
-        editingId,
-        { time, days },
-        { expectedRevision: revision ?? undefined }
-      );
-    } else {
-      void client.addSchedule({ time, days }, { expectedRevision: revision ?? undefined });
+    const result = editingId
+      ? await client.updateSchedule(
+          editingId,
+          { time, days },
+          { expectedRevision: revision ?? undefined }
+        )
+      : await client.addSchedule({ time, days }, { expectedRevision: revision ?? undefined });
+    if (!result.ok) {
+      setCommandError(toReminderErrorMessage(result.error.kind));
+      return;
     }
+    setCommandError('');
     closeDialog();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!client || !editingId) {
+      if (!client) {
+        setCommandError('Work Start Reminder is unavailable in this context.');
+      }
       return;
     }
-    void client.deleteSchedule(editingId, { expectedRevision: revision ?? undefined });
+    const result = await client.deleteSchedule(editingId, {
+      expectedRevision: revision ?? undefined,
+    });
+    if (!result.ok) {
+      setCommandError(toReminderErrorMessage(result.error.kind));
+      return;
+    }
+    setCommandError('');
     closeDialog();
+  };
+
+  const handleSkipNext = async () => {
+    if (!client) {
+      setCommandError('Work Start Reminder is unavailable in this context.');
+      return;
+    }
+    const result = await client.skipNext({ expectedRevision: revision ?? undefined });
+    setCommandError(result.ok ? '' : toReminderErrorMessage(result.error.kind));
   };
 
   return (
@@ -83,7 +140,25 @@ const WorkHoursSettings = () => {
         <p className={styles.caption}>Pick a time and days to get a reminder to start work.</p>
       </div>
       <div className={styles.contentContainer}>
-        <Button text="Add" onClick={() => openDialog()} variant="primary" />
+        <div className={styles.actionsRow}>
+          <PrimitiveButton onClick={() => openDialog()} disabled={disconnected}>
+            Add
+          </PrimitiveButton>
+          <PrimitiveButton
+            variant="secondary"
+            className={styles.skipButton}
+            onClick={() => void handleSkipNext()}
+            disabled={disconnected || entries.length === 0}
+          >
+            Skip next
+          </PrimitiveButton>
+        </div>
+        {disconnected && (
+          <PrimitiveAlert variant="warning" role="status">
+            Work Start Reminder is read-only while disconnected from the background runtime.
+          </PrimitiveAlert>
+        )}
+        {commandError && <PrimitiveAlert variant="error">{commandError}</PrimitiveAlert>}
         {entries.map((entry) => (
           <WorkWindow
             key={entry.id}
@@ -91,7 +166,7 @@ const WorkHoursSettings = () => {
             days={formatDays(entry.days)}
             enabled={entry.enabled}
             onEdit={() => openDialog(entry.id)}
-            onToggle={() => handleToggle(entry.id)}
+            onToggle={() => void handleToggle(entry.id)}
           />
         ))}
       </div>
