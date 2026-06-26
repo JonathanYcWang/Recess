@@ -3,7 +3,6 @@
   "entry": [
     "index.html",
     "src/background.ts",
-    "src/content.ts",
   ],
   "ignoreIssues": {
     "src/modules/**": ["exports", "types"],
