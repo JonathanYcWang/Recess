@@ -4,7 +4,6 @@
     "index.html",
     "src/background.ts",
     "src/content.ts",
-    "e2e/**/*.ts"
   ],
   "ignoreIssues": {
     "src/modules/**": ["exports", "types"],
