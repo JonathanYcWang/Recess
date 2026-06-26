@@ -1,7 +1,6 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useSelector } from 'react-redux';
-import Button from '../Button/Button';
-import Icon from '../Icon/Icon';
+import { PrimitiveAlert, PrimitiveButton, PrimitiveTextField } from '@/primitives';
 import TimesIcon from '../../assets/times.svg?url';
 import styles from './BlockedSites.module.css';
 import {
@@ -59,6 +58,11 @@ const BlockedSites = () => {
     setError('');
   };
 
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void handleAdd();
+  };
+
   const handleRemove = async (hostname: string) => {
     const client = createAppBlockListClient();
     if (!client) {
@@ -76,12 +80,6 @@ const BlockedSites = () => {
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      void handleAdd();
-    }
-  };
-
   return (
     <div className={styles.blockedSites}>
       <div className={styles.headerContainer}>
@@ -90,35 +88,53 @@ const BlockedSites = () => {
       </div>
 
       <div className={styles.contentContainer}>
-        <div className={styles.inputContainer}>
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Enter website URL or name"
-            value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-              setError('');
-            }}
-            onKeyDown={handleKeyDown}
+        <form className={styles.inputContainer} onSubmit={handleSubmit}>
+          <div className={styles.urlField}>
+            <PrimitiveTextField
+              label="Website URL or name"
+              type="url"
+              placeholder="Enter website URL or name"
+              value={inputValue}
+              isDisabled={disconnected}
+              isInvalid={Boolean(error)}
+              errorMessage={error || undefined}
+              onChange={(value) => {
+                setInputValue(value);
+                if (error) setError('');
+              }}
+            />
+          </div>
+          <PrimitiveButton
+            className={styles.addButton}
+            variant="primary"
+            type="submit"
             disabled={disconnected}
-          />
-          <Button text="Add" onClick={() => void handleAdd()} variant="primary" />
-        </div>
+          >
+            Add
+          </PrimitiveButton>
+        </form>
         {disconnected && (
-          <p className={styles.errorMessage}>
+          <PrimitiveAlert variant="warning" role="status">
             Block List is read-only while disconnected from the background runtime.
-          </p>
+          </PrimitiveAlert>
         )}
-        {error && <p className={styles.errorMessage}>{error}</p>}
-        <div className={styles.sitesList}>
+        <ul className={styles.sitesList} aria-label="Blocked websites">
           {entries.map((site) => (
-            <div key={site} className={styles.siteItem}>
-              <p className={styles.siteName}>{site}</p>
-              <Icon src={TimesIcon} alt="Remove" size={9} onClick={() => void handleRemove(site)} />
-            </div>
+            <li key={site} className={styles.siteItem}>
+              <span className={styles.siteName}>{site}</span>
+              <PrimitiveButton
+                type="button"
+                variant="ghost"
+                className={styles.removeButton}
+                aria-label={`Remove ${site}`}
+                disabled={disconnected}
+                onClick={() => void handleRemove(site)}
+              >
+                <img src={TimesIcon} alt="" aria-hidden className={styles.removeIcon} />
+              </PrimitiveButton>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </div>
   );
