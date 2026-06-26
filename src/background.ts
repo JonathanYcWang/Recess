@@ -1,4 +1,3 @@
-import { seedInitialStateInStorage } from './store/storageMiddleware';
 import './backgroundSettingsRuntime';
 import './backgroundBlockListEnforcement';
 import './backgroundWorkstyleProfileRuntime';
@@ -7,8 +6,6 @@ import './backgroundHallPassRuntime';
 import './backgroundWorkStartReminderRuntime';
 import './backgroundTaskListRuntime';
 import './backgroundInsightsRuntime';
-
-void seedInitialStateInStorage();
 
 type SessionNotificationMessage = {
   type: 'SESSION_NOTIFICATION';

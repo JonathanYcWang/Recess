@@ -9,12 +9,6 @@ export interface QuizOption {
   next: string;
 }
 
-export interface QuizQuestion {
-  id: string;
-  text: string;
-  options: QuizOption[];
-}
-
 export interface QuizResults {
   mbti: string;
   dominantFriction: FrictionSignal[];

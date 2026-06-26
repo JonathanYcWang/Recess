@@ -1,5 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit';
-import timerReducer from './reducers/timerReducer';
 import blockedSitesReducer from './reducers/blockedSitesReducer';
 import routingReducer from './reducers/routingReducer';
 import quizReducer from './reducers/quizReducer';
@@ -10,11 +9,9 @@ import workRhythmProjectionReducer from './reducers/workRhythmProjectionReducer'
 import hallPassProjectionReducer from './reducers/hallPassProjectionReducer';
 import workStartReminderProjectionReducer from './reducers/workStartReminderProjectionReducer';
 import taskListProjectionReducer from './reducers/taskListProjectionReducer';
-import { storageMiddleware } from './storageMiddleware';
 
 export const store = configureStore({
   reducer: {
-    timer: timerReducer,
     blockedSites: blockedSitesReducer,
     routing: routingReducer,
     quiz: quizReducer,
@@ -30,9 +27,8 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore these action types that may contain non-serializable data
-        ignoredActions: ['timer/updateTimerState'],
       },
-    }).concat(storageMiddleware),
+    }),
   // Enable Redux DevTools explicitly so the extension window/tab is discoverable
   devTools: { name: 'Recess', trace: true },
 });
