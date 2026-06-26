@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import { useSelector } from 'react-redux';
-import Button from '../Button/Button';
+import { PrimitiveAlert, PrimitiveButton } from '@/primitives';
 import styles from './TaskList.module.css';
 import {
   selectIsTaskListDisconnected,
@@ -217,16 +217,23 @@ const TaskList = () => {
                 </option>
               ))}
             </select>
-            <Button text="Add task" onClick={() => void handleAdd()} variant="primary" />
+            <PrimitiveButton
+              className={styles.primaryAction}
+              variant="primary"
+              onClick={() => void handleAdd()}
+              disabled={disconnected}
+            >
+              Add task
+            </PrimitiveButton>
           </div>
         </div>
 
         {disconnected && (
-          <p className={styles.errorMessage}>
+          <PrimitiveAlert variant="warning" role="status">
             Task List is read-only while disconnected from the background runtime.
-          </p>
+          </PrimitiveAlert>
         )}
-        {error && <p className={styles.errorMessage}>{error}</p>}
+        {error && <PrimitiveAlert variant="error">{error}</PrimitiveAlert>}
 
         <div className={styles.tasksList} aria-live="polite">
           {incompleteTasks.map((task, index) => (

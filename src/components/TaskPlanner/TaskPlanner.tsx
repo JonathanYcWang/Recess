@@ -9,7 +9,7 @@ import {
 } from '../../store/selectors';
 import type { RootState } from '../../store';
 import { createAppTaskListClient } from '../../store/taskListClient';
-import Button from '../Button/Button';
+import { PrimitiveAlert, PrimitiveButton } from '@/primitives';
 import styles from './TaskPlanner.module.css';
 
 interface TaskPlannerProps {
@@ -195,18 +195,22 @@ const TaskPlanner = ({ scheduledFocusSeconds, onSelectionChange }: TaskPlannerPr
               </option>
             ))}
           </select>
-          <Button
-            text="Add"
-            onClick={addTask}
+          <PrimitiveButton
+            className={styles.secondaryAction}
             variant="secondary"
+            onClick={addTask}
             disabled={!addTaskId || disconnected}
-          />
+          >
+            Add
+          </PrimitiveButton>
         </div>
       )}
 
-      <Button text="Use suggestion" onClick={resetToProposal} variant="tertiary" />
+      <PrimitiveButton className={styles.tertiaryAction} variant="ghost" onClick={resetToProposal}>
+        Use suggestion
+      </PrimitiveButton>
 
-      {error && <p className={styles.errorMessage}>{error}</p>}
+      {error && <PrimitiveAlert variant="error">{error}</PrimitiveAlert>}
     </section>
   );
 };
