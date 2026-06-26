@@ -64,8 +64,6 @@ Development signing identities and credentials must not be committed to Git or p
 
 Any failed step exits non-zero. Packaging outputs land in gitignored `dist/` and `build/` directories and do not modify tracked files.
 
-Browser end-to-end checks use Playwright against the built popup fixture. See `docs/e2e-accessibility.md` for the Chromium axe gate and `docs/browser-smoke-checks.md` for manual Chromium and Safari smoke checklists.
-
 Safari packaging requires macOS with the pinned Xcode toolchain. Linux environments can run every verify step except `package:safari`.
 
 Required GitHub Actions check names for `main` branch protection:
