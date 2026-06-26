@@ -47,3 +47,7 @@
   display: flex;
   justify-content: space-between;
 }
+.slider {
+  accent-color: var(--color-text-primary);
+  width: 100%;
+}
