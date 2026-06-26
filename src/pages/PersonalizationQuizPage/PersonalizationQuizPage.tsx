@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../components/Button/Button';
+import { PrimitiveButton } from '@/primitives';
 import {
   applyPersonalizationQuizAnswer,
   frictionProfileFromScores,
@@ -186,8 +186,12 @@ const PersonalizationQuizPage = () => {
             <p className={styles.result}>Result: {formatOutcome(completedOutcome)}</p>
           )}
           <div className={styles.actions}>
-            <Button text="Back to Recess" onClick={() => navigate('/')} variant="primary" />
-            <Button text="Retake quiz" onClick={() => void handleRestart()} variant="primary" />
+            <PrimitiveButton className={styles.actionButton} onClick={() => navigate('/')}>
+              Back to Recess
+            </PrimitiveButton>
+            <PrimitiveButton className={styles.actionButton} onClick={() => void handleRestart()}>
+              Retake quiz
+            </PrimitiveButton>
           </div>
         </section>
       </div>
@@ -222,15 +226,15 @@ const PersonalizationQuizPage = () => {
           <h2>{scenario.text}</h2>
           <div className={styles.optionList} role="list">
             {scenario.options.map((option) => (
-              <button
+              <PrimitiveButton
                 key={option.id}
-                type="button"
+                variant="ghost"
                 className={styles.option}
                 disabled={submitting}
                 onClick={() => void handleSelectOption(scenario.id, option.id)}
               >
                 {option.text}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
         </section>
@@ -243,12 +247,12 @@ const PersonalizationQuizPage = () => {
       {error ? <p className={styles.error}>{error}</p> : null}
 
       <div className={styles.actions}>
-        <Button text="Dismiss for now" onClick={() => void handleDismiss()} variant="primary" />
-        <Button
-          text={submitting ? 'Working…' : 'Restart quiz'}
-          onClick={() => void handleRestart()}
-          variant="primary"
-        />
+        <PrimitiveButton className={styles.actionButton} onClick={() => void handleDismiss()}>
+          Dismiss for now
+        </PrimitiveButton>
+        <PrimitiveButton className={styles.actionButton} onClick={() => void handleRestart()}>
+          {submitting ? 'Working…' : 'Restart quiz'}
+        </PrimitiveButton>
       </div>
     </div>
   );

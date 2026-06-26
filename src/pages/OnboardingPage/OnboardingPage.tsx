@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../components/Button/Button';
+import { PrimitiveButton } from '@/primitives';
 import {
   ENERGY_LEVELS,
   FRICTION_DIMENSIONS,
@@ -152,14 +152,14 @@ const OnboardingPage = () => {
           <h2>How is your energy right now?</h2>
           <div className={styles.optionList}>
             {ENERGY_LEVELS.map((energy) => (
-              <button
+              <PrimitiveButton
                 key={energy}
-                type="button"
+                variant="ghost"
                 className={draft.energy === energy ? styles.optionSelected : styles.option}
                 onClick={() => updateDraft({ ...draft, energy, step: 1 })}
               >
                 {ENERGY_LABELS[energy]}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
         </section>
@@ -170,21 +170,22 @@ const OnboardingPage = () => {
           <h2>Which focus rhythm feels most natural?</h2>
           <div className={styles.optionList}>
             {PREFERRED_CADENCES.map((cadence) => (
-              <button
+              <PrimitiveButton
                 key={cadence}
-                type="button"
+                variant="ghost"
                 className={draft.cadence === cadence ? styles.optionSelected : styles.option}
                 onClick={() => updateDraft({ ...draft, cadence, step: 2 })}
               >
                 {CADENCE_LABELS[cadence]}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
-          <Button
-            text="Back"
+          <PrimitiveButton
+            className={styles.actionButton}
             onClick={() => updateDraft({ ...draft, step: 0 })}
-            variant="primary"
-          />
+          >
+            Back
+          </PrimitiveButton>
         </section>
       )}
 
@@ -193,23 +194,24 @@ const OnboardingPage = () => {
           <h2>What gets in the way most often?</h2>
           <div className={styles.optionList}>
             {FRICTION_DIMENSIONS.map((friction) => (
-              <button
+              <PrimitiveButton
                 key={friction}
-                type="button"
+                variant="ghost"
                 className={
                   draft.primaryFriction === friction ? styles.optionSelected : styles.option
                 }
                 onClick={() => updateDraft({ ...draft, primaryFriction: friction, step: 3 })}
               >
                 {FRICTION_LABELS[friction]}
-              </button>
+              </PrimitiveButton>
             ))}
           </div>
-          <Button
-            text="Back"
+          <PrimitiveButton
+            className={styles.actionButton}
             onClick={() => updateDraft({ ...draft, step: 1 })}
-            variant="primary"
-          />
+          >
+            Back
+          </PrimitiveButton>
         </section>
       )}
 
@@ -223,17 +225,18 @@ const OnboardingPage = () => {
           </ul>
           {error ? <p className={styles.error}>{error}</p> : null}
           <div className={styles.actions}>
-            <Button
-              text={submitting ? 'Saving…' : 'Start Recess'}
-              onClick={() => void handleSubmit()}
-              variant="primary"
-            />
-            <Button
-              text="Back"
+            <PrimitiveButton className={styles.actionButton} onClick={() => void handleSubmit()}>
+              {submitting ? 'Saving…' : 'Start Recess'}
+            </PrimitiveButton>
+            <PrimitiveButton
+              className={styles.actionButton}
               onClick={() => updateDraft({ ...draft, step: 2 })}
-              variant="primary"
-            />
-            <Button text="Start over" onClick={handleRestart} variant="primary" />
+            >
+              Back
+            </PrimitiveButton>
+            <PrimitiveButton className={styles.actionButton} onClick={handleRestart}>
+              Start over
+            </PrimitiveButton>
           </div>
         </section>
       )}
