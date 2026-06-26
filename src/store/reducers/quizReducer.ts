@@ -1,6 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { restartQuiz, selectOption, setQuizState, updateQuizState } from '../actions/quizActions';
+
 import { calculateQuizResults } from '../../data/quiz-scoring';
+import { restartQuiz, selectOption, setQuizState, updateQuizState } from '../actions/quizActions';
 import { createInitialQuizState } from '../initialState';
 
 const initialState = createInitialQuizState();
@@ -13,14 +14,12 @@ const quizReducer = createReducer(initialState, (builder) => {
     })
     .addCase(selectOption, (state, action) => {
       state.selectedChoices.push(action.payload);
+      state.currentQuestionId = action.payload.next;
 
       if (action.payload.next === 'RESULTS') {
-        state.results = calculateQuizResults(state.selectedChoices);
         state.isComplete = true;
-        return;
+        state.results = calculateQuizResults(state.selectedChoices);
       }
-
-      state.currentQuestionId = action.payload.next;
     })
     .addCase(restartQuiz, () => createInitialQuizState());
 });
