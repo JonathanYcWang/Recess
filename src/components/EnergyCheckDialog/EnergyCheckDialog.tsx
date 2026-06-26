@@ -1,4 +1,3 @@
-import { Dialog } from '@mui/material';
 import Icon from '../Icon/Icon';
 import InPainIcon from '../../assets/emoji-in-pain.svg?url';
 import MehIcon from '../../assets/emoji-meh.svg?url';
@@ -19,20 +18,12 @@ const EnergyCheckDialog = ({ open, onClose, onEmojiSelect }: EnergyCheckDialogPr
     onClose();
   };
 
+  if (!open) {
+    return null;
+  }
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      slotProps={{
-        paper: {
-          sx: {
-            borderRadius: 2,
-            padding: '24px',
-            minWidth: '280px',
-          },
-        },
-      }}
-    >
+    <div className={styles.dialogShell} role="dialog" aria-modal="true">
       <div className={styles.dialogContent}>
         <div className={styles.closeButton}>
           <Icon src={TimesIcon} alt="Close" size={20} onClick={onClose} />
@@ -67,7 +58,7 @@ const EnergyCheckDialog = ({ open, onClose, onEmojiSelect }: EnergyCheckDialogPr
           </div>
         </div>
       </div>
-    </Dialog>
+    </div>
   );
 };
 
