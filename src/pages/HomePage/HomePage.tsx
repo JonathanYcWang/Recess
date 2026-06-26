@@ -140,7 +140,14 @@ const HomePage = () => {
   }
   return (
     <div className={styles.homePage}>
-      <a className={styles.skipLink} href="#main-content">
+      <a
+        className={styles.skipLink}
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById('main-content')?.focus();
+        }}
+      >
         Skip to main content
       </a>
       <div className={styles.layout}>
@@ -173,7 +180,7 @@ const HomePage = () => {
             </nav>
           </div>
         </aside>
-        <main className={styles.mainPane} id="main-content">
+        <main className={styles.mainPane} id="main-content" tabIndex={-1}>
           <div className={styles.content}>
             <header className={styles.header}>
               <div>
