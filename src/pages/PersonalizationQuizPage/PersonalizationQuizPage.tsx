@@ -20,7 +20,7 @@ import {
   savePersonalizationQuizProgress,
 } from './personalizationQuizStorage';
 import styles from './PersonalizationQuizPage.module.css';
-import BunnyWorkingImage from '../../assets/bunny-working.png';
+import BunnyWorkingImage from '../../assets/bunny.png';
 
 const formatOutcome = (
   outcome: { kind: 'balanced' } | { kind: 'top-two'; dimensions: readonly [string, string] }
