@@ -5,18 +5,22 @@ import type {
   SettingsRuntimeTransportError,
 } from './messages';
 
-export interface RuntimeMessagePort {
-  postMessage(message: SettingsRuntimePortMessage): void;
+export interface RuntimeMessagePort<PortMessage = SettingsRuntimePortMessage> {
+  postMessage(message: PortMessage): void;
   disconnect(): void;
-  onMessage(listener: (message: SettingsRuntimePortMessage) => void): () => void;
+  onMessage(listener: (message: PortMessage) => void): () => void;
   onDisconnect(listener: () => void): () => void;
 }
 
-export interface RuntimeMessageTransport {
-  send(request: SettingsRuntimeRequest): Promise<SettingsRuntimeMessageResponse>;
-  connect(): RuntimeMessagePort;
+export interface RuntimeMessageTransport<
+  Request = SettingsRuntimeRequest,
+  Response = SettingsRuntimeMessageResponse,
+  PortMessage = SettingsRuntimePortMessage,
+> {
+  send(request: Request): Promise<Response>;
+  connect(): RuntimeMessagePort<PortMessage>;
 }
 
-export type TransportResult<T> =
+export type RuntimeMessageTransportResult<T> =
   | { ok: true; value: T }
-  | { ok: false; error: SettingsRuntimeTransportError };
+  | SettingsRuntimeTransportError;
