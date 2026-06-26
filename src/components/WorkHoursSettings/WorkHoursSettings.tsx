@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Dialog } from '@mui/material';
 import { useSelector } from 'react-redux';
 import Button from '../Button/Button';
 import WorkWindow from '../WorkWindow/WorkWindow';
@@ -95,29 +94,19 @@ const WorkHoursSettings = () => {
           />
         ))}
       </div>
-      <Dialog
-        open={dialogOpen}
-        onClose={closeDialog}
-        maxWidth={false}
-        slotProps={{
-          paper: {
-            sx: {
-              backgroundColor: 'transparent',
-              boxShadow: 'none',
-              maxWidth: '400px',
-              width: '100%',
-            },
-          },
-        }}
-      >
-        <EditTimeRangeOverlay
-          time={editTime}
-          selectedDays={editDays}
-          onSave={handleSave}
-          onCancel={closeDialog}
-          onDelete={editingId ? handleDelete : undefined}
-        />
-      </Dialog>
+      {dialogOpen && (
+        <div className={styles.dialogShell} role="dialog" aria-modal="true">
+          <div className={styles.dialogPanel}>
+            <EditTimeRangeOverlay
+              time={editTime}
+              selectedDays={editDays}
+              onSave={handleSave}
+              onCancel={closeDialog}
+              onDelete={editingId ? handleDelete : undefined}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

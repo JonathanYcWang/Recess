@@ -4,7 +4,6 @@ import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
 import { toPressableDivProps } from '@/utils/pressable';
 import TimesIcon from '../../assets/times.svg?url';
-import Slider from '@mui/material/Slider';
 
 import styles from './DurationInputDialog.module.css';
 
@@ -60,24 +59,15 @@ const DurationInputDialog = ({
           <Icon src={TimesIcon} alt="Close" size="sm" onClick={onClose} />
         </div>
         <p className={styles.description}>{minutesToDisplay(time)}</p>
-        <Slider
-          sx={{
-            color: 'var(--color-text-primary)',
-            height: 8,
-
-            '& .MuiSlider-thumb': {
-              height: 20,
-              width: 20,
-              backgroundColor: 'var(--color-background-primary)',
-              border: '2px solid currentColor',
-            },
-          }}
+        <input
+          className={styles.slider}
           aria-label="Work Session Duration"
+          type="range"
           value={time}
           step={15}
           min={15}
           max={480}
-          onChange={(_e: Event, value: number) => setTime(value)}
+          onChange={(event) => setTime(Number(event.currentTarget.value))}
         />
         <div className={styles.presetTimes}>
           {PRESET_TIMES_MINUTES.map((minutes) => (
