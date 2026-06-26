@@ -4,10 +4,10 @@ import { setPendingFocusTaskIds } from '@/modules/task-planner';
 
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import FocusTimer from '../../components/FocusTimer/FocusTimer';
-import Button from '../../components/Button/Button';
 import DurationInputDialog from '../../components/DurationInputDialog/DurationInputDialog';
 import TaskPlanner from '../../components/TaskPlanner/TaskPlanner';
 import PlayIcon from '../../assets/play.svg?url';
+import WorkRhythmActionButton from '../shared/WorkRhythmActionButton';
 
 interface BeforeWorkSessionViewProps {
   startFocusSession: () => void;
@@ -37,7 +37,7 @@ const BeforeWorkSessionView = ({
         scheduledFocusSeconds={totalRemaining}
         onSelectionChange={handleSelectionChange}
       />
-      <Button
+      <WorkRhythmActionButton
         text="Start Focus Session"
         onClick={handleStartFocusSession}
         iconSrc={PlayIcon}

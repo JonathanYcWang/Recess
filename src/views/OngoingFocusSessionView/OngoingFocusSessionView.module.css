@@ -117,15 +117,20 @@
   width: 100%;
 }
 
-.dialogBackdrop {
-  position: fixed;
-  inset: 0;
+.confirmOverlay {
   z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: var(--spacing-6);
   background: rgba(27, 27, 27, 0.18);
+}
+
+.confirmModal {
+  width: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.confirmContent {
+  display: block;
 }
 
 .confirmDialog {
@@ -182,7 +187,9 @@
 
 .cancelButton,
 .confirmButton {
+  width: 100%;
   min-height: 44px;
+  justify-content: center;
   border: 2px solid var(--color-text-primary);
   border-radius: var(--spacing-4);
   font-family: var(--font-family-primary);
@@ -194,11 +201,13 @@
 .cancelButton {
   background: var(--color-background-primary);
   color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
 }
 
 .confirmButton {
   background: var(--color-text-primary);
   color: var(--color-background-primary);
+  border-color: var(--color-text-primary);
 }
 
 @media (max-width: 640px) {

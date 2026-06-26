@@ -12,6 +12,10 @@ export interface PrimitiveDialogProps {
   onOpenChange: (isOpen: boolean) => void;
   variant?: 'default' | 'unframed';
   'aria-label'?: string;
+  overlayClassName?: string;
+  modalClassName?: string;
+  dialogClassName?: string;
+  contentClassName?: string;
 }
 
 export const PrimitiveDialog = ({
@@ -22,16 +26,20 @@ export const PrimitiveDialog = ({
   onOpenChange,
   variant = 'default',
   'aria-label': ariaLabel,
+  overlayClassName = '',
+  modalClassName = '',
+  dialogClassName = '',
+  contentClassName = '',
 }: PrimitiveDialogProps) => (
   <ModalOverlay
     isOpen={isOpen}
     onOpenChange={onOpenChange}
     isDismissable
-    className={styles.overlay}
+    className={`${styles.overlay} ${overlayClassName}`}
   >
-    <Modal className={styles.modal}>
+    <Modal className={`${styles.modal} ${modalClassName}`}>
       <Dialog
-        className={`${styles.dialog} ${variant === 'unframed' ? styles.unframed : ''} ${interaction.focusVisible}`}
+        className={`${styles.dialog} ${variant === 'unframed' ? styles.unframed : ''} ${interaction.focusVisible} ${dialogClassName}`}
         aria-label={title ? undefined : ariaLabel}
       >
         {title ? (
@@ -40,7 +48,7 @@ export const PrimitiveDialog = ({
           </Heading>
         ) : null}
         {description ? <p className={styles.description}>{description}</p> : null}
-        <div className={styles.content}>{children}</div>
+        <div className={`${styles.content} ${contentClassName}`}>{children}</div>
       </Dialog>
     </Modal>
   </ModalOverlay>
