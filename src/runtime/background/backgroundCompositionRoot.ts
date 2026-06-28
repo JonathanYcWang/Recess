@@ -66,7 +66,6 @@ import {
   createInMemoryBrowserActivityState,
 } from '@/modules/browser-activity/inMemoryBrowserActivity';
 import { createSafariCompatibleBrowserActivityAdapter } from '@/adapters/browser/safari/safariBrowserActivityAdapter';
-import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
 import { createIndexedDbWorkHistoryAdapter } from '@/adapters/browser/chromium/indexedDbWorkHistoryAdapter';
 import { createWorkHistoryService } from '@/modules/work-history';
 import { createEffectExecutor } from '../effects/effectExecutor';
@@ -149,11 +148,7 @@ export const createBackgroundCompositionRoot = async (options: {
     { diagnostics, outcomeStore: workstyleProfileOutcomeStore, coinHandler, clock }
   );
 
-  const workHistory = createWorkHistoryService(
-    typeof indexedDB !== 'undefined'
-      ? createIndexedDbWorkHistoryAdapter()
-      : createInMemoryWorkHistoryAdapter()
-  );
+  const workHistory = createWorkHistoryService(createIndexedDbWorkHistoryAdapter());
   const effectExecutor = createEffectExecutor({
     store: createEffectOutcomeStore(options.adapter),
     adapters: [
