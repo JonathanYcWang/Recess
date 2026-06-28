@@ -35,6 +35,7 @@ Recess is a browser extension (Chrome + Safari, Manifest V3) that helps users do
 ## Token discipline
 
 Start every Codex session with:
+
 ```bash
 headroom wrap codex "build"
 # or
@@ -44,5 +45,6 @@ headroom wrap codex "audit"
 Headroom starts automatically with Codex — no separate proxy needed. Cross-agent memory is shared across all subagents automatically.
 
 All agent sessions run with:
+
 - `/caveman` — always on
 - Ponytail — always on

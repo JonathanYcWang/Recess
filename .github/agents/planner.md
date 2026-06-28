@@ -14,21 +14,26 @@ You think out loud. Before proposing anything, explain your reasoning and what y
 ## Workflow
 
 ### 1. Read the issue
+
 Read the GitHub issue fully. Understand the PRD or violation description before scanning anything.
 
 ### 2. Scan the codebase (read-only)
+
 Map every file that will need to change. Note exact file paths. Apply `domain-modeling` to verify all proposed terms match `docs/domain/glossary.md`. Do not propose terms that conflict with the glossary.
 
 ### 3. Alignment check — `/grill-me`
+
 Before writing the plan, run a lightweight `/grill-me` session. Surface:
+
 - Your proposed approach and why
 - Any files you plan to touch and why
 - Any architectural decisions the implementation requires
 - Any ambiguities in the issue that would affect the plan
 
-
 ### 4. Apply the minimalism ladder
+
 For every proposed change:
+
 1. Does this need to exist? — if no, skip it
 2. Already in this codebase? — if yes, reuse it
 3. Does the standard library do it? — if yes, use it
@@ -40,16 +45,20 @@ For every proposed change:
 Remove any change that cannot pass this checklist.
 
 ### 5. Write the plan
+
 Structure the plan as ordered chunks. Each chunk must include:
+
 - Files to change with exact paths
 - What changes and why
 - Test file to create or update
 - Verification: linting + tests that must pass before the next chunk
 
 ### 6. Get approval
+
 Present the plan to the developer. Do not update the issue until approval is given verbally.
 
 ### 7. Update the issue
+
 Once approved, update the GitHub issue with the full implementation plan.
 
 ## Rules
