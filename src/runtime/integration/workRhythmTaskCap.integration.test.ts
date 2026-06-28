@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
 import { createPersistedApplicationState } from '@/modules/persisted-application-state';
 import type { WorkRhythmFocusBlock } from '@/modules/work-rhythm';
-import { resetPendingFocusTaskIdsForTests, setPendingFocusTaskIds } from '@/modules/task-planner';
 import { createBackgroundCompositionRoot } from '@/runtime/background/backgroundCompositionRoot';
 import { createWorkRhythmCommandEnvelope } from '@/runtime/client/inProcessWorkRhythmClient';
 
@@ -19,7 +18,6 @@ const readFocusDocument = async (
 
 describe('work rhythm task cap integration', () => {
   it('caps the first focus block from confirmed planner task remaining work', async () => {
-    resetPendingFocusTaskIdsForTests();
     const adapter = createInMemoryKeyValueAdapter();
     const root = await createBackgroundCompositionRoot({ adapter });
     if (!root.ok) {
@@ -37,8 +35,6 @@ describe('work rhythm task cap integration', () => {
     if (!taskId) {
       throw new Error('expected task id');
     }
-
-    setPendingFocusTaskIds([taskId]);
     const started = await root.value.workRhythm.command(
       createWorkRhythmCommandEnvelope({
         kind: 'start-work-session',
@@ -55,7 +51,6 @@ describe('work rhythm task cap integration', () => {
   });
 
   it('ignores stale planner selections for completed tasks', async () => {
-    resetPendingFocusTaskIdsForTests();
     const adapter = createInMemoryKeyValueAdapter();
     const root = await createBackgroundCompositionRoot({ adapter });
     if (!root.ok) {
@@ -76,8 +71,6 @@ describe('work rhythm task cap integration', () => {
 
     const completed = await root.value.taskList.completeTask(taskId);
     expect(completed.ok).toBe(true);
-
-    setPendingFocusTaskIds([taskId]);
     const started = await root.value.workRhythm.command(
       createWorkRhythmCommandEnvelope({
         kind: 'start-work-session',
@@ -94,7 +87,6 @@ describe('work rhythm task cap integration', () => {
   });
 
   it('does not retroactively change an active focus deadline when tasks are edited', async () => {
-    resetPendingFocusTaskIdsForTests();
     const adapter = createInMemoryKeyValueAdapter();
     const root = await createBackgroundCompositionRoot({ adapter });
     if (!root.ok) {
@@ -121,8 +113,6 @@ describe('work rhythm task cap integration', () => {
     if (!firstId || !secondId) {
       throw new Error('expected task ids');
     }
-
-    setPendingFocusTaskIds([firstId]);
     const started = await root.value.workRhythm.command(
       createWorkRhythmCommandEnvelope({
         kind: 'start-work-session',
@@ -145,7 +135,6 @@ describe('work rhythm task cap integration', () => {
   });
 
   it('skips task cap on final focus blocks near work session end', async () => {
-    resetPendingFocusTaskIdsForTests();
     const adapter = createInMemoryKeyValueAdapter();
     const root = await createBackgroundCompositionRoot({ adapter });
     if (!root.ok) {
@@ -163,8 +152,6 @@ describe('work rhythm task cap integration', () => {
     if (!taskId) {
       throw new Error('expected task id');
     }
-
-    setPendingFocusTaskIds([taskId]);
     const started = await root.value.workRhythm.command(
       createWorkRhythmCommandEnvelope({
         kind: 'start-work-session',

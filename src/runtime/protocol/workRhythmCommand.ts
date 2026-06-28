@@ -3,7 +3,7 @@ import type { RuntimeCommandEnvelope } from './types';
 import type { WorkRhythmDecisionError } from '@/modules/work-rhythm';
 
 export type WorkRhythmCommand =
-  | { kind: 'start-work-session'; goalSeconds: unknown; energy: unknown }
+  | { kind: 'start-work-session'; goalSeconds: unknown; energy: unknown; taskIds?: unknown }
   | { kind: 'settle-focus-boundary' }
   | { kind: 'end-work-session' }
   | { kind: 'start-time-out' }
@@ -29,6 +29,13 @@ export type WorkRhythmCommandEnvelope = RuntimeCommandEnvelope<WorkRhythmCommand
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+const parseTaskIds = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  return value.filter((taskId): taskId is string => typeof taskId === 'string' && taskId.trim().length > 0);
+};
+
 const parseCommand = (command: unknown): WorkRhythmCommand | null => {
   if (!isRecord(command) || typeof command.kind !== 'string') {
     return null;
@@ -37,6 +44,7 @@ const parseCommand = (command: unknown): WorkRhythmCommand | null => {
     return {
       kind: 'start-work-session',
       goalSeconds: command.goalSeconds,
+        taskIds: parseTaskIds(command.taskIds),
       energy: command.energy,
     };
   }

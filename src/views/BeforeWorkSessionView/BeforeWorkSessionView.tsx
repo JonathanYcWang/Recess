@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { useTimer } from '../../hooks/useTimer';
-import { setPendingFocusTaskIds } from '@/modules/task-planner';
 
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import FocusTimer from '../../components/FocusTimer/FocusTimer';
@@ -10,7 +9,7 @@ import TaskPlanner from '../../components/TaskPlanner/TaskPlanner';
 import PlayIcon from '../../assets/play.svg?url';
 
 interface BeforeWorkSessionViewProps {
-  startFocusSession: () => void;
+  startFocusSession: (taskIds: string[]) => void;
   onDurationChange: (duration: number) => void;
 }
 
@@ -25,8 +24,7 @@ const BeforeWorkSessionView = ({
     setConfirmedTaskIds(taskIds);
   }, []);
   const handleStartFocusSession = () => {
-    setPendingFocusTaskIds(confirmedTaskIds);
-    startFocusSession();
+    startFocusSession(confirmedTaskIds);
   };
 
   return (
