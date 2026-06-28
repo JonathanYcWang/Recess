@@ -31,7 +31,7 @@ const AGENTS = [
     description:
       'Recess implementer. Executes approved implementation plan from GitHub issue chunk by chunk. Write access to codebase.',
     model: 'gpt-5',
-    effort: 'medium',
+    effort: 'low',
     sandbox: 'workspace-write',
     tools: ['get_issue'],
   },
@@ -66,16 +66,16 @@ model = "${a.model}"
 model_reasoning_effort = "${a.effort}"
 sandbox_mode = "${a.sandbox}"
 
+developer_instructions = """
+${body}
+"""
+
 [mcp_servers.github]
 url = "https://api.githubcopilot.com/mcp/"
 bearer_token_env_var = "GITHUB_PAT_TOKEN"
 enabled_tools = [
 ${tools}
 ]
-
-developer_instructions = """
-${body}
-"""
 `;
     writeFileSync(join(ROOT, '.codex/agents', `${a.name}.toml`), out);
     console.log(`✓ .codex/agents/${a.name}.toml`);
