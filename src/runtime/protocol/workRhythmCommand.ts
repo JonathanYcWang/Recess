@@ -33,7 +33,9 @@ const parseTaskIds = (value: unknown): string[] | undefined => {
   if (!Array.isArray(value)) {
     return undefined;
   }
-  return value.filter((taskId): taskId is string => typeof taskId === 'string' && taskId.trim().length > 0);
+  return value.filter(
+    (taskId): taskId is string => typeof taskId === 'string' && taskId.trim().length > 0
+  );
 };
 
 const parseCommand = (command: unknown): WorkRhythmCommand | null => {
@@ -44,7 +46,7 @@ const parseCommand = (command: unknown): WorkRhythmCommand | null => {
     return {
       kind: 'start-work-session',
       goalSeconds: command.goalSeconds,
-        taskIds: parseTaskIds(command.taskIds),
+      taskIds: parseTaskIds(command.taskIds),
       energy: command.energy,
     };
   }

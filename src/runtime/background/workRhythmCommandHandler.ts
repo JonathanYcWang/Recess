@@ -195,14 +195,18 @@ export const createWorkRhythmCommandHandler = (
     );
   };
 
-  const readStartTaskCapInput = (pendingTaskIds: unknown = []): {
+  const readStartTaskCapInput = (
+    pendingTaskIds: unknown = []
+  ): {
     selectedTaskRemainingSeconds: number | null;
     confirmedFocusTaskIds: string[];
   } => {
     const taskList = taskListHandler.getDocument().value;
     const confirmedFocusTaskIds = filterSelectedIncompleteTaskIds(
       taskList,
-      Array.isArray(pendingTaskIds) ? pendingTaskIds.filter((taskId): taskId is string => typeof taskId === 'string') : []
+      Array.isArray(pendingTaskIds)
+        ? pendingTaskIds.filter((taskId): taskId is string => typeof taskId === 'string')
+        : []
     );
     return {
       confirmedFocusTaskIds,
@@ -877,7 +881,9 @@ export const createWorkRhythmCommandHandler = (
 
     const sessionId = createSessionId();
     const nowEpochMs = clock.nowEpochMs();
-    const startTaskCap = readStartTaskCapInput(envelope.command.kind === 'start-work-session' ? envelope.command.taskIds : undefined);
+    const startTaskCap = readStartTaskCapInput(
+      envelope.command.kind === 'start-work-session' ? envelope.command.taskIds : undefined
+    );
     const decided = applyWorkRhythmCommand(currentDocument.value, envelope.command, {
       nowEpochMs,
       sessionId,
