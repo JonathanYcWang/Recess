@@ -1,6 +1,7 @@
 import type { AccessContext } from '@/modules/block-list';
 import { mapLegacyTimerToAccessContext } from '@/runtime/background/accessContextMapper';
 import { ACCESS_CONTEXT_STORAGE_KEY } from '@/runtime/accessContextStorage';
+import { setExtensionStorageValue } from '@/runtime/storageRepository';
 import type { RootState } from './index';
 
 export const projectAccessContextFromState = (state: RootState): AccessContext => {
@@ -65,5 +66,5 @@ export const publishAccessContext = async (context: AccessContext): Promise<void
   if (typeof chrome === 'undefined' || !chrome.storage?.local) {
     return;
   }
-  await chrome.storage.local.set({ [ACCESS_CONTEXT_STORAGE_KEY]: context });
+  await setExtensionStorageValue(ACCESS_CONTEXT_STORAGE_KEY, context);
 };

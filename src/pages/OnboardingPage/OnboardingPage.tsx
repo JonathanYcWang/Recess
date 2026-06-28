@@ -9,6 +9,7 @@ import {
   type FrictionDimension,
   type PreferredCadence,
 } from '@/modules/workstyle-profile';
+import { removeExtensionStorageValue, setExtensionStorageValue } from '@/runtime/storageRepository';
 import styles from './OnboardingPage.module.css';
 
 const ONBOARDING_PROGRESS_KEY = '__recess_onboarding_progress';
@@ -64,14 +65,14 @@ const saveDraft = async (draft: OnboardingDraft): Promise<void> => {
   if (typeof chrome === 'undefined' || !chrome.storage?.local) {
     return;
   }
-  await chrome.storage.local.set({ [ONBOARDING_PROGRESS_KEY]: draft });
+  await setExtensionStorageValue(ONBOARDING_PROGRESS_KEY, draft);
 };
 
 const clearDraft = async (): Promise<void> => {
   if (typeof chrome === 'undefined' || !chrome.storage?.local) {
     return;
   }
-  await chrome.storage.local.remove(ONBOARDING_PROGRESS_KEY);
+  await removeExtensionStorageValue(ONBOARDING_PROGRESS_KEY);
 };
 
 const OnboardingPage = () => {

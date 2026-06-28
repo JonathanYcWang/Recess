@@ -1,5 +1,6 @@
 import type { FrictionProfile } from '@/modules/workstyle-profile';
 import type { FrictionScoreEffects } from '@/modules/personalization-quiz/personalizationQuizTypes';
+import { removeExtensionStorageValue, setExtensionStorageValue } from '@/runtime/storageRepository';
 
 const PERSONALIZATION_QUIZ_PROGRESS_KEY = '__recess_personalization_quiz_progress';
 
@@ -45,14 +46,14 @@ export const savePersonalizationQuizProgress = async (
   if (typeof chrome === 'undefined' || !chrome.storage?.local) {
     return;
   }
-  await chrome.storage.local.set({ [PERSONALIZATION_QUIZ_PROGRESS_KEY]: progress });
+  await setExtensionStorageValue(PERSONALIZATION_QUIZ_PROGRESS_KEY, progress);
 };
 
 export const clearPersonalizationQuizProgress = async (): Promise<void> => {
   if (typeof chrome === 'undefined' || !chrome.storage?.local) {
     return;
   }
-  await chrome.storage.local.remove(PERSONALIZATION_QUIZ_PROGRESS_KEY);
+  await removeExtensionStorageValue(PERSONALIZATION_QUIZ_PROGRESS_KEY);
 };
 
 const sendWorkstyleProfileCommand = async (command: Record<string, unknown>) => {

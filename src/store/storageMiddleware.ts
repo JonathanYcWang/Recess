@@ -1,4 +1,10 @@
 import type { Middleware, AnyAction } from '@reduxjs/toolkit';
+import {
+  removeExtensionStorageValue,
+  removeLocalStorageValue,
+  setExtensionStorageValue,
+  setLocalStorageValue,
+} from '@/runtime/storageRepository';
 import type { QuizReduxState } from './actions/quizActions';
 import {
   createInitialBlockedSitesState,
@@ -34,15 +40,11 @@ const storageAPI = {
 
   set: async <T = unknown>(key: string, value: T): Promise<void> => {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      return new Promise((resolve) => {
-        chrome.storage.local.set({ [key]: value }, () => {
-          resolve();
-        });
-      });
+      return setExtensionStorageValue(key, value);
     }
     // Fallback to localStorage for development
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      setLocalStorageValue(key, JSON.stringify(value));
     } catch (error) {
       console.error('Failed to set storage:', error);
     }
@@ -50,14 +52,10 @@ const storageAPI = {
 
   remove: async (key: string): Promise<void> => {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      return new Promise((resolve) => {
-        chrome.storage.local.remove([key], () => {
-          resolve();
-        });
-      });
+      return removeExtensionStorageValue(key);
     }
     // Fallback to localStorage for development
-    localStorage.removeItem(key);
+    removeLocalStorageValue(key);
   },
 };
 
