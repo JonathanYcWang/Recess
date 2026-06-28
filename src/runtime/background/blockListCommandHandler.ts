@@ -128,7 +128,8 @@ export const createBlockListCommandHandler = (
     }
   };
 
-  const recordUnexpected = (): BlockListCommandResponse => toFailure({ kind: 'unexpected-runtime' });
+  const recordUnexpected = (): BlockListCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   const executeFresh = async (
     envelope: BlockListCommandEnvelope

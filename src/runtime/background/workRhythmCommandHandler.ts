@@ -175,7 +175,8 @@ export const createWorkRhythmCommandHandler = (
     }
   };
 
-  const recordUnexpected = (): WorkRhythmCommandResponse => toFailure({ kind: 'unexpected-runtime' });
+  const recordUnexpected = (): WorkRhythmCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   type TaskListCommit = {
     expectedRevision: number;

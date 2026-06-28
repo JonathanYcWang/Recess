@@ -183,8 +183,7 @@ export const createHallPassCommandHandler = (
     return null;
   };
 
-  const recordUnexpected = (): HallPassCommandResponse =>
-    toFailure({ kind: 'unexpected-runtime' });
+  const recordUnexpected = (): HallPassCommandResponse => toFailure({ kind: 'unexpected-runtime' });
 
   const meterContext = async (nowEpochMs: number) => {
     const activity = await browserActivity.queryState();

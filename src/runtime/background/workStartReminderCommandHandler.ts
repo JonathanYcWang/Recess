@@ -439,8 +439,8 @@ export const createWorkStartReminderCommandHandler = (
     await reconcilePendingStreakOutcomes(currentDocument.value);
   };
 
-const recordUnexpected = (): WorkStartReminderCommandResponse =>
-  toFailure({ kind: 'unexpected-runtime' });
+  const recordUnexpected = (): WorkStartReminderCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   const applyCommand = (
     envelope: WorkStartReminderCommandEnvelope

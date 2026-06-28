@@ -101,7 +101,8 @@ export const createRewardGameCommandHandler = (
     }
   };
 
-  const recordUnexpected = (): RewardGameCommandResponse => toFailure({ kind: 'unexpected-runtime' });
+  const recordUnexpected = (): RewardGameCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   const drawValues = (count: number): number[] => {
     const draws: number[] = [];
