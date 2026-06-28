@@ -1,3 +1,4 @@
+import { createActionBroker } from './actionBroker';
 import type {
   BlockListClient,
   BlockListClientError,
@@ -23,7 +24,7 @@ export const isBlockListTransportError = (
   error.kind === 'transport-unavailable';
 
 const projectSnapshot = (dispatch: AppDispatch, snapshot: BlockListSnapshot): void => {
-  dispatch(
+  createActionBroker(dispatch).route(
     setBlockListProjection({
       revision: snapshot.revision,
       entries: [...snapshot.value.entries],
@@ -57,7 +58,7 @@ export class BlockListConnectionManager {
   markDisconnected(): void {
     const wasConnected = this.connectionState !== 'disconnected';
     this.connectionState = 'disconnected';
-    this.options.dispatch(setBlockListConnectionState('disconnected'));
+    createActionBroker(this.options.dispatch).route(setBlockListConnectionState('disconnected'));
     this.clearSubscription();
     if (wasConnected || !this.retryTimer) {
       this.scheduleRetry();
@@ -122,7 +123,7 @@ export class BlockListConnectionManager {
       this.resubscribe();
       this.connectionState = 'connected';
       this.retryAttempt = 0;
-      this.options.dispatch(setBlockListConnectionState('connected'));
+      createActionBroker(this.options.dispatch).route(setBlockListConnectionState('connected'));
     } catch {
       if (options.reason === 'initial') {
         this.markDisconnected();
@@ -142,7 +143,7 @@ export class BlockListConnectionManager {
         if (this.connectionState !== 'connected') {
           this.connectionState = 'connected';
           this.retryAttempt = 0;
-          this.options.dispatch(setBlockListConnectionState('connected'));
+          createActionBroker(this.options.dispatch).route(setBlockListConnectionState('connected'));
         }
       },
       {

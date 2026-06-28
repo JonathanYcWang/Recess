@@ -1,3 +1,4 @@
+import { createActionBroker } from './actionBroker';
 import type { SettingsClient, SettingsClientError, SettingsSnapshot } from '@/runtime';
 import type { SettingsRuntimeTransportError } from '@/runtime/messaging/messages';
 import type { AppDispatch } from './index';
@@ -19,7 +20,7 @@ export const isSettingsTransportError = (
   error.kind === 'transport-unavailable';
 
 const projectSnapshot = (dispatch: AppDispatch, snapshot: SettingsSnapshot): void => {
-  dispatch(
+  createActionBroker(dispatch).route(
     setSettingsProjection({
       revision: snapshot.revision,
       themePreference: snapshot.value.themePreference,
@@ -53,7 +54,7 @@ export class SettingsConnectionManager {
   markDisconnected(): void {
     const wasConnected = this.connectionState !== 'disconnected';
     this.connectionState = 'disconnected';
-    this.options.dispatch(setSettingsConnectionState('disconnected'));
+    createActionBroker(this.options.dispatch).route(setSettingsConnectionState('disconnected'));
     this.clearSubscription();
     if (wasConnected || !this.retryTimer) {
       this.scheduleRetry();
@@ -118,7 +119,7 @@ export class SettingsConnectionManager {
       this.resubscribe();
       this.connectionState = 'connected';
       this.retryAttempt = 0;
-      this.options.dispatch(setSettingsConnectionState('connected'));
+      createActionBroker(this.options.dispatch).route(setSettingsConnectionState('connected'));
     } catch {
       if (options.reason === 'initial') {
         this.markDisconnected();
@@ -138,7 +139,7 @@ export class SettingsConnectionManager {
         if (this.connectionState !== 'connected') {
           this.connectionState = 'connected';
           this.retryAttempt = 0;
-          this.options.dispatch(setSettingsConnectionState('connected'));
+          createActionBroker(this.options.dispatch).route(setSettingsConnectionState('connected'));
         }
       },
       {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { createActionBroker } from '@/store/actionBroker';
 import {
   startFocusSession,
   pauseSession,
@@ -55,6 +56,7 @@ const COMPLETE_TIMER_DISPLAY_DELAY_MS = 1000;
  */
 export const useTimer = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const actionBroker = createActionBroker(dispatch);
   const timerState = useSelector((state: RootState) => selectTimerState(state));
   const sessionState = useSelector((state: RootState) => selectSessionState(state));
   const isPaused = useSelector((state: RootState) => selectIsPaused(state));
@@ -94,7 +96,7 @@ export const useTimer = () => {
         notifyFocusComplete();
         completionTimeoutRef.current = setTimeout(() => {
           completionTimeoutRef.current = null;
-          dispatch(transitionToRewardSelection());
+          actionBroker.route(transitionToRewardSelection());
         }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
         return;
       }
@@ -103,7 +105,7 @@ export const useTimer = () => {
         notifyBreakComplete();
         completionTimeoutRef.current = setTimeout(() => {
           completionTimeoutRef.current = null;
-          dispatch(transitionToFocusSessionCountdown());
+          actionBroker.route(transitionToFocusSessionCountdown());
         }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
         return;
       }
@@ -111,7 +113,7 @@ export const useTimer = () => {
       if (sessionState === SESSION_STATES.FOCUS_SESSION_COUNTDOWN) {
         completionTimeoutRef.current = setTimeout(() => {
           completionTimeoutRef.current = null;
-          dispatch(transitionToFocusSession());
+          actionBroker.route(transitionToFocusSession());
         }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
       }
     },
@@ -154,8 +156,8 @@ export const useTimer = () => {
       const newRewards = Array.from({ length: 3 }, () =>
         generateReward(blockedSites, seenRewardCombinations, fatigueScore, momentumScore)
       );
-      dispatch(setGeneratedRewards(newRewards));
-      dispatch(setShownRewardCombinations(seenRewardCombinations));
+      actionBroker.route(setGeneratedRewards(newRewards));
+      actionBroker.route(setShownRewardCombinations(seenRewardCombinations));
     }
     // Reward generation is intentionally tied to session entry, not every score change.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- blockedSites and scores are read at entry only.
@@ -239,8 +241,8 @@ export const useTimer = () => {
           fatigueScore,
           momentumScore
         );
-        dispatch(rerollRewardAction({ index, reward }));
-        dispatch(setShownRewardCombinations(seenRewardCombinations));
+        actionBroker.route(rerollRewardAction({ index, reward }));
+        actionBroker.route(setShownRewardCombinations(seenRewardCombinations));
       }
     },
     [rerolls, blockedSites, shownCombinations, dispatch, fatigueScore, momentumScore]
@@ -251,18 +253,19 @@ export const useTimer = () => {
     currentTimer: timerState.currentTimer,
     currentRemaining,
     totalRemaining: timerState.totalRemaining,
-    startFocusSession: () => dispatch(startFocusSession()),
-    pauseSession: () => dispatch(pauseSession(currentRemaining)),
-    resumeSession: () => dispatch(resumeSession()),
-    endSessionEarly: () => dispatch(endSessionEarly()),
-    endWorkSessionEarly: () => dispatch(endWorkSessionEarly()),
-    transitionToBeforeWorkSession: () => dispatch(transitionToBeforeWorkSession()),
-    selectReward: (reward: Reward) => dispatch(selectReward(reward)),
+    startFocusSession: () => actionBroker.route(startFocusSession()),
+    pauseSession: () => actionBroker.route(pauseSession(currentRemaining)),
+    resumeSession: () => actionBroker.route(resumeSession()),
+    endSessionEarly: () => actionBroker.route(endSessionEarly()),
+    endWorkSessionEarly: () => actionBroker.route(endWorkSessionEarly()),
+    transitionToBeforeWorkSession: () => actionBroker.route(transitionToBeforeWorkSession()),
+    selectReward: (reward: Reward) => actionBroker.route(selectReward(reward)),
     handleReroll,
-    updateTimerState: (updates: Partial<typeof timerState>) => dispatch(updateTimerState(updates)),
-    setTotalTimer: (duration: number) => dispatch(setTotalTimer(duration)),
+    updateTimerState: (updates: Partial<typeof timerState>) =>
+      actionBroker.route(updateTimerState(updates)),
+    setTotalTimer: (duration: number) => actionBroker.route(setTotalTimer(duration)),
     updateFeedbackMultiplier: (feedbackMultiplier: number) =>
-      dispatch(updateFeedbackMultiplier(feedbackMultiplier)),
+      actionBroker.route(updateFeedbackMultiplier(feedbackMultiplier)),
     rewards,
     sessionState,
     isPaused,

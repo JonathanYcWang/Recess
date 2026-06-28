@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { createActionBroker } from '@/store/actionBroker';
 import QuizQuestion from '../../components/QuizQuestion/QuizQuestion';
 import Button from '../../components/Button/Button';
 import { QuizOption } from '../../types/quiz';
@@ -15,6 +16,7 @@ import styles from './QuizPage.module.css';
 
 const QuizPage = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const actionBroker = createActionBroker(dispatch);
   const currentQuestion = useSelector((state: RootState) => selectCurrentQuestion(state));
   const selectedChoices = useSelector((state: RootState) => selectSelectedChoices(state));
   const isComplete = useSelector((state: RootState) => selectIsQuizComplete(state));
@@ -22,11 +24,11 @@ const QuizPage = () => {
   const navigate = useNavigate();
 
   const handleSelectOption = (option: QuizOption) => {
-    dispatch(selectOption(option));
+    actionBroker.route(selectOption(option));
   };
 
   const handleRestart = () => {
-    dispatch(restartQuiz());
+    actionBroker.route(restartQuiz());
   };
 
   const handleBackToHome = () => {

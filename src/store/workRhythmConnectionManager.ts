@@ -1,3 +1,4 @@
+import { createActionBroker } from './actionBroker';
 import type { WorkRhythmClient, WorkRhythmPublishedSnapshot } from '@/runtime/workRhythmTypes';
 import type { WorkRhythmRuntimeTransportError } from '@/runtime/messaging/workRhythmMessages';
 import type { AppDispatch } from './index';
@@ -19,7 +20,7 @@ export const isWorkRhythmTransportError = (error: {
   error.kind === 'transport-unavailable';
 
 const projectSnapshot = (dispatch: AppDispatch, snapshot: WorkRhythmPublishedSnapshot): void => {
-  dispatch(
+  createActionBroker(dispatch).route(
     setWorkRhythmProjection({
       revision: snapshot.revision,
       snapshot: snapshot.snapshot,
@@ -53,7 +54,7 @@ export class WorkRhythmConnectionManager {
   markDisconnected(): void {
     const wasConnected = this.connectionState !== 'disconnected';
     this.connectionState = 'disconnected';
-    this.options.dispatch(setWorkRhythmConnectionState('disconnected'));
+    createActionBroker(this.options.dispatch).route(setWorkRhythmConnectionState('disconnected'));
     this.clearSubscription();
     if (wasConnected || !this.retryTimer) {
       this.scheduleRetry();
@@ -118,7 +119,7 @@ export class WorkRhythmConnectionManager {
       this.resubscribe();
       this.connectionState = 'connected';
       this.retryAttempt = 0;
-      this.options.dispatch(setWorkRhythmConnectionState('connected'));
+      createActionBroker(this.options.dispatch).route(setWorkRhythmConnectionState('connected'));
     } catch {
       if (options.reason === 'initial') {
         this.markDisconnected();
@@ -138,7 +139,9 @@ export class WorkRhythmConnectionManager {
         if (this.connectionState !== 'connected') {
           this.connectionState = 'connected';
           this.retryAttempt = 0;
-          this.options.dispatch(setWorkRhythmConnectionState('connected'));
+          createActionBroker(this.options.dispatch).route(
+            setWorkRhythmConnectionState('connected')
+          );
         }
       },
       {

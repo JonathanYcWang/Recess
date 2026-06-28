@@ -1,3 +1,4 @@
+import { createActionBroker } from './actionBroker';
 import type { TaskListClient, TaskListPublishedSnapshot } from '@/runtime/taskListTypes';
 import type { TaskListRuntimeTransportError } from '@/runtime/messaging/taskListMessages';
 import type { AppDispatch } from './index';
@@ -19,7 +20,7 @@ export const isTaskListTransportError = (
   error.kind === 'transport-unavailable';
 
 const projectSnapshot = (dispatch: AppDispatch, snapshot: TaskListPublishedSnapshot): void => {
-  dispatch(
+  createActionBroker(dispatch).route(
     setTaskListProjection({
       revision: snapshot.revision,
       incompleteTasks: snapshot.snapshot.incompleteTasks.map((task) => ({ ...task })),
@@ -54,7 +55,7 @@ export class TaskListConnectionManager {
   markDisconnected(): void {
     const wasConnected = this.connectionState !== 'disconnected';
     this.connectionState = 'disconnected';
-    this.options.dispatch(setTaskListConnectionState('disconnected'));
+    createActionBroker(this.options.dispatch).route(setTaskListConnectionState('disconnected'));
     this.clearSubscription();
     if (wasConnected || !this.retryTimer) {
       this.scheduleRetry();
@@ -119,7 +120,7 @@ export class TaskListConnectionManager {
       this.resubscribe();
       this.connectionState = 'connected';
       this.retryAttempt = 0;
-      this.options.dispatch(setTaskListConnectionState('connected'));
+      createActionBroker(this.options.dispatch).route(setTaskListConnectionState('connected'));
     } catch {
       if (options.reason === 'initial') {
         this.markDisconnected();
@@ -139,7 +140,7 @@ export class TaskListConnectionManager {
         if (this.connectionState !== 'connected') {
           this.connectionState = 'connected';
           this.retryAttempt = 0;
-          this.options.dispatch(setTaskListConnectionState('connected'));
+          createActionBroker(this.options.dispatch).route(setTaskListConnectionState('connected'));
         }
       },
       {

@@ -1,3 +1,4 @@
+import { createActionBroker } from './actionBroker';
 import type {
   WorkStartReminderClient,
   WorkStartReminderClientError,
@@ -26,7 +27,7 @@ const projectSnapshot = (
   dispatch: AppDispatch,
   snapshot: WorkStartReminderPublishedSnapshot
 ): void => {
-  dispatch(
+  createActionBroker(dispatch).route(
     setWorkStartReminderProjection({
       revision: snapshot.revision,
       schedules: snapshot.snapshot.schedules.map((schedule) => ({
@@ -63,7 +64,9 @@ export class WorkStartReminderConnectionManager {
   markDisconnected(): void {
     const wasConnected = this.connectionState !== 'disconnected';
     this.connectionState = 'disconnected';
-    this.options.dispatch(setWorkStartReminderConnectionState('disconnected'));
+    createActionBroker(this.options.dispatch).route(
+      setWorkStartReminderConnectionState('disconnected')
+    );
     this.clearSubscription();
     if (wasConnected || !this.retryTimer) {
       this.scheduleRetry();
@@ -128,7 +131,9 @@ export class WorkStartReminderConnectionManager {
       this.resubscribe();
       this.connectionState = 'connected';
       this.retryAttempt = 0;
-      this.options.dispatch(setWorkStartReminderConnectionState('connected'));
+      createActionBroker(this.options.dispatch).route(
+        setWorkStartReminderConnectionState('connected')
+      );
     } catch {
       if (options.reason === 'initial') {
         this.markDisconnected();
@@ -148,7 +153,9 @@ export class WorkStartReminderConnectionManager {
         if (this.connectionState !== 'connected') {
           this.connectionState = 'connected';
           this.retryAttempt = 0;
-          this.options.dispatch(setWorkStartReminderConnectionState('connected'));
+          createActionBroker(this.options.dispatch).route(
+            setWorkStartReminderConnectionState('connected')
+          );
         }
       },
       {

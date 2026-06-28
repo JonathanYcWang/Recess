@@ -1,3 +1,4 @@
+import { createActionBroker } from './actionBroker';
 import type { HallPassClient, HallPassPublishedSnapshot } from '@/runtime/hallPassTypes';
 import type { HallPassRuntimeTransportError } from '@/runtime/messaging/hallPassMessages';
 import type { AppDispatch } from './index';
@@ -19,7 +20,7 @@ export const isHallPassTransportError = (error: {
   error.kind === 'transport-unavailable';
 
 const projectSnapshot = (dispatch: AppDispatch, snapshot: HallPassPublishedSnapshot): void => {
-  dispatch(
+  createActionBroker(dispatch).route(
     setHallPassProjection({
       revision: snapshot.revision,
       snapshot: snapshot.snapshot,
@@ -54,7 +55,7 @@ export class HallPassConnectionManager {
   markDisconnected(): void {
     const wasConnected = this.connectionState !== 'disconnected';
     this.connectionState = 'disconnected';
-    this.options.dispatch(setHallPassConnectionState('disconnected'));
+    createActionBroker(this.options.dispatch).route(setHallPassConnectionState('disconnected'));
     this.clearSubscription();
     if (wasConnected || !this.retryTimer) {
       this.scheduleRetry();
@@ -119,7 +120,7 @@ export class HallPassConnectionManager {
       this.resubscribe();
       this.connectionState = 'connected';
       this.retryAttempt = 0;
-      this.options.dispatch(setHallPassConnectionState('connected'));
+      createActionBroker(this.options.dispatch).route(setHallPassConnectionState('connected'));
     } catch {
       if (options.reason === 'initial') {
         this.markDisconnected();
@@ -139,7 +140,7 @@ export class HallPassConnectionManager {
         if (this.connectionState !== 'connected') {
           this.connectionState = 'connected';
           this.retryAttempt = 0;
-          this.options.dispatch(setHallPassConnectionState('connected'));
+          createActionBroker(this.options.dispatch).route(setHallPassConnectionState('connected'));
         }
       },
       {
