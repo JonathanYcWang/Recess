@@ -5,14 +5,6 @@ model = "gpt-5"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 
-[mcp_servers.github]
-url = "https://api.githubcopilot.com/mcp/"
-bearer_token_env_var = "GITHUB_PAT_TOKEN"
-enabled_tools = [
-    "get_issue",
-    "list_issues",
-]
-
 developer_instructions = """
 # Orchestrator Agent
 
@@ -85,3 +77,11 @@ On confirmation, delegate: "Spawn the audit subagent. Scan the entire codebase a
 - Always confirm before spawning the audit agent
 - Never merge a PR — that is the developer's job
 """
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+enabled_tools = [
+    "get_issue",
+    "list_issues",
+]
