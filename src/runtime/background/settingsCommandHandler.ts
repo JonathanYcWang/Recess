@@ -3,7 +3,6 @@ import type {
   SettingsValue,
   VersionedDocument,
 } from '@/modules/persisted-application-state';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import type { EffectExecutor } from '../effects/effectExecutor';
@@ -57,14 +56,12 @@ export const createSettingsCommandHandler = (
   persistence: PersistedApplicationState,
   initialized: VersionedDocument<SettingsValue>,
   options?: {
-    diagnostics?: DiagnosticRingBuffer;
     effectExecutor?: EffectExecutor;
     outcomeStore?: CommandOutcomeStore<SettingsCommandResponse>;
   }
 ): SettingsCommandHandler => {
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<SettingsCommandResponse>();
-  const diagnostics = options?.diagnostics;
   const outcomeStore = options?.outcomeStore;
   const listeners = new Set<(snapshot: SettingsSnapshot) => void>();
 
@@ -86,18 +83,7 @@ export const createSettingsCommandHandler = (
     }
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): SettingsCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'settings' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): SettingsCommandResponse => toFailure({ kind: 'unexpected-runtime' });
 
   const executeFresh = async (
     envelope: SettingsCommandEnvelope
@@ -190,8 +176,8 @@ export const createSettingsCommandHandler = (
           await outcomeStore.set('settings', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('settings', envelope.commandId, response);

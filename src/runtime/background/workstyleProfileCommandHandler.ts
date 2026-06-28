@@ -7,7 +7,6 @@ import {
   cloneWorkstyleProfileValue,
   type WorkstyleProfileValue,
 } from '@/modules/workstyle-profile';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import {
@@ -45,7 +44,6 @@ export const createWorkstyleProfileCommandHandler = (
   persistence: PersistedApplicationState,
   initialized: VersionedDocument<WorkstyleProfileValue>,
   options?: {
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkstyleProfileCommandResponse>;
     coinHandler?: CoinCommandHandler;
     clock?: { nowEpochMs: () => number };
@@ -53,7 +51,6 @@ export const createWorkstyleProfileCommandHandler = (
 ): WorkstyleProfileCommandHandler => {
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<WorkstyleProfileCommandResponse>();
-  const diagnostics = options?.diagnostics;
   const outcomeStore = options?.outcomeStore;
   const coinHandler = options?.coinHandler;
   const clock = options?.clock ?? { nowEpochMs: () => Date.now() };
@@ -77,18 +74,8 @@ export const createWorkstyleProfileCommandHandler = (
     }
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): WorkstyleProfileCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'workstyle-profile' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): WorkstyleProfileCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   const executeFresh = async (
     envelope: WorkstyleProfileCommandEnvelope
@@ -247,8 +234,8 @@ export const createWorkstyleProfileCommandHandler = (
           await outcomeStore.set('workstyle-profile', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('workstyle-profile', envelope.commandId, response);

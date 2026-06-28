@@ -29,7 +29,7 @@ export type HallPassCommandError =
   | { kind: 'persistence-unavailable' }
   | { kind: 'persistence-failed' }
   | { kind: 'coin-settlement-failed' }
-  | { kind: 'unexpected-runtime'; diagnosticId: string };
+  | { kind: 'unexpected-runtime' };
 
 export type HallPassCommandEnvelope = RuntimeCommandEnvelope<HallPassCommand>;
 

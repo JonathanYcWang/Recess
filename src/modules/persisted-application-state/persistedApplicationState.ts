@@ -1,4 +1,3 @@
-import type { DiagnosticRingBuffer } from './diagnostics/diagnosticRingBuffer';
 import {
   clearJournalEntry,
   JOURNAL_STORAGE_KEY,
@@ -29,7 +28,6 @@ import type {
 
 export interface PersistedApplicationStateOptions {
   adapter: KeyValueStorageAdapter;
-  diagnostics?: DiagnosticRingBuffer;
   journalHooks?: JournalHooks;
 }
 

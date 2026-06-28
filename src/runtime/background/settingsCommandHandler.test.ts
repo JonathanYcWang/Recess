@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
-import { createDiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createPersistedApplicationState } from '@/modules/persisted-application-state/persistedApplicationState';
 import { settingsCodec } from '@/modules/persisted-application-state/settings/settingsCodec';
 import { COMMAND_LEDGER_LIMIT } from '@/runtime/commandLedger';
@@ -9,16 +8,13 @@ import { createSettingsCommandHandler } from '@/runtime/background/settingsComma
 
 const createHandler = async () => {
   const adapter = createInMemoryKeyValueAdapter();
-  const diagnostics = createDiagnosticRingBuffer();
-  const persistence = createPersistedApplicationState({ adapter, diagnostics });
+  const persistence = createPersistedApplicationState({ adapter });
   const initialized = await persistence.initialize();
   if (!initialized.ok) {
     throw new Error('expected initialization to succeed');
   }
-  const handler = createSettingsCommandHandler(persistence, initialized.value.documents.settings, {
-    diagnostics,
-  });
-  return { handler, persistence, diagnostics };
+  const handler = createSettingsCommandHandler(persistence, initialized.value.documents.settings);
+  return { handler, persistence };
 };
 
 const createEnvelope = (
@@ -129,33 +125,21 @@ describe('settings command handler', () => {
     expect(first).toEqual({ ok: false, error: { kind: 'invalid-theme-preference' } });
   });
 
-  it('records unexpected exceptions as sanitized diagnostics', async () => {
+  it('returns unexpected-runtime when persistence throws', async () => {
     const adapter = createInMemoryKeyValueAdapter();
-    const diagnostics = createDiagnosticRingBuffer();
-    const persistence = createPersistedApplicationState({ adapter, diagnostics });
+    const persistence = createPersistedApplicationState({ adapter });
     const initialized = await persistence.initialize();
     if (!initialized.ok) {
       throw new Error('expected initialization to succeed');
     }
-    const handler = createSettingsCommandHandler(
-      persistence,
-      initialized.value.documents.settings,
-      { diagnostics }
-    );
+    const handler = createSettingsCommandHandler(persistence, initialized.value.documents.settings);
     vi.spyOn(persistence, 'commit').mockRejectedValueOnce(new Error('boom'));
 
     const response = await handler.execute(createEnvelope({ commandId: 'cmd-boom' }));
     expect(response.ok).toBe(false);
-    if (!response.ok && response.error.kind === 'unexpected-runtime') {
-      expect(response.error.diagnosticId).toMatch(/^diag-/);
+    if (!response.ok) {
+      expect(response.error.kind).toBe('unexpected-runtime');
     }
-    expect(diagnostics.all()).toEqual([
-      expect.objectContaining({
-        category: 'unexpected-runtime',
-        message: 'boom',
-        context: { commandId: 'cmd-boom', module: 'settings' },
-      }),
-    ]);
   });
 
   it('evicts completed outcomes after 256 commands', async () => {

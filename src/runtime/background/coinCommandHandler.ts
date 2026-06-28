@@ -3,7 +3,6 @@ import type {
   VersionedDocument,
 } from '@/modules/persisted-application-state';
 import { applyCoinCommand, cloneCoinLedgerValue, type CoinLedgerValue } from '@/modules/coin';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import {
@@ -38,13 +37,11 @@ export const createCoinCommandHandler = (
   persistence: PersistedApplicationState,
   initialized: VersionedDocument<CoinLedgerValue>,
   options?: {
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<CoinCommandResponse>;
   }
 ): CoinCommandHandler => {
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<CoinCommandResponse>();
-  const diagnostics = options?.diagnostics;
   const outcomeStore = options?.outcomeStore;
   const listeners = new Set<(snapshot: CoinSnapshot) => void>();
 
@@ -66,18 +63,7 @@ export const createCoinCommandHandler = (
     }
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): CoinCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'coin' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): CoinCommandResponse => toFailure({ kind: 'unexpected-runtime' });
 
   const executeFresh = async (envelope: CoinCommandEnvelope): Promise<CoinCommandResponse> => {
     if (envelope.expectedRevision !== undefined && envelope.expectedRevision !== current.revision) {
@@ -159,8 +145,8 @@ export const createCoinCommandHandler = (
           await outcomeStore.set('coin', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('coin', envelope.commandId, response);

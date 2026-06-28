@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
 import {
-  createDiagnosticRingBuffer,
   createPersistedApplicationState,
   describeSettingsDocumentIntegrationTests,
   settingsCodec,
@@ -57,15 +56,16 @@ describe('settings codec', () => {
 });
 
 describe('document registry initialize', () => {
-  it('defaults only the affected document and records diagnostic input', async () => {
+  it('defaults only the affected document when storage contains an invalid document', async () => {
     const adapter = createInMemoryKeyValueAdapter({
       [SETTINGS_DOCUMENT_KEY]: JSON.stringify({ schemaVersion: 1, revision: 0, value: null }),
     });
-    const diagnostics = createDiagnosticRingBuffer();
-    const state = createPersistedApplicationState({ adapter, diagnostics });
+    const state = createPersistedApplicationState({ adapter });
     const initialized = await state.initialize();
     expect(initialized.ok).toBe(true);
-    expect(diagnostics.all().some((entry) => entry.category === 'codec-corruption')).toBe(true);
+    if (initialized.ok) {
+      expect(initialized.value.documents.settings.value.themePreference).toBe('system');
+    }
   });
 });
 

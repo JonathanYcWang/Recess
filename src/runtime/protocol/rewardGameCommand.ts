@@ -35,7 +35,7 @@ export type RewardGameCommandError =
   | { kind: 'stale-revision'; expectedRevision: number; actualRevision: number }
   | { kind: 'persistence-unavailable' }
   | { kind: 'persistence-failed' }
-  | { kind: 'unexpected-runtime'; diagnosticId: string };
+  | { kind: 'unexpected-runtime' };
 
 export type RewardGameCommandEnvelope = RuntimeCommandEnvelope<RewardGameRuntimeCommand>;
 

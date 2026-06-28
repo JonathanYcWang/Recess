@@ -10,7 +10,6 @@ import {
   rewardGameRoundCommandId,
   type RewardGameValue,
 } from '@/modules/reward-game';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import type { Clock } from '../clock';
 import type { RandomSource } from '../randomSource';
 import { createCommandLedger } from '../commandLedger';
@@ -68,7 +67,6 @@ export const createRewardGameCommandHandler = (
   options: {
     clock: Clock;
     randomSource: RandomSource;
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<RewardGameCommandResponse>;
   }
 ): RewardGameCommandHandler => {
@@ -77,7 +75,7 @@ export const createRewardGameCommandHandler = (
     value: cloneRewardGameValue(initialized.value),
   };
   const ledger = createCommandLedger<RewardGameCommandResponse>();
-  const { clock, randomSource, diagnostics, outcomeStore } = options;
+  const { clock, randomSource, outcomeStore } = options;
   const listeners = new Set<(snapshot: RewardGamePublishedSnapshot) => void>();
 
   const hydrateLedgerFromStore = async (): Promise<void> => {
@@ -103,18 +101,7 @@ export const createRewardGameCommandHandler = (
     }
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): RewardGameCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'reward-game' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): RewardGameCommandResponse => toFailure({ kind: 'unexpected-runtime' });
 
   const drawValues = (count: number): number[] => {
     const draws: number[] = [];
@@ -246,8 +233,8 @@ export const createRewardGameCommandHandler = (
           await outcomeStore.set('reward-game', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('reward-game', envelope.commandId, response);
