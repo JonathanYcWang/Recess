@@ -1,0 +1,12 @@
+# .codex/agents/implementer.toml
+
+name = "implementer"
+description = "Recess implementer. Executes approved implementation plan from GitHub issue chunk by chunk. Write access to codebase."
+model = "gpt-5"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+enabled_tools = ["get_issue"]

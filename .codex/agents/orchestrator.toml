@@ -1,0 +1,12 @@
+# .codex/agents/orchestrator.toml
+
+name = "orchestrator"
+description = "Recess workflow orchestrator. Handles /build and /audit triggers. Delegates to planner, implementer, reviewer, and audit subagents."
+model = "gpt-5"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+enabled_tools = ["get_issue", "list_issues"]
