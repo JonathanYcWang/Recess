@@ -1,3 +1,9 @@
+import {
+  addChromiumActionClickListener,
+  addChromiumBackgroundMessageListener,
+  createChromiumNotification,
+  type BackgroundMessage,
+} from '@/adapters/browser/chromium/chromiumBackgroundAdapter';
 import { seedInitialStateInStorage } from './store/storageMiddleware';
 import './backgroundSettingsRuntime';
 import './backgroundBlockListEnforcement';
@@ -10,53 +16,23 @@ import './backgroundInsightsRuntime';
 
 void seedInitialStateInStorage();
 
-type SessionNotificationMessage = {
-  type: 'SESSION_NOTIFICATION';
-  title: string;
-  message: string;
-};
-
-type PingMessage = {
-  type: 'PING';
-};
-
-type BackgroundMessage = SessionNotificationMessage | PingMessage;
-
-chrome.runtime.onMessage.addListener(
-  (message: BackgroundMessage, _sender: chrome.runtime.MessageSender, sendResponse) => {
-    if (!message || typeof message !== 'object' || !('type' in message)) {
-      return;
-    }
-
-    if (message.type === 'PING') {
-      sendResponse({ type: 'PONG' });
-      return;
-    }
-
-    if (message.type === 'SESSION_NOTIFICATION') {
-      const notificationId = `session-notification-${Date.now()}`;
-      chrome.notifications.create(
-        notificationId,
-        {
-          type: 'basic',
-          iconUrl: 'assets/logo.png',
-          title: message.title,
-          message: message.message,
-        },
-        () => {
-          const err = chrome.runtime.lastError;
-          if (err) {
-            console.warn('Failed to create notification:', err.message);
-          }
-        }
-      );
-
-      sendResponse({ ok: true });
-      return;
-    }
+addChromiumBackgroundMessageListener((message: BackgroundMessage, sendResponse) => {
+  if (!message || typeof message !== 'object' || !('type' in message)) {
+    return;
   }
-);
 
-chrome.action.onClicked.addListener(() => {
-  chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+  if (message.type === 'PING') {
+    sendResponse({ type: 'PONG' });
+    return;
+  }
+
+  if (message.type === 'SESSION_NOTIFICATION') {
+    const notificationId = `session-notification-${Date.now()}`;
+    createChromiumNotification(notificationId, message.title, message.message);
+
+    sendResponse({ ok: true });
+    return;
+  }
 });
+
+addChromiumActionClickListener();
