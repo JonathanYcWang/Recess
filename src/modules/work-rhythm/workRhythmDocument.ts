@@ -169,6 +169,13 @@ export type WorkRhythmValue =
   | WorkRhythmRecess
   | WorkRhythmBackToWorkCountdown;
 
+export const isWorkRhythmTimeOut = (value: WorkRhythmValue): value is WorkRhythmTimeOut =>
+  value.phase === 'time-out';
+
+export const isWorkRhythmWorkSessionCompleted = (
+  value: WorkRhythmValue
+): value is WorkRhythmWorkSessionCompleted => value.phase === 'work-session-completed';
+
 export const BACK_TO_WORK_COUNTDOWN_SECONDS = 10;
 
 export const createDefaultWorkRhythmValue = (): WorkRhythmInactive => ({

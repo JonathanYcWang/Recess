@@ -11,11 +11,7 @@ import {
   workSessionCompletedFactId,
 } from './settleFocusBoundary';
 import { createWorkSessionCompletedFact } from './workSessionCompleted';
-import type {
-  WorkRhythmFocusBlock,
-  WorkRhythmTimeOut,
-  WorkRhythmValue,
-} from './workRhythmDocument';
+import type { WorkRhythmFocusBlock, WorkRhythmValue } from './workRhythmDocument';
 
 export type EndWorkSessionEarlyError =
   | { kind: 'no-active-work-session' }
@@ -86,7 +82,7 @@ export const decideEndWorkSessionEarly = (
   }
 
   if (current.phase === 'time-out') {
-    const timeOut = current as WorkRhythmTimeOut;
+    const timeOut = current;
     const actualFocusSeconds = Math.max(
       0,
       timeOut.focusDurationSeconds - timeOut.settledRemainingFocusSeconds

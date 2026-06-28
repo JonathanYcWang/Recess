@@ -7,7 +7,11 @@ import {
   isValidWorkSessionExtensionSeconds,
   remainingWorkSessionExtensionSeconds,
 } from './workSessionExtension';
-import type { WorkRhythmValue, WorkRhythmWorkSessionCompleted } from './workRhythmDocument';
+import {
+  isWorkRhythmWorkSessionCompleted,
+  type WorkRhythmValue,
+  type WorkRhythmWorkSessionCompleted,
+} from './workRhythmDocument';
 import { emptyTaskSelectionState } from './workRhythmDocument';
 import type { WorkHistoryFact } from '@/modules/work-history';
 
@@ -39,11 +43,11 @@ export const decideStartWorkSessionExtension = (
   extensionSeconds: unknown,
   context: StartWorkSessionExtensionContext
 ): Result<StartWorkSessionExtensionOutcome, StartWorkSessionExtensionError> => {
-  if (current.phase !== 'work-session-completed') {
+  if (!isWorkRhythmWorkSessionCompleted(current)) {
     return { ok: false, error: { kind: 'invalid-phase-for-extension' } };
   }
 
-  const completed = current as WorkRhythmWorkSessionCompleted;
+  const completed = current;
   if (
     typeof extensionSeconds !== 'number' ||
     !isValidWorkSessionExtensionSeconds(extensionSeconds)

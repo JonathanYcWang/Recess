@@ -1,10 +1,7 @@
 import type { Result } from '@/modules/persisted-application-state/types';
 import { createTimeOutEndedFact, timeOutEndedFactId } from './timeOutEnded';
-import type {
-  WorkRhythmFocusBlock,
-  WorkRhythmTimeOut,
-  WorkRhythmValue,
-} from './workRhythmDocument';
+import type { WorkRhythmFocusBlock, WorkRhythmValue } from './workRhythmDocument';
+import { isWorkRhythmTimeOut } from './workRhythmDocument';
 import type { WorkHistoryFact } from '@/modules/work-history';
 
 export type ResumeFromTimeOutError = { kind: 'not-in-time-out' };
@@ -22,11 +19,11 @@ export const decideResumeFromTimeOut = (
   current: WorkRhythmValue,
   nowEpochMs: number
 ): Result<ResumeFromTimeOutOutcome, ResumeFromTimeOutError> => {
-  if (current.phase !== 'time-out') {
+  if (!isWorkRhythmTimeOut(current)) {
     return { ok: false, error: { kind: 'not-in-time-out' } };
   }
 
-  const timeOut = current as WorkRhythmTimeOut;
+  const timeOut = current;
   const focusDurationSeconds = timeOut.settledRemainingFocusSeconds;
   const focusDeadlineAtEpochMs = nowEpochMs + focusDurationSeconds * 1000;
   const durationSeconds = Math.max(
