@@ -1,7 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import HomePage from './pages/HomePage/HomePage';
-import OnboardingPage from './pages/OnboardingPage/OnboardingPage';
-import PersonalizationQuizPage from './pages/PersonalizationQuizPage/PersonalizationQuizPage';
+import HomePage from './UI/Pages/HomePage/HomePage';
+import OnboardingPage from './UI/Pages/OnboardingPage/OnboardingPage';
+import PersonalizationQuizPage from './UI/Pages/PersonalizationQuizPage/PersonalizationQuizPage';
 
 const App = () => {
   return (

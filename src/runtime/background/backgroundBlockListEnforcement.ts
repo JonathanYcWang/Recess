@@ -6,7 +6,7 @@ import { registerBlockListRuntimeListener } from './blockListRuntimeListener';
 import { getSharedBackgroundCompositionRoot } from './sharedCompositionRoot';
 import { createPersistedOwnershipStore } from './persistedOwnershipStore';
 import { projectBackgroundAccessContext } from './backgroundAccessContext';
-import { publishAccessContext } from '@/store/accessContextPublisher';
+import { publishAccessContext } from '@/UI/Redux/accessContextPublisher';
 
 export const registerBlockListEnforcement = (): void => {
   const adapter = createChromiumKeyValueAdapter();

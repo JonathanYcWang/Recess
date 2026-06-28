@@ -1,4 +1,4 @@
-import { seedInitialStateInStorage } from './store/storageMiddleware';
+import { seedInitialStateInStorage } from './UI/Redux/storageMiddleware';
 import './backgroundSettingsRuntime';
 import './backgroundBlockListEnforcement';
 import './backgroundWorkstyleProfileRuntime';
