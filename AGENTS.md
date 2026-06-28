@@ -11,6 +11,7 @@ Recess is a browser extension (Chrome + Safari, Manifest V3) that manages Work S
 Full structure and principles: `docs/architecture-v2.md`
 
 ### Layers
+
 - `/Background` — services, adapters, repositories. No browser APIs in services. Plain arrow functions only. No classes.
 - `/UI` — pages, views, components, hooks, Redux. No storage reads or Redux dispatches in components.
 - `/Shared` — ActionBroker, interfaces, types, constants. No dependencies on `/UI` or `/Background`.
@@ -18,6 +19,7 @@ Full structure and principles: `docs/architecture-v2.md`
 - `/Docs/ADR` — architectural decision records.
 
 ### Non-negotiable rules
+
 - `StorageRepository` is the only writer to browser storage
 - `ActionBroker` is the only writer to the Redux store
 - `ActionBroker` is the only caller of browser messaging APIs
@@ -45,6 +47,7 @@ Two triggers. Both are handled by the orchestrator agent (`.github/agents/orches
 ### Triggers
 
 **`/build`** — activates the orchestrator. Presents two options:
+
 1. **New feature** — runs `/grill-with-docs`, captures PRD, creates GitHub issue via `/to-issues`, then enters the shared pipeline
 2. **Refactor / implementation change** — asks for a GitHub issue number, then enters the shared pipeline
 
@@ -73,13 +76,16 @@ You review and merge — agent never merges
 ```
 
 ### Branch naming
+
 ```
 issue-{number}/{short-description}
 e.g. issue-42/scheduler-service
 ```
 
 ### PR contents
+
 Every PR must include:
+
 - Summary of what changed and why
 - Link to the GitHub issue
 - Checklist: linting passed, all tests passed, Ponytail review completed
@@ -90,6 +96,7 @@ Every PR must include:
 ## 3. Token discipline
 
 Start every session with:
+
 ```bash
 headroom wrap codex "build"
 # or
@@ -99,11 +106,14 @@ headroom wrap codex "audit"
 Headroom starts automatically with Codex. No separate proxy. Cross-agent memory shared across all subagents automatically.
 
 ### Always-on skills
+
 Every agent inherits these regardless of task:
+
 - `/caveman` — compress all output to minimum tokens while preserving technical accuracy
 - Ponytail — apply the minimalism ladder to every proposed or reviewed change
 
 ### Minimalism ladder
+
 Every proposed change must pass this checklist before it enters a plan or implementation:
 
 1. Does this need to exist? — if no, skip it
@@ -113,4 +123,3 @@ Every proposed change must pass this checklist before it enters a plan or implem
 5. Is there an installed dependency that does it? — if yes, use it
 6. Can it be done in one line? — if yes, one line
 7. Only then — write the minimum that works
-

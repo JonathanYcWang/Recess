@@ -34,6 +34,7 @@ Refactor for minimalism once everything is structurally sound.
 Add missing tests once the implementation is correct and stable.
 
 When creating issues, prefix each title with its priority:
+
 ```
 [P1] Folder structure: Services not under /Background/Services
 [P2] Naming: TabRepository should be TabManagementAdapter
@@ -48,7 +49,9 @@ When creating issues, prefix each title with its priority:
 Every file in the codebase must conform to all of the following. Check each category exhaustively.
 
 ### Folder structure
+
 The codebase must match the folder structure in `docs/architecture-v2.md` Section 3 exactly:
+
 - `/Background/Services` — SchedulerService, BlockListManagementService, BrowserEnforcementService
 - `/Background/Adapters` — TabManagementAdapter, NotificationAdapter
 - `/Background/Repositories` — StorageRepository
@@ -64,6 +67,7 @@ The codebase must match the folder structure in `docs/architecture-v2.md` Sectio
 Flag every file or folder that exists outside this structure or is named incorrectly.
 
 ### Naming conventions
+
 - PascalCase for all folder names
 - Arrow functions only — no function declarations, no function expressions, no classes
 - No `I` prefix on interface names
@@ -72,7 +76,9 @@ Flag every file or folder that exists outside this structure or is named incorre
 - All terms must match `docs/domain/glossary.md` — flag any variable, function, type, or comment that uses non-canonical vocabulary
 
 ### Layer rules
+
 Flag any violation of these rules:
+
 - Service importing a browser API directly
 - Component reading from storage directly
 - Component dispatching to Redux directly
@@ -86,7 +92,9 @@ Flag any violation of these rules:
 - State flowing in any direction other than background worker → ActionBroker → Redux → components
 
 ### Type safety
+
 Flag any violation of these rules:
+
 - `any` or `unknown` used in an interface or type
 - `as` casting anywhere — should be a type guard instead
 - Missing type guards at storage read boundaries
@@ -94,14 +102,18 @@ Flag any violation of these rules:
 - Non-arrow function syntax anywhere in the codebase
 
 ### Principles
+
 Run `/improve-codebase-architecture` and `/ponytail-audit` and flag:
+
 - Files with more than one reason to change
 - Logic duplicated across services
 - Abstractions that exist without passing the minimalism ladder
 - Pass-through modules that add no value
 
 ### Test coverage
+
 Flag:
+
 - Any service, adapter, repository, hook, or selector without a colocated test file
 - Any pure function without unit tests
 - Missing integration tests for high-risk service combinations
@@ -110,6 +122,7 @@ Flag:
 ## How to create issues
 
 One GitHub issue per violation type. Each issue must include:
+
 - Which blueprint rule or section is violated
 - Every file and line number where the violation occurs
 - A plain description of what needs to change — not how to implement it
