@@ -67,6 +67,7 @@ User interaction
 ```
 
 If the action is rejected:
+
 ```
 Background worker sends error referencing the action ID
 → ActionBroker routes error to the originating component
@@ -79,15 +80,15 @@ Background worker sends error referencing the action ID
 
 **SOLID**
 
-- **Single Responsibility** — every service, adapter, and component has one reason to change. If describing what something does requires the word "and", it should be two things. Pattern: *Separation of Concerns* — business logic, browser operations, and UI rendering live in separate layers and never bleed into each other.
+- **Single Responsibility** — every service, adapter, and component has one reason to change. If describing what something does requires the word "and", it should be two things. Pattern: _Separation of Concerns_ — business logic, browser operations, and UI rendering live in separate layers and never bleed into each other.
 
-- **Open/Closed** — behaviour is extended by adding new pieces, not by modifying existing ones. Pattern: *Composition over inheritance* — complex behaviour is built by combining simple services and adapters rather than through class hierarchies.
+- **Open/Closed** — behaviour is extended by adding new pieces, not by modifying existing ones. Pattern: _Composition over inheritance_ — complex behaviour is built by combining simple services and adapters rather than through class hierarchies.
 
-- **Liskov Substitution** — swapping one implementation for another leaves the rest of the system unchanged. Pattern: *Cross-browser adapters* — Chrome and Safari adapters behave identically from the perspective of the services that depend on them. A `SafariTabAdapter` is a drop-in replacement for a `ChromeTabAdapter`.
+- **Liskov Substitution** — swapping one implementation for another leaves the rest of the system unchanged. Pattern: _Cross-browser adapters_ — Chrome and Safari adapters behave identically from the perspective of the services that depend on them. A `SafariTabAdapter` is a drop-in replacement for a `ChromeTabAdapter`.
 
 - **Interface Segregation** — callers depend only on what they use. Every service defines its own TypeScript interface describing only what it needs from each dependency. If `SchedulerService` only needs `read` and `write` from storage, it receives an interface with only those two methods. Changes to the rest of `StorageRepository` cannot affect it.
 
-- **Dependency Inversion** — high level services depend on abstractions, not concrete implementations. Pattern: *Dependency Injection* — services receive their dependencies through focused interfaces rather than importing browser APIs or concrete classes directly. This makes testing and cross-browser support possible.
+- **Dependency Inversion** — high level services depend on abstractions, not concrete implementations. Pattern: _Dependency Injection_ — services receive their dependencies through focused interfaces rather than importing browser APIs or concrete classes directly. This makes testing and cross-browser support possible.
 
 ---
 
@@ -123,12 +124,12 @@ The background worker and React UI communicate through three message types:
 ```ts
 // Example — see /Shared/Types/actions.ts for full union
 interface StartFocusBlockAction {
-  id: string
-  type: 'START_FOCUS_BLOCK'
-  payload: { duration: number }
+  id: string;
+  type: 'START_FOCUS_BLOCK';
+  payload: { duration: number };
 }
 
-type RecessAction = StartFocusBlockAction | EndFocusBlockAction | TakeTimeoutAction
+type RecessAction = StartFocusBlockAction | EndFocusBlockAction | TakeTimeoutAction;
 ```
 
 **State** — pushed from the background worker to React after any change. ActionBroker writes it into the Redux store. Components read via hooks and selectors. React never pulls state directly from storage.
@@ -148,6 +149,7 @@ type RecessAction = StartFocusBlockAction | EndFocusBlockAction | TakeTimeoutAct
 ### Success criteria
 
 **Testing**
+
 - Every service has a corresponding unit test file
 - Every pure function has unit tests with no browser dependencies
 - Adapters can be swapped for in-memory fakes in tests
@@ -156,6 +158,7 @@ type RecessAction = StartFocusBlockAction | EndFocusBlockAction | TakeTimeoutAct
 - Critical user flows are covered by end to end tests using a real browser environment
 
 **Architecture boundaries**
+
 - No service imports a browser API directly
 - No adapter contains business logic
 - No React component reads from storage directly
@@ -167,16 +170,17 @@ type RecessAction = StartFocusBlockAction | EndFocusBlockAction | TakeTimeoutAct
 - Every service defines a focused interface per dependency — no service depends on methods it does not use
 
 **Cross-browser**
+
 - Every browser API is wrapped in an adapter under `/Background/Adapters` or `/Shared/Adapters`
 - Swapping a Chrome adapter for a Safari one requires no changes to services
 - Chrome and Safari adapter implementations are interchangeable from the perspective of any service
 
 **Code health**
+
 - No file has more than one reason to change
 - No business logic is duplicated across services
 - Every action carries a unique ID and every error references that ID
 - Arrow functions only — no function declarations or function expressions anywhere in the codebase
-
 
 ---
 
@@ -254,6 +258,7 @@ flowchart TD
 ```
 
 **UI layer** (`/UI`)
+
 - Components never read from storage directly
 - Components never dispatch to Redux directly
 - Components never import from `/Background`
@@ -263,11 +268,13 @@ flowchart TD
 - Redux store is read-only from the UI's perspective
 
 **Shared layer** (`/Shared`)
+
 - ActionBroker is the only piece allowed to write to the Redux store
 - ActionBroker is the only piece allowed to call browser messaging APIs
 - Types and constants have no dependencies on `/UI` or `/Background`
 
 **Background layer** (`/Background`)
+
 - Services never import browser APIs directly
 - Services receive all dependencies via dependency injection through focused interfaces
 - Adapters and repositories are the only files that import browser APIs
@@ -326,13 +333,17 @@ flowchart TD
 Every feature or change follows this workflow in order. No step may be skipped.
 
 ### Step 1 — Groom
+
 The AI runs `/grill-with-docs` to interview the developer and capture the full details of the requested feature. The output is a **Product Requirements Document (PRD)** describing what the feature does, who it serves, and what success looks like. `CONTEXT.md` is updated inline. No implementation details at this stage.
 
 ### Step 2 — GitHub issue (PRD only)
+
 The AI runs `/to-issues` to create a GitHub issue containing only the PRD. The implementation plan is not included yet.
 
 ### Step 3 — Implementation plan
+
 The AI scans the codebase and produces a detailed implementation plan that:
+
 - Follows all architecture principles and folder structure defined in this blueprint
 - Maps every change to a specific file
 - Divides the work into logical chunks, each with its own verification step
@@ -351,12 +362,15 @@ Every proposed change must pass this checklist before it appears in the plan:
 If a proposed change cannot pass this checklist, it is removed from the plan.
 
 ### Step 3b — ADR (if applicable)
+
 If the implementation plan involves a significant architectural decision, the AI drafts an ADR and includes it alongside the plan for review. See Section 6 for ADR criteria and format. The ADR is approved together with the plan before implementation begins.
 
 ### Step 4 — Developer approval
+
 The developer reviews the implementation plan verbally. Once approved, the AI updates the GitHub issue with the full implementation plan. The updated issue is the signal that implementation is cleared to begin.
 
 ### Step 5 — Branch
+
 The AI creates a branch using the convention:
 
 ```
@@ -365,7 +379,9 @@ e.g. issue-42/scheduler-service
 ```
 
 ### Step 6 — Implement
+
 The AI implements one chunk at a time following the approved plan. After each chunk:
+
 - Linting must pass
 - All relevant tests must pass
 - Ponytail reviews the changes for minimal footprint
@@ -373,10 +389,13 @@ The AI implements one chunk at a time following the approved plan. After each ch
 If verification fails, the AI stops and flags the developer before continuing. The next chunk does not begin until the current chunk is verified.
 
 ### Step 7 — Final verification
+
 Once all chunks are complete, the full test suite runs including unit, integration, and any relevant end to end tests.
 
 ### Step 8 — Pull request
+
 The AI opens a PR containing:
+
 - A summary of what changed and why
 - A link to the GitHub issue
 - A checklist confirming linting passed, all tests passed, and Ponytail review completed
@@ -418,21 +437,25 @@ flowchart TD
 ## 5. Testing strategy
 
 ### Frameworks
+
 - **Vitest** — unit and integration tests
 - **Playwright** — end to end tests with native browser extension support
 
 ### Coverage threshold
+
 Vitest is configured to enforce a minimum of **80% coverage**. A build fails if coverage drops below this threshold.
 
 ### Test file locations
 
 **Unit tests** — colocated next to the file they test:
+
 ```
 /Background/Services/SchedulerService.ts
 /Background/Services/SchedulerService.test.ts
 ```
 
 **Integration and E2E tests** — top level `/Tests` folder:
+
 ```
 /Tests
   /Integration
@@ -447,12 +470,15 @@ Vitest is configured to enforce a minimum of **80% coverage**. A build fails if 
 ```
 
 ### Unit tests
+
 Every service, adapter, repository, hook, selector, and pure function has a colocated unit test file. Unit tests have no browser dependencies and run without a real browser environment. Adapters and repositories are replaced with in-memory fakes in unit tests.
 
 ### Integration tests
+
 Write an integration test wherever two pieces pass data to each other and a bug in the handoff would not be caught by either unit test in isolation.
 
 Reference examples:
+
 - `BlockListManagementService` + `BrowserEnforcementService` — does enforcement correctly close tabs given a block list from the management service?
 - `SchedulerService` + `NotificationAdapter` — does the right notification get scheduled for the duration the scheduler calculates?
 - `ActionBroker` + Redux store — when the background worker pushes state, does it land correctly in the right slices?
@@ -461,15 +487,18 @@ Reference examples:
 These are reference examples, not an exhaustive list. Apply the principle as the codebase grows.
 
 ### End to end tests
+
 E2E tests cover critical user flows using a real browser environment via Playwright. They are the only tests that prove the full system works together across both environments.
 
 Reference flows:
+
 - User starts a focus block — blocked sites are closed
 - User completes a focus block — recess notification fires at the correct time
 - User takes a Time Out — timer pauses and Work Session time does not advance
 - Recess ends — user is returned to focus block, reward site closes
 
 ### Test rules
+
 - No unit test requires a real browser to run
 - No business logic is tested only at the integration or E2E level — it must have unit tests first
 - A chunk is not complete until its tests pass — no exceptions
@@ -485,12 +514,14 @@ All existing ADRs are superseded by this blueprint. The ADR log starts fresh fro
 ### When to write an ADR
 
 **Write an ADR when:**
+
 - You chose between two or more reasonable alternatives
 - The decision has broad impact across the codebase
 - Reversing the decision later would be expensive or painful
 - The reasoning is not already captured in the blueprint
 
 **Do not write an ADR when:**
+
 - The decision is obvious given the principles
 - The blueprint already explains the why
 - It is an implementation detail that could change without architectural impact
@@ -514,23 +545,29 @@ ADRs live under `/Docs/ADR` and are named sequentially with the topic:
 # ADR-{number}: {topic}
 
 ## Date
+
 YYYY-MM-DD
 
 ## Decision
+
 One or two sentences describing what was decided.
 
 ## Alternatives considered
+
 - Alternative A
 - Alternative B
 
 ## Reasoning
+
 Why this decision was made over the alternatives.
 
 ## Consequences
+
 What this decision means for the codebase going forward.
 ```
 
 ### ADRs in the AI workflow
+
 If an implementation plan involves a significant architectural decision, the AI drafts an ADR and includes it alongside the plan for developer review. The ADR is approved together with the plan before implementation begins. Approved ADRs are committed on the same branch as the implementation.
 
 ---
@@ -538,21 +575,26 @@ If an implementation plan involves a significant architectural decision, the AI 
 ## 7. Type safety
 
 ### TypeScript configuration
+
 `"strict": true` is enabled in `tsconfig.json`. This enables:
+
 - `noImplicitAny` — no accidental `any` from untyped parameters
 - `strictNullChecks` — `null` and `undefined` are not assignable unless explicitly allowed
 - `strictFunctionTypes` — function parameter types are checked correctly
 - `strictPropertyInitialization` — class properties must be initialized
 
 ### No `any` or `unknown` in interfaces or types
+
 `any` and `unknown` are never used in interfaces or types. All untyped data entering from browser APIs must pass through a type guard before use.
 
 ESLint enforces this via `@typescript-eslint/consistent-type-assertions` — unsafe `as` casts are a build error. Type guards are used instead.
 
 ### Type guards at boundaries
+
 Every place where untrusted data enters the system uses a type guard to validate the shape before use:
 
 **Storage reads** — `StorageRepository` validates every value read from storage before returning it:
+
 ```ts
 async getBlockList(): Promise<BlockList> {
   const result = await browser.storage.local.get(StorageKeys.BLOCK_LIST)
@@ -567,22 +609,25 @@ async getBlockList(): Promise<BlockList> {
 ```
 
 **Message passing** — `ActionBroker` validates every incoming message before handling it:
+
 ```ts
 browser.runtime.onMessage.addListener((message) => {
   if (!isRecessAction(message)) {
-    return
+    return;
   }
-  handleAction(message)
-})
+  handleAction(message);
+});
 ```
 
 ### Interface vs type
 
 **Use an interface for:**
+
 - Object shapes — data structures, state shapes, error shapes
 - Dependency interfaces colocated with the function that uses them
 
 **Use a type for:**
+
 - Discriminated unions — `RecessAction`
 - Unions of primitives — `Phase`
 
@@ -590,21 +635,22 @@ Individual action shapes are interfaces. The `RecessAction` union that combines 
 
 ```ts
 interface StartFocusBlockAction {
-  id: string
-  type: 'START_FOCUS_BLOCK'
-  payload: { duration: number }
+  id: string;
+  type: 'START_FOCUS_BLOCK';
+  payload: { duration: number };
 }
 
 interface EndFocusBlockAction {
-  id: string
-  type: 'END_FOCUS_BLOCK'
-  payload?: never
+  id: string;
+  type: 'END_FOCUS_BLOCK';
+  payload?: never;
 }
 
-type RecessAction = StartFocusBlockAction | EndFocusBlockAction
+type RecessAction = StartFocusBlockAction | EndFocusBlockAction;
 ```
 
 ### Naming convention
+
 No `I` prefix. No `Contract` or `Port` suffix. Names describe what they represent:
 
 ```ts
@@ -614,20 +660,18 @@ type Phase = 'focus' | 'recess'  // not PhaseType
 ```
 
 ### Dependency interfaces
+
 Background services are plain functions. Each function declares exactly what it needs from its dependencies as a colocated interface — never exported, never shared:
 
 ```ts
 // /Background/Services/SchedulerService.ts
 
 interface SchedulerStorage {
-  read: (key: string) => Promise<unknown>
-  write: (key: string, value: unknown) => Promise<void>
+  read: (key: string) => Promise<unknown>;
+  write: (key: string, value: unknown) => Promise<void>;
 }
 
-function calculateDuration(
-  variables: WeightedVariables,
-  storage: SchedulerStorage
-): number {
+function calculateDuration(variables: WeightedVariables, storage: SchedulerStorage): number {
   // pure logic, no browser APIs
 }
 ```
@@ -669,27 +713,31 @@ Component prop types — colocated with the component they describe, never expor
 Recess targets Chrome and Safari from day one. All browser API access is abstracted behind adapters so services are never aware of which browser they are running on.
 
 ### WebExtension polyfill
+
 Recess uses Mozilla's WebExtension browser API Polyfill as the foundation for all browser API access. The polyfill provides a consistent `browser.*` namespace across Chrome and Safari, handling namespace and async differences automatically.
 
 All adapters use `browser.*` syntax. Never use `chrome.*` directly anywhere in the codebase.
 
 Install via npm:
+
 ```
 npm install webextension-polyfill
 ```
 
 ### API compatibility for Recess
+
 The APIs Recess depends on are well supported on both Chrome and Safari under Manifest V3:
 
-| API | Chrome | Safari | Notes |
-|---|---|---|---|
-| `browser.tabs` | ✅ | ✅ | Requires `tabs` permission in manifest |
-| `browser.storage.local` | ✅ | ✅ | Session storage not supported in Safari — not used by Recess |
-| `browser.runtime` | ✅ | ✅ | ActionBroker uses this for message passing |
-| `browser.alarms` | ✅ | ✅ | NotificationAdapter uses this for scheduling |
-| `browser.notifications` | ✅ | ✅ | NotificationAdapter uses this for firing alerts |
+| API                     | Chrome | Safari | Notes                                                        |
+| ----------------------- | ------ | ------ | ------------------------------------------------------------ |
+| `browser.tabs`          | ✅     | ✅     | Requires `tabs` permission in manifest                       |
+| `browser.storage.local` | ✅     | ✅     | Session storage not supported in Safari — not used by Recess |
+| `browser.runtime`       | ✅     | ✅     | ActionBroker uses this for message passing                   |
+| `browser.alarms`        | ✅     | ✅     | NotificationAdapter uses this for scheduling                 |
+| `browser.notifications` | ✅     | ✅     | NotificationAdapter uses this for firing alerts              |
 
 ### Adapter rules
+
 - Every browser API is wrapped in an adapter under `/Background/Adapters` or `/Shared/Adapters`
 - Adapters use `browser.*` via the polyfill — never `chrome.*` directly
 - Services never import from adapters directly — they receive them as injected dependencies
@@ -697,6 +745,7 @@ The APIs Recess depends on are well supported on both Chrome and Safari under Ma
 - Where a genuine API gap exists between browsers, the adapter handles it internally — services never see the difference
 
 ### Manifest
+
 Two separate `manifest.json` files are maintained — one for Chrome, one for Safari. They share the same permissions and structure but account for browser-specific manifest key differences. Both target Manifest V3.
 
 ```
@@ -705,9 +754,11 @@ Two separate `manifest.json` files are maintained — one for Chrome, one for Sa
 ```
 
 ### Safari development requirement
+
 Safari extension development requires a Mac with Xcode. Safari extensions must be wrapped in a native app container and submitted through the Mac App Store or iOS App Store separately from the Chrome Web Store.
 
 ### Testing cross-browser
+
 - Unit and integration tests run against the polyfill — no browser-specific test setup needed
 - E2E tests run against both Chrome and Safari using Playwright's browser extension support
 - A build is not considered complete until E2E tests pass on both browsers

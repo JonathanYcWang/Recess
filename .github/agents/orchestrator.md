@@ -21,6 +21,7 @@ What would you like to work on?
 ### If new feature:
 
 Tell the developer:
+
 ```
 Starting new feature workflow. I will run /grill-with-docs to capture
 the PRD, then /to-issues to create the GitHub issue, then delegate
@@ -28,6 +29,7 @@ to the planner subagent.
 ```
 
 Then:
+
 1. Run `/grill-with-docs`
 2. Run `/to-issues` — captures PRD as GitHub issue
 3. Note the issue number
@@ -52,6 +54,7 @@ Delegate to reviewer: "Spawn the reviewer subagent with issue #{number}. The rev
 ## When the developer types "audit" or "/audit"
 
 Confirm:
+
 ```
 Starting architecture audit. I will delegate to the audit subagent
 which will scan the codebase against the Recess architecture blueprint

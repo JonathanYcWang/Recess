@@ -1,12 +1,4 @@
 import {
-  clearJournalEntry,
-  JOURNAL_STORAGE_KEY,
-  readJournalEntry,
-  rollForwardJournal,
-  writeJournalEntry,
-  type JournalHooks,
-} from './journal/transactionJournal';
-import {
   documentRegistry,
   registeredDocumentNames,
   type DocumentRegistryEntry,
@@ -14,7 +6,6 @@ import {
 import type {
   CommitError,
   CommitResult,
-  DocumentCodec,
   HydrationSnapshot,
   KeyValueStorageAdapter,
   PersistedApplicationState,
@@ -25,14 +16,10 @@ import type {
   StorageError,
   VersionedDocument,
 } from './types';
-
 export interface PersistedApplicationStateOptions {
   adapter: KeyValueStorageAdapter;
-  journalHooks?: JournalHooks;
 }
-
 let commitChain: Promise<unknown> = Promise.resolve();
-
 const runSerialized = <T>(task: () => Promise<T>): Promise<T> => {
   const next = commitChain.then(task, task);
   commitChain = next.then(
@@ -41,12 +28,10 @@ const runSerialized = <T>(task: () => Promise<T>): Promise<T> => {
   );
   return next;
 };
-
 const readDocument = async <T>(
   adapter: KeyValueStorageAdapter,
   entry: DocumentRegistryEntry<T>
 ): Promise<Result<VersionedDocument<T>, StorageError | import('./types').CodecError>> => {
-  await rollForwardJournal(adapter, entry.codec);
   const stored = await adapter.get(entry.storageKey);
   if (!stored.ok) {
     return stored;
@@ -66,13 +51,11 @@ const readDocument = async <T>(
     };
   }
 };
-
 const writeDocument = async <T>(
   adapter: KeyValueStorageAdapter,
   entry: DocumentRegistryEntry<T>,
   document: VersionedDocument<T>,
-  expectedRevision: number,
-  journalHooks?: JournalHooks
+  expectedRevision: number
 ): Promise<Result<VersionedDocument<T>, CommitError>> => {
   const current = await readDocument(adapter, entry);
   if (!current.ok) {
@@ -91,67 +74,23 @@ const writeDocument = async <T>(
       },
     };
   }
-
   const nextDocument: VersionedDocument<T> = {
     ...document,
     schemaVersion: entry.codec.schemaVersion,
     revision: expectedRevision + 1,
   };
   const encodedDocument = entry.codec.encode(nextDocument);
-  const transactionId = `txn-${expectedRevision + 1}-${Date.now()}`;
-
-  const journalWrite = await writeJournalEntry(
-    adapter,
-    {
-      transactionId,
-      documentKey: entry.storageKey,
-      expectedRevision,
-      nextRevision: nextDocument.revision,
-      encodedDocument,
-      phase: 'pending-document-write',
-    },
-    journalHooks
-  );
-  if (!journalWrite.ok) {
-    return { ok: false, error: { kind: 'storage', error: journalWrite.error } };
-  }
-
   const documentWrite = await adapter.set(entry.storageKey, JSON.stringify(encodedDocument));
   if (!documentWrite.ok) {
     return { ok: false, error: { kind: 'storage', error: documentWrite.error } };
   }
-  journalHooks?.afterDocumentWrite?.();
-
-  const pendingClear = await writeJournalEntry(
-    adapter,
-    {
-      transactionId,
-      documentKey: entry.storageKey,
-      expectedRevision,
-      nextRevision: nextDocument.revision,
-      encodedDocument,
-      phase: 'pending-journal-clear',
-    },
-    journalHooks
-  );
-  if (!pendingClear.ok) {
-    return { ok: false, error: { kind: 'storage', error: pendingClear.error } };
-  }
-
-  const clear = await clearJournalEntry(adapter, journalHooks);
-  if (!clear.ok) {
-    return { ok: false, error: { kind: 'storage', error: clear.error } };
-  }
-
   return { ok: true, value: nextDocument };
 };
-
 export const createPersistedApplicationState = (
   options: PersistedApplicationStateOptions
 ): PersistedApplicationState => {
-  const { adapter, journalHooks } = options;
+  const { adapter } = options;
   const listeners = new Map<PersistedDocumentName, Set<PersistedChangeListener>>();
-
   const notify = (documents: Partial<HydrationSnapshot['documents']>) => {
     for (const key of Object.keys(documents) as PersistedDocumentName[]) {
       const document = documents[key];
@@ -167,7 +106,6 @@ export const createPersistedApplicationState = (
       }
     }
   };
-
   const loadDocumentWithRecovery = async <K extends PersistedDocumentName>(
     name: K
   ): Promise<VersionedDocument<PersistedDocuments[K]>> => {
@@ -180,19 +118,10 @@ export const createPersistedApplicationState = (
     await adapter.set(entry.storageKey, JSON.stringify(entry.codec.encode(defaulted)));
     return defaulted;
   };
-
   return {
     async initialize(): Promise<Result<HydrationSnapshot, StorageError>> {
       const documents = {} as HydrationSnapshot['documents'];
       for (const name of registeredDocumentNames) {
-        const journal = await readJournalEntry(adapter);
-        if (journal.ok && journal.value !== null) {
-          await rollForwardJournal(
-            adapter,
-            documentRegistry[name].codec as DocumentCodec<PersistedDocuments[typeof name]>,
-            journalHooks
-          );
-        }
         (
           documents as Record<
             PersistedDocumentName,
@@ -202,12 +131,10 @@ export const createPersistedApplicationState = (
       }
       return { ok: true, value: { documents } };
     },
-
     async read(key) {
       const entry = documentRegistry[key] as DocumentRegistryEntry<PersistedDocuments[typeof key]>;
       return readDocument(adapter, entry);
     },
-
     commit(mutations) {
       return runSerialized(async () => {
         const result: CommitResult['documents'] = {};
@@ -230,8 +157,7 @@ export const createPersistedApplicationState = (
             adapter,
             entry,
             nextValue,
-            mutation.expectedRevision,
-            journalHooks
+            mutation.expectedRevision
           );
           if (!committed.ok) {
             return committed as Result<CommitResult, CommitError>;
@@ -247,7 +173,6 @@ export const createPersistedApplicationState = (
         return { ok: true, value: { documents: result } };
       });
     },
-
     observe(keys, listener) {
       for (const key of keys) {
         if (!listeners.has(key)) {
@@ -263,8 +188,6 @@ export const createPersistedApplicationState = (
     },
   };
 };
-
 export const persistedOperationalStorageKeys = (): string[] => [
   ...registeredDocumentNames.map((name) => documentRegistry[name].storageKey),
-  JOURNAL_STORAGE_KEY,
 ];
