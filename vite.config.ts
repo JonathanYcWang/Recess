@@ -10,16 +10,16 @@ export default defineConfig({
       targets: [
         {
           src: 'manifest.json',
-          dest: '.'
-        }
-      ]
-    })
+          dest: '.',
+        },
+      ],
+    }),
   ],
   build: {
     outDir: 'dist',
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html')
+        main: path.resolve(__dirname, 'index.html'),
       },
       output: {
         entryFileNames: 'assets/[name].js',
@@ -29,18 +29,17 @@ export default defineConfig({
             return 'manifest.json';
           }
           return 'assets/[name].[ext]';
-        }
-      }
-    }
+        },
+      },
+    },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   publicDir: 'public',
   test: {
     exclude: ['e2e/**', 'node_modules/**', 'dist/**', 'build/**'],
   },
 });
-
