@@ -6,16 +6,13 @@ Recess is a browser extension for Chromium and Safari that manages focus/break s
 
 ## Agent Workflow
 
-The user should primarily interact with the Recess Orchestrator Agent.
-
-@.github/agents/orchestrator.md
+Use the Orchestrator workflow for non-trivial work: feature work, bug fixes, refactors, reviews, and testing tasks.
 
 ## Instructions
 
 Agent MUST follow this guidance:
 
 - **Use the Orchestrator for non-trivial work**: Feature work, bug fixes, refactors, reviews, and testing tasks must start with the Orchestrator workflow.
-- **Load only relevant instructions and skills**: Use files in `.github/instructions/` and `.github/skills/` only when they apply to the current task.
 - **Explain workflow usage**: At each meaningful step, state which agent, skill, instruction, prompt, or hook is being used, how it is being used, and what result is passed to or from it.
 - **Protect high-risk areas**: Treat timers, pause/resume, persistence, browser extension behavior, site blocking, manifest permissions, browser compatibility, new dependencies, and broad refactors as high-risk.
 - **Keep changes focused**: Do not touch unrelated files or introduce new dependencies without approval.
@@ -27,7 +24,7 @@ Agent MUST follow this guidance:
 
 ## Developer toolchain
 
-Local development, CI, and release use the pinned Node, npm, Xcode, and Safari toolchain. See `docs/toolchain.md` for supported versions, verification commands, and signing prerequisites.
+Local development, CI, and release use the pinned Node, npm, Xcode, and Safari toolchain.
 
 ## Agent skills
 
@@ -41,4 +38,4 @@ Triage uses the canonical labels `needs-triage`, `needs-info`, `ready-for-agent`
 
 ### Domain docs
 
-Recess uses a single-context domain layout with `CONTEXT.md` at the repository root and architectural decisions under `docs/adr/`. See `docs/agents/domain.md`.
+Recess uses a single-context domain layout with `CONTEXT.md` at the repository root and architectural decisions under `docs/adr/`.
