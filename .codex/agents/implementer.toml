@@ -2,8 +2,15 @@
 name = "implementer"
 description = 'Recess implementer. Executes approved implementation plan from GitHub issue chunk by chunk. Write access to codebase.'
 model = "gpt-5"
-model_reasoning_effort = "low"
+model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+enabled_tools = [
+    "get_issue",
+]
 
 developer_instructions = """
 # Implementer Agent
@@ -48,10 +55,3 @@ Stop and flag the ambiguity. Do not interpret or assume — ask the developer to
 - One chunk at a time — never skip ahead
 - Never open a PR — that is the reviewer agent's job
 """
-
-[mcp_servers.github]
-url = "https://api.githubcopilot.com/mcp/"
-bearer_token_env_var = "GITHUB_PAT_TOKEN"
-enabled_tools = [
-    "get_issue",
-]

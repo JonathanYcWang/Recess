@@ -5,6 +5,15 @@ model = "gpt-5"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+enabled_tools = [
+    "create_issue",
+    "list_issues",
+    "get_file_contents",
+]
+
 developer_instructions = """
 # Audit Agent
 
@@ -133,12 +142,3 @@ Do not suggest implementation approaches — that is the planner agent's job.
 - Never fix violations — only document them
 - The goal is exact conformance to `docs/architecture-v2.md` — not best effort, not close enough
 """
-
-[mcp_servers.github]
-url = "https://api.githubcopilot.com/mcp/"
-bearer_token_env_var = "GITHUB_PAT_TOKEN"
-enabled_tools = [
-    "create_issue",
-    "list_issues",
-    "get_file_contents",
-]

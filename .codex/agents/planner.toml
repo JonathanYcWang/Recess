@@ -5,6 +5,15 @@ model = "gpt-5"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+enabled_tools = [
+    "get_issue",
+    "update_issue",
+    "list_issues",
+]
+
 developer_instructions = """
 # Planner Agent
 
@@ -68,12 +77,3 @@ Once approved, update the GitHub issue with the full implementation plan.
 - Never update the GitHub issue before developer approval
 - Ponytail minimalism ladder applies to every proposed change
 """
-
-[mcp_servers.github]
-url = "https://api.githubcopilot.com/mcp/"
-bearer_token_env_var = "GITHUB_PAT_TOKEN"
-enabled_tools = [
-    "get_issue",
-    "update_issue",
-    "list_issues",
-]

@@ -6,6 +6,8 @@
 
 This document is the authoritative reference for improving Recess. It defines the vocabulary, principles, and architecture decisions that govern how the codebase is structured and how work is delivered.
 
+Convergence plan for the current codebase: [Architecture v2 convergence plan](architecture-v2-convergence-plan.md).
+
 It does not claim that the target architecture is fully implemented. Every implementation phase still requires an approved issue, current code exploration, a decision-complete plan, tests, independent review, and human merge approval.
 
 ---
