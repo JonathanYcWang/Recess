@@ -1,6 +1,5 @@
 import type { Result } from '@/modules/persisted-application-state/types';
 import { getPetById, resolvePetIdFromQuizOutcome } from '@/modules/pet-catalog';
-import { applyPetMoodEvent, clonePetMoodValue, type PetMoodEvent } from '@/modules/pet-mood';
 import {
   cloneFrictionProfile,
   cloneWorkstyleProfileValue,
@@ -38,9 +37,7 @@ export type WorkstyleProfileCommand =
   | { kind: 'assign-pet'; petId: unknown }
   | { kind: 'enrich-friction-from-personalization-quiz'; friction: unknown }
   | { kind: 'complete-personalization-quiz'; outcome: unknown }
-  | { kind: 'restore-friction-baseline'; friction: unknown }
-  | { kind: 'apply-pet-mood-event'; event: unknown }
-  | { kind: 'purchase-pet-mood-boost' };
+  | { kind: 'restore-friction-baseline'; friction: unknown };
 
 export type WorkstyleProfileDecisionError =
   | { kind: 'invalid-energy' }
@@ -54,7 +51,6 @@ export type WorkstyleProfileDecisionError =
   | { kind: 'invalid-personalization-quiz-outcome' }
   | { kind: 'onboarding-incomplete' }
   | { kind: 'invalid-pet-mapping' }
-  | { kind: 'invalid-pet-mood-event' }
   | { kind: 'no-pet-assigned' }
   | { kind: 'insufficient-coins'; balance: number; required: number };
 
@@ -166,48 +162,6 @@ const parsePersonalizationQuizOutcome = (
     FrictionDimension,
   ];
   return { ok: true, value: { kind: 'top-two', dimensions } };
-};
-
-const parsePetMoodEvent = (value: unknown): Result<PetMoodEvent, WorkstyleProfileDecisionError> => {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return { ok: false, error: { kind: 'invalid-pet-mood-event' } };
-  }
-  const candidate = value as Record<string, unknown>;
-  if (typeof candidate.kind !== 'string') {
-    return { ok: false, error: { kind: 'invalid-pet-mood-event' } };
-  }
-  switch (candidate.kind) {
-    case 'time-out-started':
-      if (typeof candidate.sessionId !== 'string') {
-        return { ok: false, error: { kind: 'invalid-pet-mood-event' } };
-      }
-      return { ok: true, value: { kind: 'time-out-started', sessionId: candidate.sessionId } };
-    case 'time-out-elapsed':
-      if (typeof candidate.sessionId !== 'string' || typeof candidate.elapsedMinutes !== 'number') {
-        return { ok: false, error: { kind: 'invalid-pet-mood-event' } };
-      }
-      return {
-        ok: true,
-        value: {
-          kind: 'time-out-elapsed',
-          sessionId: candidate.sessionId,
-          elapsedMinutes: candidate.elapsedMinutes,
-        },
-      };
-    case 'time-out-resumed':
-    case 'focus-block-started':
-    case 'focus-block-completed':
-    case 'recess-completed':
-    case 'work-session-completed':
-    case 'work-session-incomplete':
-    case 'reminder-missed':
-    case 'low-energy-recess-check-in':
-    case 'lifecycle-boundary':
-    case 'mood-boost-applied':
-      return { ok: true, value: { kind: candidate.kind } };
-    default:
-      return { ok: false, error: { kind: 'invalid-pet-mood-event' } };
-  }
 };
 
 export const applyWorkstyleProfileCommand = (
@@ -326,22 +280,6 @@ export const applyWorkstyleProfileCommand = (
       next.friction = cloneFrictionProfile(friction.value);
       return { ok: true, value: next };
     }
-    case 'apply-pet-mood-event': {
-      if (next.activePetId === null) {
-        return { ok: true, value: next };
-      }
-      const event = parsePetMoodEvent(command.event);
-      if (!event.ok) {
-        return event;
-      }
-      const applied = applyPetMoodEvent(next.petMood, event.value);
-      if (!applied.ok) {
-        return applied;
-      }
-      next.petMood = clonePetMoodValue(applied.value);
-      return { ok: true, value: next };
-    }
-    case 'purchase-pet-mood-boost':
-      return { ok: false, error: { kind: 'invalid-pet-mood-event' } };
   }
+  return { ok: true, value: next };
 };

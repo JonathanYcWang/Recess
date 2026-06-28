@@ -54,6 +54,8 @@ export const createWorkstyleProfileCommandHandler = (
   const outcomeStore = options?.outcomeStore;
   const coinHandler = options?.coinHandler;
   const clock = options?.clock ?? { nowEpochMs: () => Date.now() };
+  void coinHandler;
+  void clock;
   const listeners = new Set<(snapshot: WorkstyleProfileSnapshot) => void>();
 
   const hydrateLedgerFromStore = async (): Promise<void> => {
@@ -87,85 +89,6 @@ export const createWorkstyleProfileCommandHandler = (
         actualRevision: current.revision,
       });
     }
-
-    if (envelope.command.kind === 'purchase-pet-mood-boost') {
-      if (!coinHandler) {
-        return toFailure({ kind: 'persistence-unavailable' });
-      }
-      if (current.value.activePetId === null) {
-        return toFailure({ kind: 'no-pet-assigned' });
-      }
-      const coinSnapshot = coinHandler.current();
-      if (!coinSnapshot.ok) {
-        return toFailure({ kind: 'persistence-unavailable' });
-      }
-      if (coinSnapshot.value.value.balance < MOOD_BOOST_COIN_COST) {
-        return toFailure({
-          kind: 'insufficient-coins',
-          balance: coinSnapshot.value.value.balance,
-          required: MOOD_BOOST_COIN_COST,
-        });
-      }
-
-      const debit = await coinHandler.execute({
-        protocolVersion: 1,
-        commandId: `${envelope.commandId}:debit`,
-        module: 'coin',
-        command: {
-          kind: 'debit',
-          transactionId: `${envelope.commandId}:debit`,
-          amount: MOOD_BOOST_COIN_COST,
-          recordedAt: clock.nowEpochMs(),
-          reasonCode: 'mood-boost',
-          context: { petId: current.value.activePetId },
-        },
-      });
-      if (!debit.ok) {
-        if (debit.error.kind === 'insufficient-funds') {
-          return toFailure({
-            kind: 'insufficient-coins',
-            balance: coinSnapshot.value.value.balance,
-            required: MOOD_BOOST_COIN_COST,
-          });
-        }
-        return toFailure({ kind: 'persistence-failed' });
-      }
-
-      const decided = applyWorkstyleProfileCommand(current.value, {
-        kind: 'apply-pet-mood-event',
-        event: { kind: 'mood-boost-applied' },
-      });
-      if (!decided.ok) {
-        return toFailure(decided.error);
-      }
-
-      const committed = await persistence.commit([
-        {
-          document: 'workstyle-profile',
-          expectedRevision: current.revision,
-          value: decided.value,
-        },
-      ]);
-      if (!committed.ok) {
-        if (committed.error.kind === 'conflict') {
-          return toFailure({
-            kind: 'stale-revision',
-            expectedRevision: current.revision,
-            actualRevision: committed.error.actualRevision,
-          });
-        }
-        return toFailure({ kind: 'persistence-failed' });
-      }
-
-      const profile = committed.value.documents['workstyle-profile'];
-      if (!profile) {
-        return toFailure({ kind: 'persistence-failed' });
-      }
-      current = cloneSnapshot(profile);
-      notifyListeners();
-      return toSuccess(current);
-    }
-
     const decided = applyWorkstyleProfileCommand(current.value, envelope.command);
     if (!decided.ok) {
       return toFailure(decided.error);
