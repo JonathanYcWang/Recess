@@ -18,7 +18,6 @@ import {
   type PreferredCadence,
   type WorkstyleProfileValue,
 } from './workstyleProfileDocument';
-import { createDefaultPetMoodValue, type PetMoodValue } from '@/modules/pet-mood';
 
 export const WORKSTYLE_PROFILE_SCHEMA_VERSION = 3;
 const SUPPORTED_SCHEMA_VERSIONS = [1, 2, 3] as const;
@@ -134,40 +133,6 @@ const parsePetCollection = (
   };
 };
 
-const parsePetMoodValue = (value: unknown, schemaVersion: number): Result<PetMoodValue, string> => {
-  if (schemaVersion < 3 || value === undefined) {
-    return { ok: true, value: createDefaultPetMoodValue() };
-  }
-  if (!isRecord(value)) {
-    return { ok: false, error: 'petMood must be an object' };
-  }
-  const moods = ['calm', 'focused', 'curious', 'happy', 'restless', 'hungry', 'sleepy', 'sad'];
-  if (typeof value.currentMood !== 'string' || !moods.includes(value.currentMood)) {
-    return { ok: false, error: 'petMood.currentMood is invalid' };
-  }
-  if (
-    typeof value.completedFocusBlocksInSession !== 'number' ||
-    !Number.isInteger(value.completedFocusBlocksInSession)
-  ) {
-    return { ok: false, error: 'petMood.completedFocusBlocksInSession must be an integer' };
-  }
-  if (value.timeOutSessionId !== null && typeof value.timeOutSessionId !== 'string') {
-    return { ok: false, error: 'petMood.timeOutSessionId must be a string or null' };
-  }
-  if (typeof value.timeOutElapsedMinutes !== 'number') {
-    return { ok: false, error: 'petMood.timeOutElapsedMinutes must be a number' };
-  }
-  return {
-    ok: true,
-    value: {
-      currentMood: value.currentMood as PetMoodValue['currentMood'],
-      completedFocusBlocksInSession: value.completedFocusBlocksInSession,
-      timeOutSessionId: value.timeOutSessionId === null ? null : String(value.timeOutSessionId),
-      timeOutElapsedMinutes: value.timeOutElapsedMinutes,
-    },
-  };
-};
-
 const parseWorkstyleProfileValue = (
   value: unknown,
   schemaVersion: number
@@ -205,10 +170,6 @@ const parseWorkstyleProfileValue = (
   if (!outcome.ok) {
     return { ok: false, error: outcome.error };
   }
-  const petMood = parsePetMoodValue(value.petMood, schemaVersion);
-  if (!petMood.ok) {
-    return { ok: false, error: petMood.error };
-  }
   return {
     ok: true,
     value: {
@@ -220,7 +181,6 @@ const parseWorkstyleProfileValue = (
       activePetId: pets.value.activePetId,
       onboardingCompleted: value.onboardingCompleted,
       personalizationQuizOutcome: outcome.value,
-      petMood: petMood.value,
     },
   };
 };
