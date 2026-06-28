@@ -1,5 +1,4 @@
 import {
-  createDiagnosticRingBuffer,
   createPersistedApplicationState,
   type KeyValueStorageAdapter,
 } from '@/modules/persisted-application-state';
@@ -105,8 +104,7 @@ type BackgroundCompositionRootResult =
 export const createBackgroundCompositionRoot = async (options: {
   adapter: KeyValueStorageAdapter;
 }): Promise<BackgroundCompositionRootResult> => {
-  const diagnostics = createDiagnosticRingBuffer();
-  const persistence = createPersistedApplicationState({ adapter: options.adapter, diagnostics });
+  const persistence = createPersistedApplicationState({ adapter: options.adapter });
   const initialized = await persistence.initialize();
   if (!initialized.ok) {
     return { ok: false, error: { kind: 'persistence-unavailable' } };
@@ -131,22 +129,21 @@ export const createBackgroundCompositionRoot = async (options: {
   const settingsHandler = createSettingsCommandHandler(
     persistence,
     initialized.value.documents.settings,
-    { diagnostics, outcomeStore: settingsOutcomeStore }
+    { outcomeStore: settingsOutcomeStore }
   );
   const blockListHandler = createBlockListCommandHandler(
     persistence,
     initialized.value.documents['block-list'],
-    { adapter: options.adapter, diagnostics, outcomeStore: blockListOutcomeStore }
+    { adapter: options.adapter, outcomeStore: blockListOutcomeStore }
   );
   const clock = createSystemClock();
   const coinHandler = createCoinCommandHandler(persistence, initialized.value.documents.coin, {
-    diagnostics,
     outcomeStore: coinOutcomeStore,
   });
   const workstyleProfileHandler = createWorkstyleProfileCommandHandler(
     persistence,
     initialized.value.documents['workstyle-profile'],
-    { diagnostics, outcomeStore: workstyleProfileOutcomeStore, coinHandler, clock }
+    { outcomeStore: workstyleProfileOutcomeStore, coinHandler, clock }
   );
 
   const workHistory = createWorkHistoryService(
@@ -183,7 +180,6 @@ export const createBackgroundCompositionRoot = async (options: {
       coinHandler,
       streakInitialized: initialized.value.documents['work-session-streak'],
       adapter: options.adapter,
-      diagnostics,
       outcomeStore: workStartReminderOutcomeStore,
       effectExecutor,
     }
@@ -194,7 +190,6 @@ export const createBackgroundCompositionRoot = async (options: {
     initialized.value.documents['task-list'],
     {
       clock,
-      diagnostics,
       outcomeStore: taskListOutcomeStore,
     }
   );
@@ -208,7 +203,6 @@ export const createBackgroundCompositionRoot = async (options: {
       coinHandler,
       taskListHandler,
       effectExecutor,
-      diagnostics,
       outcomeStore: workRhythmOutcomeStore,
       timeOutReportNotifier: createSessionNotificationTimeOutReportNotifier(),
       onWorkSessionStarted: async (input) => {
@@ -227,7 +221,6 @@ export const createBackgroundCompositionRoot = async (options: {
       clock,
       coinHandler,
       browserActivity,
-      diagnostics,
       outcomeStore: hallPassOutcomeStore,
       phaseContext: () => {
         const current = workRhythmHandler.current();

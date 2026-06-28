@@ -3,23 +3,16 @@ import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMe
 import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
 import {
   createDataControlService,
-  createDiagnosticRingBuffer,
   createPersistedApplicationState,
   DATA_EXPORT_FORMAT_VERSION,
 } from '@/modules/persisted-application-state';
 import { createWorkHistoryService } from '@/modules/work-history';
 
 describe('data control service', () => {
-  it('exports all operational documents, work history, and diagnostics', async () => {
+  it('exports all operational documents and work history', async () => {
     const adapter = createInMemoryKeyValueAdapter();
     const workHistory = createWorkHistoryService(createInMemoryWorkHistoryAdapter());
-    const diagnostics = createDiagnosticRingBuffer();
-    diagnostics.record({
-      category: 'unexpected-runtime',
-      message: 'export test',
-      context: { source: 'test' },
-    });
-    const state = createPersistedApplicationState({ adapter, diagnostics });
+    const state = createPersistedApplicationState({ adapter });
     await state.initialize();
     await workHistory.append([
       {
@@ -30,14 +23,13 @@ describe('data control service', () => {
       },
     ]);
 
-    const service = createDataControlService({ adapter, workHistory, diagnostics });
+    const service = createDataControlService({ adapter, workHistory });
     const exported = await service.export();
     expect(exported.ok).toBe(true);
     if (exported.ok) {
       expect(exported.value.formatVersion).toBe(DATA_EXPORT_FORMAT_VERSION);
       expect(exported.value.operationalDocuments.settings).toBeDefined();
       expect(exported.value.workHistory).toHaveLength(1);
-      expect(exported.value.diagnostics).toHaveLength(1);
       expect(JSON.stringify(exported.value)).not.toContain('__recess_doc_settings');
     }
   });
@@ -45,8 +37,7 @@ describe('data control service', () => {
   it('requires explicit confirmed intent before delete-all', async () => {
     const adapter = createInMemoryKeyValueAdapter();
     const workHistory = createWorkHistoryService(createInMemoryWorkHistoryAdapter());
-    const diagnostics = createDiagnosticRingBuffer();
-    const service = createDataControlService({ adapter, workHistory, diagnostics });
+    const service = createDataControlService({ adapter, workHistory });
     await createPersistedApplicationState({ adapter }).initialize();
 
     const unconfirmed = await service.deleteAll({ kind: 'confirm', confirmationToken: 'wrong' });
@@ -64,14 +55,12 @@ describe('data control service', () => {
     if (reinitialized.ok) {
       expect(reinitialized.value.documents.settings.revision).toBe(0);
     }
-    expect(diagnostics.all()).toHaveLength(0);
   });
 
   it('recreates defaults after successful deletion', async () => {
     const adapter = createInMemoryKeyValueAdapter();
     const workHistory = createWorkHistoryService(createInMemoryWorkHistoryAdapter());
-    const diagnostics = createDiagnosticRingBuffer();
-    const service = createDataControlService({ adapter, workHistory, diagnostics });
+    const service = createDataControlService({ adapter, workHistory });
     const state = createPersistedApplicationState({ adapter });
     await state.initialize();
     await state.commit([

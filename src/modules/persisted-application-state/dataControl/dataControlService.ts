@@ -1,4 +1,3 @@
-import type { DiagnosticRingBuffer, DiagnosticRecord } from '../diagnostics/diagnosticRingBuffer';
 import {
   createPersistedApplicationState,
   persistedOperationalStorageKeys,
@@ -13,7 +12,6 @@ export interface DataExportBundle {
   exportedAt: number;
   operationalDocuments: Record<string, unknown>;
   workHistory: readonly import('@/modules/work-history/types').WorkHistoryFact[];
-  diagnostics: readonly DiagnosticRecord[];
 }
 
 export type DeleteIntent = { kind: 'request' } | { kind: 'confirm'; confirmationToken: string };
@@ -36,15 +34,14 @@ export interface DataControlService {
 export interface DataControlServiceOptions {
   adapter: KeyValueStorageAdapter;
   workHistory: WorkHistoryService;
-  diagnostics: DiagnosticRingBuffer;
   pendingTemporaryKeys?: readonly string[];
 }
 
 export const createDataControlService = (
   options: DataControlServiceOptions
 ): DataControlService => {
-  const { adapter, workHistory, diagnostics, pendingTemporaryKeys = [] } = options;
-  const persistedState = createPersistedApplicationState({ adapter, diagnostics });
+  const { adapter, workHistory, pendingTemporaryKeys = [] } = options;
+  const persistedState = createPersistedApplicationState({ adapter });
   let pendingDeleteToken: string | null = null;
 
   return {
@@ -76,7 +73,6 @@ export const createDataControlService = (
           exportedAt: Date.now(),
           operationalDocuments,
           workHistory: history.value,
-          diagnostics: diagnostics.all(),
         },
       };
     },
@@ -110,7 +106,6 @@ export const createDataControlService = (
         failures.push('work-history');
       }
 
-      diagnostics.clear();
       pendingDeleteToken = null;
 
       const reinitialized = await persistedState.initialize();

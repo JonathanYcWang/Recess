@@ -28,7 +28,6 @@ import {
   type WorkSessionStreakCoinCredit,
   type WorkSessionStreakValue,
 } from '@/modules/work-session-streak';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import type { Clock } from '../clock';
@@ -165,7 +164,6 @@ export const createWorkStartReminderCommandHandler = (
     coinHandler: CoinCommandHandler;
     streakInitialized: VersionedDocument<WorkSessionStreakValue>;
     adapter?: KeyValueStorageAdapter;
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkStartReminderCommandResponse>;
     effectExecutor?: EffectExecutor;
     createScheduleId?: () => string;
@@ -181,7 +179,6 @@ export const createWorkStartReminderCommandHandler = (
     value: cloneWorkSessionStreakValue(options.streakInitialized.value),
   };
   const ledger = createCommandLedger<WorkStartReminderCommandResponse>();
-  const diagnostics = options.diagnostics;
   const outcomeStore = options.outcomeStore;
   const clock = options.clock;
   const alarms = options.alarms;
@@ -442,21 +439,8 @@ export const createWorkStartReminderCommandHandler = (
     await reconcilePendingStreakOutcomes(currentDocument.value);
   };
 
-  const recordUnexpected = (
-    commandId: string,
-    error: unknown
-  ): WorkStartReminderCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'work-start-reminder' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): WorkStartReminderCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   const applyCommand = (
     envelope: WorkStartReminderCommandEnvelope
@@ -618,8 +602,8 @@ export const createWorkStartReminderCommandHandler = (
           await outcomeStore.set('work-start-reminder', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('work-start-reminder', envelope.commandId, response);

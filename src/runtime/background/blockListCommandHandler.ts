@@ -4,7 +4,6 @@ import type {
   VersionedDocument,
 } from '@/modules/persisted-application-state';
 import { canonicalizeBlockListInput, type BlockListValue } from '@/modules/block-list';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import {
@@ -81,13 +80,11 @@ export const createBlockListCommandHandler = (
   initialized: VersionedDocument<BlockListValue>,
   options?: {
     adapter?: KeyValueStorageAdapter;
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<BlockListCommandResponse>;
   }
 ): BlockListCommandHandler => {
   let current = cloneSnapshot(initialized);
   const ledger = createCommandLedger<BlockListCommandResponse>();
-  const diagnostics = options?.diagnostics;
   const outcomeStore = options?.outcomeStore;
   const listeners = new Set<(snapshot: BlockListSnapshot) => void>();
 
@@ -131,18 +128,8 @@ export const createBlockListCommandHandler = (
     }
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): BlockListCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'block-list' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): BlockListCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   const executeFresh = async (
     envelope: BlockListCommandEnvelope
@@ -246,8 +233,8 @@ export const createBlockListCommandHandler = (
           await outcomeStore.set('block-list', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('block-list', envelope.commandId, response);

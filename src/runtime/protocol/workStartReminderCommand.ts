@@ -21,7 +21,7 @@ export type WorkStartReminderCommandError =
   | { kind: 'persistence-failed' }
   | { kind: 'alarm-schedule-failed' }
   | { kind: 'notification-delivery-failed' }
-  | { kind: 'unexpected-runtime'; diagnosticId: string };
+  | { kind: 'unexpected-runtime' };
 
 export type WorkStartReminderCommandEnvelope = RuntimeCommandEnvelope<WorkStartReminderCommand>;
 

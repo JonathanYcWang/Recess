@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
-import {
-  createDiagnosticRingBuffer,
-  createPersistedApplicationState,
-} from '@/modules/persisted-application-state';
+import { createPersistedApplicationState } from '@/modules/persisted-application-state';
 import {
   WORK_SESSION_STREAK_ADVANCEMENT_COINS,
   workSessionStreakCoinTransactionId,
@@ -13,10 +10,7 @@ import { createBackgroundCompositionRoot } from '@/runtime/background/background
 const allDays = [true, true, true, true, true, true, true] as const;
 
 const readDocuments = async (adapter: ReturnType<typeof createInMemoryKeyValueAdapter>) => {
-  const persistence = createPersistedApplicationState({
-    adapter,
-    diagnostics: createDiagnosticRingBuffer(),
-  });
+  const persistence = createPersistedApplicationState({ adapter });
   const reminder = await persistence.read('work-start-reminder');
   const streak = await persistence.read('work-session-streak');
   const coin = await persistence.read('coin');

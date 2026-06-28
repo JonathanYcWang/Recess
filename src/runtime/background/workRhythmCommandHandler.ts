@@ -50,7 +50,6 @@ import {
   filterSelectedIncompleteTaskIds,
   type TaskListValue,
 } from '@/modules/task-list';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { RUNTIME_PROTOCOL_VERSION } from '../protocol/types';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
@@ -121,7 +120,6 @@ export const createWorkRhythmCommandHandler = (
     taskListHandler: TaskListCommandHandler;
     effectExecutor?: EffectExecutor;
     createSessionId?: () => string;
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<WorkRhythmCommandResponse>;
     timeOutReportNotifier?: TimeOutReportNotifier;
     onWorkSessionStarted?: (input: {
@@ -135,7 +133,6 @@ export const createWorkRhythmCommandHandler = (
     value: cloneWorkRhythmValue(initialized.value),
   };
   const ledger = createCommandLedger<WorkRhythmCommandResponse>();
-  const diagnostics = options.diagnostics;
   const outcomeStore = options.outcomeStore;
   const clock = options.clock;
   const alarms = options.alarms;
@@ -178,18 +175,8 @@ export const createWorkRhythmCommandHandler = (
     }
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): WorkRhythmCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'work-rhythm' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): WorkRhythmCommandResponse =>
+    toFailure({ kind: 'unexpected-runtime' });
 
   type TaskListCommit = {
     expectedRevision: number;
@@ -1454,8 +1441,8 @@ export const createWorkRhythmCommandHandler = (
           await outcomeStore.set('work-rhythm', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('work-rhythm', envelope.commandId, response);

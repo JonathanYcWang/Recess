@@ -15,7 +15,7 @@ export type BlockListCommandError =
   | { kind: 'stale-revision'; expectedRevision: number; actualRevision: number }
   | { kind: 'persistence-unavailable' }
   | { kind: 'persistence-failed' }
-  | { kind: 'unexpected-runtime'; diagnosticId: string };
+  | { kind: 'unexpected-runtime' };
 
 export type BlockListCommandEnvelope = RuntimeCommandEnvelope<BlockListCommand>;
 

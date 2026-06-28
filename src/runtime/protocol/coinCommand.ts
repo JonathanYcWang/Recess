@@ -28,7 +28,7 @@ export type CoinCommandError =
   | { kind: 'stale-revision'; expectedRevision: number; actualRevision: number }
   | { kind: 'persistence-unavailable' }
   | { kind: 'persistence-failed' }
-  | { kind: 'unexpected-runtime'; diagnosticId: string };
+  | { kind: 'unexpected-runtime' };
 
 export type CoinCommandEnvelope = RuntimeCommandEnvelope<CoinCommand>;
 

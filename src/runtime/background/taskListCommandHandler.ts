@@ -8,7 +8,6 @@ import {
   projectTaskListSnapshot,
   type TaskListValue,
 } from '@/modules/task-list';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import type { Clock } from '../clock';
@@ -58,7 +57,6 @@ export const createTaskListCommandHandler = (
   initialized: VersionedDocument<TaskListValue>,
   options: {
     clock: Clock;
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<TaskListCommandResponse>;
     createTaskId?: () => string;
   }
@@ -68,7 +66,6 @@ export const createTaskListCommandHandler = (
     value: cloneTaskListValue(initialized.value),
   };
   const ledger = createCommandLedger<TaskListCommandResponse>();
-  const diagnostics = options.diagnostics;
   const outcomeStore = options.outcomeStore;
   const clock = options.clock;
   const createTaskId =
@@ -98,18 +95,7 @@ export const createTaskListCommandHandler = (
     }
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): TaskListCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'task-list' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): TaskListCommandResponse => toFailure({ kind: 'unexpected-runtime' });
 
   const executeFresh = async (
     envelope: TaskListCommandEnvelope
@@ -222,8 +208,8 @@ export const createTaskListCommandHandler = (
           await outcomeStore.set('task-list', envelope.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(envelope.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(envelope.commandId, response);
         if (outcomeStore) {
           await outcomeStore.set('task-list', envelope.commandId, response);

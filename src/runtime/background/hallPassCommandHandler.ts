@@ -17,7 +17,6 @@ import {
   type HallPassValue,
 } from '@/modules/hall-pass';
 import type { BrowserActivityAdapter } from '@/modules/browser-activity/types';
-import type { DiagnosticRingBuffer } from '@/modules/persisted-application-state/diagnostics/diagnosticRingBuffer';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import type { Clock } from '../clock';
@@ -74,7 +73,6 @@ export const createHallPassCommandHandler = (
     coinHandler: CoinCommandHandler;
     browserActivity: BrowserActivityAdapter;
     phaseContext: HallPassPhaseContextProvider;
-    diagnostics?: DiagnosticRingBuffer;
     outcomeStore?: CommandOutcomeStore<HallPassCommandResponse>;
     createPassId?: () => string;
   }
@@ -84,7 +82,6 @@ export const createHallPassCommandHandler = (
     value: cloneHallPassValue(initialized.value),
   };
   const ledger = createCommandLedger<HallPassCommandResponse>();
-  const diagnostics = options.diagnostics;
   const outcomeStore = options.outcomeStore;
   const clock = options.clock;
   const coinHandler = options.coinHandler;
@@ -186,18 +183,7 @@ export const createHallPassCommandHandler = (
     return null;
   };
 
-  const recordUnexpected = (commandId: string, error: unknown): HallPassCommandResponse => {
-    const message = error instanceof Error ? error.message : 'unexpected runtime failure';
-    const record = diagnostics?.record({
-      category: 'unexpected-runtime',
-      message,
-      context: { commandId, module: 'hall-pass' },
-    });
-    return toFailure({
-      kind: 'unexpected-runtime',
-      diagnosticId: record?.id ?? 'diag-unavailable',
-    });
-  };
+  const recordUnexpected = (): HallPassCommandResponse => toFailure({ kind: 'unexpected-runtime' });
 
   const meterContext = async (nowEpochMs: number) => {
     const activity = await browserActivity.queryState();
@@ -425,8 +411,8 @@ export const createHallPassCommandHandler = (
           await outcomeStore.set('hall-pass', decoded.value.commandId, response);
         }
         return response;
-      } catch (error) {
-        const response = recordUnexpected(decoded.value.commandId, error);
+      } catch {
+        const response = recordUnexpected();
         ledger.set(decoded.value.commandId, response);
         return response;
       }
