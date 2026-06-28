@@ -42,9 +42,6 @@ const runSerialized = <T>(task: () => Promise<T>): Promise<T> => {
   return next;
 };
 
-const formatPersistenceError = (error: StorageError | import('./types').CodecError): string =>
-  'message' in error ? error.message : error.kind;
-
 const readDocument = async <T>(
   adapter: KeyValueStorageAdapter,
   entry: DocumentRegistryEntry<T>
@@ -152,7 +149,7 @@ const writeDocument = async <T>(
 export const createPersistedApplicationState = (
   options: PersistedApplicationStateOptions
 ): PersistedApplicationState => {
-  const { adapter, diagnostics, journalHooks } = options;
+  const { adapter, journalHooks } = options;
   const listeners = new Map<PersistedDocumentName, Set<PersistedChangeListener>>();
 
   const notify = (documents: Partial<HydrationSnapshot['documents']>) => {
@@ -179,14 +176,6 @@ export const createPersistedApplicationState = (
     if (loaded.ok) {
       return loaded.value;
     }
-    diagnostics?.record({
-      category: 'codec-corruption',
-      message: `Defaulted ${name} after codec failure`,
-      context: {
-        document: name,
-        reason: formatPersistenceError(loaded.error),
-      },
-    });
     const defaulted = entry.createDefault();
     await adapter.set(entry.storageKey, JSON.stringify(entry.codec.encode(defaulted)));
     return defaulted;
@@ -198,18 +187,11 @@ export const createPersistedApplicationState = (
       for (const name of registeredDocumentNames) {
         const journal = await readJournalEntry(adapter);
         if (journal.ok && journal.value !== null) {
-          const rolled = await rollForwardJournal(
+          await rollForwardJournal(
             adapter,
             documentRegistry[name].codec as DocumentCodec<PersistedDocuments[typeof name]>,
             journalHooks
           );
-          if (rolled.ok && rolled.value !== null) {
-            diagnostics?.record({
-              category: 'journal-recovery',
-              message: `Recovered ${name} from transaction journal`,
-              context: { document: name, revision: String(rolled.value.revision) },
-            });
-          }
         }
         (
           documents as Record<
