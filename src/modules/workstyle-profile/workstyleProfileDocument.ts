@@ -1,4 +1,3 @@
-
 export const PREFERRED_CADENCES = ['15/5', '25/5', '45/10'] as const;
 export type PreferredCadence = (typeof PREFERRED_CADENCES)[number];
 
