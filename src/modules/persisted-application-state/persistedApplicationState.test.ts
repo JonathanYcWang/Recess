@@ -63,5 +63,3 @@ describe('document registry initialize', () => {
     }
   });
 });
-
-describe('roll-forward journal', () => {});
