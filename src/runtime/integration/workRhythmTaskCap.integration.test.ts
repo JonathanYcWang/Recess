@@ -40,6 +40,7 @@ describe('work rhythm task cap integration', () => {
         kind: 'start-work-session',
         goalSeconds: 3 * 60 * 60,
         energy: 'steady',
+        taskIds: [taskId],
       })
     );
     expect(started.ok).toBe(true);
