@@ -5,7 +5,7 @@ import {
   MIN_FOCUS_SESSION_DURATION,
   MAX_BREAK_DURATION,
   MIN_BREAK_DURATION,
-} from '../constants/constants';
+} from '../Constants/Constants';
 
 export const calculateMomentum = (
   momentum: number,

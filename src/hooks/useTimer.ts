@@ -18,16 +18,16 @@ import {
   rerollReward as rerollRewardAction,
 } from '../store/actions/timerActions';
 import type { AppDispatch, RootState } from '../store';
-import { Reward } from '../types/reward';
-import { NOTIFY_TIME_LEFT_SECONDS } from '../constants/constants';
-// import { calculateRemaining } from '../services/timerService';
+import { Reward } from '../Shared/Types/Reward';
+import { NOTIFY_TIME_LEFT_SECONDS } from '../Shared/Constants/Constants';
+// import { calculateRemaining } from '../Shared/Utils/TimerService';
 import {
   notifyFocusEnding,
   notifyFocusComplete,
   notifyBreakEnding,
   notifyBreakComplete,
 } from '../services/notificationService';
-import { generateReward } from '../services/rewardService';
+import { generateReward } from '../Shared/Utils/RewardService';
 import {
   selectBlockedSites,
   selectFatigueScore,
@@ -39,7 +39,7 @@ import {
   selectShownRewardCombinations,
   selectTimerState,
 } from '../store/selectors';
-import { SESSION_STATES } from '../constants/constants';
+import { SESSION_STATES } from '../Shared/Constants/Constants';
 
 const ACTIVE_SESSION_STATES = [
   SESSION_STATES.ONGOING_FOCUS_SESSION,

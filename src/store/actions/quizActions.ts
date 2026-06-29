@@ -1,5 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
-import type { QuizOption, QuizResults } from '../../types/quiz';
+import type { QuizOption, QuizResults } from '../../Shared/Types/Quiz';
 
 export interface QuizReduxState {
   currentQuestionId: string;

@@ -1,6 +1,6 @@
 import styles from './FocusTimer.module.css';
-import { formatTime } from '../../services/timerService';
-import { FOCUS_TIMER_RADIUS } from '@/constants/constants';
+import { formatTime } from '../../Shared/Utils/TimerService';
+import { FOCUS_TIMER_RADIUS } from '@/Shared/Constants/Constants';
 
 interface FocusTimerProps {
   label: string;

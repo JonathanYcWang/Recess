@@ -1,4 +1,4 @@
-import { toPressableDivProps } from '@/utils/pressable';
+import { toPressableDivProps } from '@/Shared/Utils/pressable';
 import styles from './Toggle.module.css';
 
 interface ToggleProps {

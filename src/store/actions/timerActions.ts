@@ -1,6 +1,6 @@
 import { createAction } from '@reduxjs/toolkit';
-import { TimerState } from '../../types/timer';
-import { Reward } from '../../types/reward';
+import { TimerState } from '../../Shared/Types/Timer';
+import { Reward } from '../../Shared/Types/Reward';
 
 export const updateTimerState = createAction<Partial<TimerState>>('timer/updateTimerState');
 export const setTotalTimer = createAction<number>('timer/setTotalTimer');

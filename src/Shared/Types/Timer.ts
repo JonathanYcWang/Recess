@@ -1,4 +1,4 @@
-import { SessionState } from '../constants/constants';
+import { SessionState } from '../Constants/Constants';
 import { Reward } from './reward';
 
 export interface TimerState {

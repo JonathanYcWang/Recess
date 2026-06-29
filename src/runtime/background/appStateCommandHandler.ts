@@ -7,7 +7,7 @@ import {
   type AppCommandResponse,
   type AppStateMessage,
   type PersistedAppState,
-} from '../appState';
+} from '../../Shared/Types/AppState';
 
 const getStoredAppState = async (): Promise<PersistedAppState> => {
   const result = await chrome.storage.local.get(APP_STATE_STORAGE_KEY);

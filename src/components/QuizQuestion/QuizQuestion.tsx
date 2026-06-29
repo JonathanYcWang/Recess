@@ -1,4 +1,4 @@
-import { QuizQuestion as QuizQuestionType, QuizOption } from '../../types/quiz';
+import { QuizQuestion as QuizQuestionType, QuizOption } from '../../Shared/Types/Quiz';
 import Button from '../Button/Button';
 import styles from './QuizQuestion.module.css';
 

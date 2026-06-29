@@ -1,2 +1,2 @@
 export * from './actionBroker';
-export * from './appState';
+export * from '../Shared/Types/AppState';

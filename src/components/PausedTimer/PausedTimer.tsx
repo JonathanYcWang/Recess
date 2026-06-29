@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { formatTime } from '../../services/timerService';
+import { formatTime } from '../../Shared/Utils/TimerService';
 import styles from './PausedTimer.module.css';
 
 const PAUSE_OVERDUE_SECONDS = 1 * 60;

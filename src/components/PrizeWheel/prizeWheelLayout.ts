@@ -1,4 +1,4 @@
-import { SEGMENT_COUNT } from '@/constants/constants';
+import { SEGMENT_COUNT } from '@/Shared/Constants/Constants';
 
 export const SEGMENT_ANGLE = (2 * Math.PI) / SEGMENT_COUNT;
 export const WHEEL_SIZE = 320;

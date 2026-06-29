@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import QuizQuestion from '../../components/QuizQuestion/QuizQuestion';
 import Button from '../../components/Button/Button';
-import { QuizOption } from '../../types/quiz';
+import { QuizOption } from '../../Shared/Types/Quiz';
 import type { AppDispatch, RootState } from '../../store';
 import {
   selectCurrentQuestion,

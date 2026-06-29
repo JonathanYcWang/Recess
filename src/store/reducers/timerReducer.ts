@@ -1,12 +1,12 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { TimerState } from '../../types/timer';
-import { Reward } from '../../types/reward';
-import { DEFAULT_REROLLS, FOCUS_COUNTDOWN_DURATION } from '../../constants/constants';
+import { TimerState } from '../../Shared/Types/Timer';
+import { Reward } from '../../Shared/Types/Reward';
+import { DEFAULT_REROLLS, FOCUS_COUNTDOWN_DURATION } from '../../Shared/Constants/Constants';
 import {
   calculateMomentum,
   calculateFatigue,
   calculateFocusSessionDuration,
-} from '../../services/sessionDurationService';
+} from '../../Shared/Utils/SessionDurationService';
 import {
   endSessionEarly,
   endWorkSessionEarly,
@@ -25,7 +25,7 @@ import {
   updateFeedbackMultiplier,
   updateTimerState,
 } from '../actions/timerActions';
-import { SESSION_STATES } from '../../constants/constants';
+import { SESSION_STATES } from '../../Shared/Constants/Constants';
 import { createInitialTimerState } from '../initialState';
 
 const setCurrentSessionDuration = (state: TimerState, duration: number) => {

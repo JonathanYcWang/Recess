@@ -1,8 +1,8 @@
 import SecondaryTimerDescription from '../../components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CardCarousel, { CardCarouselItem } from '../../components/CardCarousel/CardCarousel';
-import { Reward } from '../../types/reward';
+import { Reward } from '../../Shared/Types/Reward';
 import { useTimer } from '../../hooks/useTimer';
-import { formatWorkSessionTime } from '../../services/timerService';
+import { formatWorkSessionTime } from '../../Shared/Utils/TimerService';
 import styles from './RewardSelectionView.module.css';
 
 interface RewardSelectionViewProps {

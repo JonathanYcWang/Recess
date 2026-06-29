@@ -1,7 +1,7 @@
 import ExternalLinkIcon from '../../assets/external-link.svg?url';
 import PlaceholderIcon from '../../assets/placeholder.svg?url';
 import Icon from '../Icon/Icon';
-import { toPressableDivProps } from '@/utils/pressable';
+import { toPressableDivProps } from '@/Shared/Utils/pressable';
 import styles from './RewardLink.module.css';
 
 interface RewardLinkProps {

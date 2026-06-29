@@ -5,7 +5,7 @@ import {
   SLOTS_DECISION_WINDOW_SECONDS,
   SLOTS_REEL_STOP_INTERVAL_SECONDS,
   SPIN_ROTATIONS,
-} from '@/constants/constants';
+} from '@/Shared/Constants/Constants';
 import Slots, { getReelOffset, getReelSpinStyle, replicateReelItems, type SlotReel } from './Slots';
 import {
   getSlotsAnimationDurationMs,

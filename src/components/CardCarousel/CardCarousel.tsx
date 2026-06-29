@@ -1,6 +1,6 @@
 import Icon from '../Icon/Icon';
 import RefreshButton from '../RefreshButton/RefreshButton';
-import { toPressableDivProps } from '@/utils/pressable';
+import { toPressableDivProps } from '@/Shared/Utils/pressable';
 import styles from './CardCarousel.module.css';
 
 export interface CardCarouselItem {

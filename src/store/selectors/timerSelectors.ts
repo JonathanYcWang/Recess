@@ -1,4 +1,4 @@
-import { SESSION_STATES } from '../../constants/constants';
+import { SESSION_STATES } from '../../Shared/Constants/Constants';
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 

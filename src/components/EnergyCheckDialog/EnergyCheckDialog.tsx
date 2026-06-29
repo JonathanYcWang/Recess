@@ -3,7 +3,7 @@ import InPainIcon from '../../assets/emoji-in-pain.svg?url';
 import MehIcon from '../../assets/emoji-meh.svg?url';
 import SmileIcon from '../../assets/emoji-smile.svg?url';
 import TimesIcon from '../../assets/times.svg?url';
-import { toPressableDivProps } from '@/utils/pressable';
+import { toPressableDivProps } from '@/Shared/Utils/pressable';
 import styles from './EnergyCheckDialog.module.css';
 
 interface EnergyCheckDialogProps {

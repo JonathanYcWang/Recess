@@ -1,5 +1,5 @@
 import styles from './Icon.module.css';
-import { toPressableDivProps } from '@/utils/pressable';
+import { toPressableDivProps } from '@/Shared/Utils/pressable';
 
 type IconSize = 'sm' | 'md' | 'lg';
 

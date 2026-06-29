@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { ACCEL_FACTOR, DECEL_FACTOR, MAX_SPEED, TICKER_MAX_TILT } from '@/constants/constants';
+import {
+  ACCEL_FACTOR,
+  DECEL_FACTOR,
+  MAX_SPEED,
+  TICKER_MAX_TILT,
+} from '@/Shared/Constants/Constants';
 import {
   getNextWheelSpeed,
   getTickerTilt,
   rotationToSegmentIndex,
-} from '@/services/prizeWheelService';
+} from '@/Shared/Utils/PrizeWheelService';
 
 describe('PrizeWheel utilities', () => {
   describe('rotationToSegmentIndex', () => {

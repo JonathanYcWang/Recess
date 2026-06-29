@@ -2,7 +2,7 @@ import {
   SLOTS_ANIMATION_DURATION_SECONDS,
   SLOTS_DECISION_WINDOW_SECONDS,
   SLOTS_REEL_STOP_INTERVAL_SECONDS,
-} from '@/constants/constants';
+} from '@/Shared/Constants/Constants';
 
 export const getSlotsDecisionWindowMs = (): number => SLOTS_DECISION_WINDOW_SECONDS * 1000;
 

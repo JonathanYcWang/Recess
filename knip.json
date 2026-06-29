@@ -58,14 +58,14 @@
     "src/components/Toggle/Toggle.tsx",
     "src/components/WorkHoursSettings/WorkHoursSettings.tsx",
     "src/runtime/index.ts",
-    "src/runtime/workStartReminderTypes.ts",
+    "src/Shared/Types/WorkStartReminder.ts",
     "src/store/actions/blockedSitesActions.ts",
     "src/store/actions/quizActions.ts",
     "src/store/initialState.ts",
     "src/store/reducers/blockedSitesReducer.ts",
     "src/store/reducers/quizReducer.ts",
     "src/store/reducers/timerReducer.ts",
-    "src/types/quiz.ts",
+    "src/Shared/Types/Quiz.ts",
     "src/views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {

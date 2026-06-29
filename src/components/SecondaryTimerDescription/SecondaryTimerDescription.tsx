@@ -1,4 +1,4 @@
-import { toPressableDivProps } from '@/utils/pressable';
+import { toPressableDivProps } from '@/Shared/Utils/pressable';
 import styles from './SecondaryTimerDescription.module.css';
 
 interface SecondaryTimerDescriptionProps {

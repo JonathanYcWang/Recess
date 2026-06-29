@@ -4,7 +4,7 @@ import {
   MAX_SPEED,
   SEGMENT_COUNT,
   TICKER_MAX_TILT,
-} from '@/constants/constants';
+} from '@/Shared/Constants/Constants';
 
 export const rotationToSegmentIndex = (rotation: number) => {
   const segmentDegrees = 360 / SEGMENT_COUNT;

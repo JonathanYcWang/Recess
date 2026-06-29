@@ -1,6 +1,6 @@
-import { Reward } from '../types/reward';
-import { calculateBreakDuration } from './sessionDurationService';
-import { MAX_REWARD_GENERATION_RETRIES } from '../constants/constants';
+import { Reward } from '../Types/Reward';
+import { calculateBreakDuration } from './SessionDurationService';
+import { MAX_REWARD_GENERATION_RETRIES } from '../Constants/Constants';
 
 const getCombinationKey = (site: string, seconds: number): string => `${site}-${seconds}`;
 

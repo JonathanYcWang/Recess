@@ -1,5 +1,5 @@
 import { handleAppCommand, handleGetAppState } from './runtime/background/appStateCommandHandler';
-import type { AppStateMessage } from './runtime/appState';
+import type { AppStateMessage } from './Shared/Types/AppState';
 
 chrome.runtime.onMessage.addListener((message: AppStateMessage, _sender, sendResponse) => {
   if (message.type === 'GET_APP_STATE') {

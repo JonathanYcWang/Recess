@@ -3,9 +3,9 @@ import {
   DEFAULT_REROLLS,
   DEFAULT_WORK_SESSION_DURATION,
   SESSION_STATES,
-} from '../constants/constants';
-import { calculateFocusSessionDuration } from '../services/sessionDurationService';
-import type { TimerState } from '../types/timer';
+} from '../Shared/Constants/Constants';
+import { calculateFocusSessionDuration } from '../Shared/Utils/SessionDurationService';
+import type { TimerState } from '../Shared/Types/Timer';
 import type { BlockedSitesState } from './actions/blockedSitesActions';
 import type { QuizReduxState } from './actions/quizActions';
 

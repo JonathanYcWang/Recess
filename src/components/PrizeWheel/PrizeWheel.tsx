@@ -5,12 +5,12 @@ import Button from '@/components/Button/Button';
 import Ticker from './Ticker';
 import Wheel from './Wheel';
 import WheelFrame from './WheelFrame';
-import { MAX_SPEED } from '@/constants/constants';
+import { MAX_SPEED } from '@/Shared/Constants/Constants';
 import {
   getNextWheelSpeed,
   getTickerTilt,
   rotationToSegmentIndex,
-} from '@/services/prizeWheelService';
+} from '@/Shared/Utils/PrizeWheelService';
 
 const WHEEL_STATE = {
   IDLE: 'idle',

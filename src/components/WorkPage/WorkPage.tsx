@@ -8,7 +8,7 @@ import OngoingBreakSessionView from '../../views/OngoingBreakSessionView/Ongoing
 import FocusSessionCountdownView from '../../views/FocusSessionCountdownView/FocusSessionCountdownView';
 // import WorkSessionCompleteView from '../../views/WorkSessionCompleteView/WorkSessionCompleteView';
 import styles from './WorkPage.module.css';
-import { SESSION_STATES } from '../../constants/constants';
+import { SESSION_STATES } from '../../Shared/Constants/Constants';
 
 const WorkPage = () => {
   const {

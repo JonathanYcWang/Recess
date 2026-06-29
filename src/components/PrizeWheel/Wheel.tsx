@@ -6,7 +6,7 @@ import {
   WHEEL_RADIUS,
   WHEEL_SIZE,
 } from './prizeWheelLayout';
-import { SEGMENT_COUNT } from '@/constants/constants';
+import { SEGMENT_COUNT } from '@/Shared/Constants/Constants';
 import ParticleBurst from '@/components/ParticleBurst/ParticleBurst';
 import type { Segment } from './PrizeWheel.types';
 import styles from './PrizeWheel.module.css';
