@@ -1,4 +1,3 @@
-/// <reference types="chrome-types" />
 //
 // background.ts — Service worker entrypoint (Manifest V3)
 //
