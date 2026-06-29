@@ -1,4 +1,4 @@
-import type { Result } from '@/modules/persisted-application-state';
+import type { Result } from '@/runtime/persistence';
 
 export interface BrowserActivityTab {
   tabId: number;

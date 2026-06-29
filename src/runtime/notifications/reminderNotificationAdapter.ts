@@ -1,4 +1,4 @@
-import type { Result } from '@/modules/persisted-application-state';
+import type { Result } from '@/runtime/persistence';
 
 export type ReminderNotificationCapability = 'available' | 'unsupported' | 'permission-denied';
 

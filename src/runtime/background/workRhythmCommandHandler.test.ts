@@ -24,7 +24,7 @@ import { createWorkHistoryService } from '@/modules/work-history';
 import { createEffectExecutor } from '../effects/effectExecutor';
 import { createEffectOutcomeStore } from '../effects/effectOutcomeStore';
 import { createWorkHistoryEffectAdapter } from '../effects/workHistoryEffectAdapter';
-import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import { createPersistedApplicationState } from '@/runtime/persistence';
 import { createWorkRhythmHandlerForTests } from './workRhythmCommandHandlerTestUtils';
 
 describe('workRhythmCommandHandler', () => {
@@ -893,7 +893,7 @@ describe('workRhythmCommandHandler clock injection', () => {
       throw new Error('expected root');
     }
 
-    const persistenceModule = await import('@/modules/persisted-application-state');
+    const persistenceModule = await import('@/runtime/persistence');
     const persistence = persistenceModule.createPersistedApplicationState({ adapter });
     const initialized = await persistence.initialize();
     if (!initialized.ok) {

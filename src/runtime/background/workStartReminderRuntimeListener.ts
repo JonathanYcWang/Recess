@@ -1,4 +1,4 @@
-import type { KeyValueStorageAdapter } from '@/modules/persisted-application-state';
+import type { KeyValueStorageAdapter } from '@/runtime/persistence';
 import {
   WORK_START_REMINDER_RUNTIME_CHANNEL,
   WORK_START_REMINDER_RUNTIME_PORT_NAME,

@@ -1,8 +1,4 @@
-import type {
-  KeyValueStorageAdapter,
-  Result,
-  StorageError,
-} from '@/modules/persisted-application-state/types';
+import type { KeyValueStorageAdapter, Result, StorageError } from '@/runtime/persistence/types';
 
 export const createInMemoryKeyValueAdapter = (
   seed?: Record<string, string>

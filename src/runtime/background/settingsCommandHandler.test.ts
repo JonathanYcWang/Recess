@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
-import { createPersistedApplicationState } from '@/modules/persisted-application-state/persistedApplicationState';
-import { settingsCodec } from '@/modules/persisted-application-state/settings/settingsCodec';
+import { createPersistedApplicationState } from '@/runtime/persistence/persistedApplicationState';
+import { settingsCodec } from '@/runtime/persistence/settings/settingsCodec';
 import { COMMAND_LEDGER_LIMIT } from '@/runtime/commandLedger';
 import { RUNTIME_PROTOCOL_VERSION } from '@/runtime/protocol/types';
 import { createSettingsCommandHandler } from '@/runtime/background/settingsCommandHandler';

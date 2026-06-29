@@ -1,5 +1,5 @@
 import { createReducer } from '@reduxjs/toolkit';
-import type { ThemePreference } from '@/modules/persisted-application-state';
+import type { ThemePreference } from '@/runtime/persistence';
 import {
   setSettingsConnectionState,
   setSettingsProjection,

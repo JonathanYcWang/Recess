@@ -1,4 +1,4 @@
-import { THEME_PREFERENCES, type ThemePreference } from '@/modules/persisted-application-state';
+import { THEME_PREFERENCES, type ThemePreference } from '@/runtime/persistence';
 import type { RuntimeCommandEnvelope } from './types';
 import { RUNTIME_PROTOCOL_VERSION } from './types';
 

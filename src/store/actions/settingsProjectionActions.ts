@@ -1,5 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
-import type { ThemePreference } from '@/modules/persisted-application-state';
+import type { ThemePreference } from '@/runtime/persistence';
 import type { SettingsConnectionState } from '../reducers/settingsProjectionReducer';
 
 export const setSettingsProjection = createAction<{

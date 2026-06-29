@@ -1,4 +1,4 @@
-import type { VersionedDocument } from '@/modules/persisted-application-state';
+import type { VersionedDocument } from '@/runtime/persistence';
 import type { CoinLedgerValue } from '@/modules/coin';
 import type { CoinCommandEnvelope, CoinCommandError } from './protocol/coinCommand';
 import type { RuntimeCommandResponse } from './protocol/types';

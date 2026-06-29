@@ -1,8 +1,4 @@
-import type {
-  SettingsValue,
-  ThemePreference,
-  VersionedDocument,
-} from '@/modules/persisted-application-state';
+import type { SettingsValue, ThemePreference, VersionedDocument } from '@/runtime/persistence';
 import type { SettingsCommandEnvelope, SettingsCommandError } from './protocol/settingsCommand';
 import type { SettingsRuntimeTransportError } from './messaging/messages';
 import type { RuntimeCommandResponse } from './protocol/types';

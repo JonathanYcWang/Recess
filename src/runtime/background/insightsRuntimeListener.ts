@@ -1,4 +1,4 @@
-import type { KeyValueStorageAdapter } from '@/modules/persisted-application-state';
+import type { KeyValueStorageAdapter } from '@/runtime/persistence';
 import { queryInsightsSnapshot, type InsightWindow } from '@/modules/insights';
 import type { WorkHistoryService } from '@/modules/work-history';
 import {

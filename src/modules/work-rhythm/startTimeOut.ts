@@ -1,4 +1,4 @@
-import type { Result } from '@/modules/persisted-application-state/types';
+import type { Result } from '@/runtime/persistence/types';
 import { computeActualFocusSeconds } from './settleFocusBoundary';
 import { createTimeOutStartedFact, timeOutStartedFactId } from './timeOutStarted';
 import type {

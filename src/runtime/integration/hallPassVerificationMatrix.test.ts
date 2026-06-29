@@ -16,9 +16,7 @@ import { createWorkRhythmCommandEnvelope } from '@/runtime/client/inProcessWorkR
 describe('hall pass verification matrix', () => {
   it('confirms a hall pass, restores blocked tabs, and debits coins after metering', async () => {
     const adapter = createInMemoryKeyValueAdapter();
-    const persistence = (
-      await import('@/modules/persisted-application-state')
-    ).createPersistedApplicationState({
+    const persistence = (await import('@/runtime/persistence')).createPersistedApplicationState({
       adapter,
     });
     const initialized = await persistence.initialize();

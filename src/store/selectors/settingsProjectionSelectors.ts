@@ -1,4 +1,4 @@
-import type { ThemePreference } from '@/modules/persisted-application-state';
+import type { ThemePreference } from '@/runtime/persistence';
 import type { RootState } from '../index';
 import type { SettingsConnectionState } from '../reducers/settingsProjectionReducer';
 

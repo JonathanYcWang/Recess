@@ -1,7 +1,4 @@
-import type {
-  PersistedApplicationState,
-  VersionedDocument,
-} from '@/modules/persisted-application-state';
+import type { PersistedApplicationState, VersionedDocument } from '@/runtime/persistence';
 import type { WorkRhythmValue } from '@/modules/work-rhythm';
 import type { Clock } from '../clock';
 import type { AlarmAdapter } from '../alarms/types';

@@ -1,5 +1,5 @@
 import type { TaskListSnapshot, TaskListValue } from '@/modules/task-list';
-import type { VersionedDocument } from '@/modules/persisted-application-state';
+import type { VersionedDocument } from '@/runtime/persistence';
 import type { TaskListCommandEnvelope, TaskListCommandError } from './protocol/taskListCommand';
 import type { TaskListRuntimeTransportError } from './messaging/taskListMessages';
 import type { RuntimeCommandResponse } from './protocol/types';

@@ -1,4 +1,4 @@
-import type { KeyValueStorageAdapter } from '@/modules/persisted-application-state';
+import type { KeyValueStorageAdapter } from '@/runtime/persistence';
 import type { DomainModuleName } from '@/runtime/protocol/types';
 
 export const COMMAND_OUTCOMES_STORAGE_KEY = '__recess_command_outcomes';

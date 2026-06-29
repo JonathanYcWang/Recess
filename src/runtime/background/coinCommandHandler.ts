@@ -1,7 +1,4 @@
-import type {
-  PersistedApplicationState,
-  VersionedDocument,
-} from '@/modules/persisted-application-state';
+import type { PersistedApplicationState, VersionedDocument } from '@/runtime/persistence';
 import { applyCoinCommand, cloneCoinLedgerValue, type CoinLedgerValue } from '@/modules/coin';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';

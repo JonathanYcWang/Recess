@@ -1,4 +1,4 @@
-import type { VersionedDocument } from '@/modules/persisted-application-state';
+import type { VersionedDocument } from '@/runtime/persistence';
 import type { WorkstyleProfileValue } from '@/modules/workstyle-profile';
 import type {
   WorkstyleProfileCommandEnvelope,

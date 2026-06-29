@@ -1,7 +1,7 @@
 import {
   createPersistedApplicationState,
   type KeyValueStorageAdapter,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 import { createInProcessSettingsClient } from '../client/inProcessSettingsClient';
 import { createInProcessBlockListClient } from '../client/inProcessBlockListClient';
 import { createInProcessWorkstyleProfileClient } from '../client/inProcessWorkstyleProfileClient';

@@ -3,7 +3,7 @@ import {
   createPersistedApplicationState,
   type PersistedApplicationState,
   type VersionedDocument,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 import { rewardGameRoundCommandId, type RewardGameValue } from '@/modules/reward-game';
 import { createFixedClock } from '@/runtime/clock';
 import { createCommandOutcomeStore } from '@/runtime/commandOutcomeStore';

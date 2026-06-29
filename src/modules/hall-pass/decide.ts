@@ -1,5 +1,5 @@
 import { findMatchingBlockListEntry, parseDestination } from '@/modules/block-list';
-import type { Result } from '@/modules/persisted-application-state';
+import type { Result } from '@/runtime/persistence';
 import {
   cloneHallPassActivePass,
   cloneHallPassValue,

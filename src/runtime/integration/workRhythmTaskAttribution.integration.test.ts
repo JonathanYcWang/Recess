@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
-import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import { createPersistedApplicationState } from '@/runtime/persistence';
 import { applyTaskListCommand, createDefaultTaskListValue } from '@/modules/task-list';
 import { createFixedClock } from '@/runtime/clock';
 import { createInMemoryAlarmAdapter } from '@/runtime/alarms/inMemoryAlarmAdapter';

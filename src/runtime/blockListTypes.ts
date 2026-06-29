@@ -1,4 +1,4 @@
-import type { VersionedDocument } from '@/modules/persisted-application-state';
+import type { VersionedDocument } from '@/runtime/persistence';
 import type { BlockListValue } from '@/modules/block-list';
 import type { BlockListCommandEnvelope, BlockListCommandError } from './protocol/blockListCommand';
 import type { BlockListRuntimeTransportError } from './messaging/blockListMessages';

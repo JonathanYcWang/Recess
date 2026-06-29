@@ -1,8 +1,4 @@
-import type {
-  KeyValueStorageAdapter,
-  Result,
-  StorageError,
-} from '@/modules/persisted-application-state/types';
+import type { KeyValueStorageAdapter, Result, StorageError } from '@/runtime/persistence/types';
 
 type BrowserStorage = {
   get(keys: string[]): Promise<Record<string, unknown>>;

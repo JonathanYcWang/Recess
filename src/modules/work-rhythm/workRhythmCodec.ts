@@ -1,9 +1,5 @@
-import type {
-  DocumentCodec,
-  Result,
-  VersionedDocument,
-} from '@/modules/persisted-application-state';
-import type { CodecError } from '@/modules/persisted-application-state/types';
+import type { DocumentCodec, Result, VersionedDocument } from '@/runtime/persistence';
+import type { CodecError } from '@/runtime/persistence/types';
 import { ENERGY_LEVELS, MOMENTUM_LEVELS } from '@/modules/workstyle-profile';
 import type { SchedulerReasonCode } from '@/modules/scheduler';
 import {
