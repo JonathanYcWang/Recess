@@ -26,8 +26,6 @@ export const SESSION_STATES = {
   WORK_SESSION_COMPLETE: 'WORK_SESSION_COMPLETE',
 } as const;
 
-export type SessionState = (typeof SESSION_STATES)[keyof typeof SESSION_STATES];
-
 export const SEGMENT_COUNT = 8;
 export const MAX_SPEED = 0.5;
 export const DECEL_FACTOR = 0.99;

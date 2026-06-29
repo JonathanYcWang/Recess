@@ -43,7 +43,9 @@
     "src/Shared/Constants/Constants.ts": ["exports"],
     "src/Shared/Utils/SessionDurationService.ts": ["exports"],
     "src/Shared/Utils/TimerService.ts": ["exports"],
-    "src/Shared/Types/AppState.ts": ["types"]
+    "src/Shared/Types/AppState.ts": ["types"],
+    "src/UI/Redux/Selectors/Quiz/quizSelectors.ts": ["exports"],
+    "src/Shared/Types/Quiz.ts": ["types"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreDependencies": ["@internationalized/date", "react-aria-components"],
@@ -61,7 +63,6 @@
     "src/UI/Components/Toggle/Toggle.tsx",
     "src/UI/Components/WorkHoursSettings/WorkHoursSettings.tsx",
     "src/Shared/Types/WorkStartReminder.ts",
-    "src/Shared/Types/Quiz.ts",
     "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {
