@@ -3,21 +3,24 @@ import {
   createDefaultBlockListValue,
   removeBlockListEntry,
   type BlockListValue,
-} from '@/modules/block-list';
-import { createDefaultCoinBalanceValue, setCoinBalance } from '@/modules/coin';
+} from '@/Background/Services/BlockListManagement/BlockListManagementService';
+import {
+  createDefaultCoinBalanceValue,
+  setCoinBalance,
+} from '@/Background/Services/Coin/CoinService';
 import {
   createDefaultSchedulerState,
   pauseScheduler,
   resumeScheduler,
   startFocus,
   type SchedulerState,
-} from '@/modules/scheduler';
+} from '@/Background/Services/Scheduler/SchedulerService';
 import {
   clearWorkStartReminder,
   createDefaultWorkStartReminderValue,
   setWorkStartReminder,
   type WorkStartReminderValue,
-} from '@/modules/work-start-reminder';
+} from '@/Background/Services/WorkStartReminder/WorkStartReminderService';
 
 export const APP_STATE_STORAGE_KEY = 'appState';
 

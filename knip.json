@@ -2,7 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["index.html", "src/background.ts", "src/content.ts"],
   "ignoreIssues": {
-    "src/modules/**": ["exports", "types"],
     "src/adapters/browser/**": ["exports", "types"],
     "src/runtime/**": ["exports", "types"],
     "src/store/selectors/settingsProjectionSelectors.ts": ["exports"],
@@ -58,7 +57,6 @@
     "src/components/TimeField/TimeField.tsx",
     "src/components/Toggle/Toggle.tsx",
     "src/components/WorkHoursSettings/WorkHoursSettings.tsx",
-    "src/modules/index.ts",
     "src/runtime/index.ts",
     "src/runtime/workStartReminderTypes.ts",
     "src/store/actions/blockedSitesActions.ts",
