@@ -3,7 +3,7 @@ import type {
   AppCommandResponse,
   AppStateMessage,
   PersistedAppState,
-} from '../Shared/Types/AppState';
+} from '../../Shared/Types/AppState';
 
 export const getAppState = async (): Promise<PersistedAppState> =>
   chrome.runtime.sendMessage({ type: 'GET_APP_STATE' } satisfies AppStateMessage);

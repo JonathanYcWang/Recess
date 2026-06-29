@@ -26,7 +26,7 @@ import {
   notifyFocusComplete,
   notifyBreakEnding,
   notifyBreakComplete,
-} from '../services/notificationService';
+} from '../Background/Adapters/Notification/NotificationAdapter';
 import { generateReward } from '../Shared/Utils/RewardService';
 import {
   selectBlockedSites,

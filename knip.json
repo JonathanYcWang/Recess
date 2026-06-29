@@ -1,9 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["index.html", "src/background.ts", "src/content.ts"],
+  "entry": ["index.html", "src/Background/background.ts", "src/Background/content.ts"],
   "ignoreIssues": {
     "src/adapters/browser/**": ["exports", "types"],
-    "src/runtime/**": ["exports", "types"],
+    "src/Background/Runtime/**": ["exports", "types"],
     "src/store/selectors/settingsProjectionSelectors.ts": ["exports"],
     "src/store/settingsClient.ts": ["exports"],
     "src/store/settingsConnectionAwareClient.ts": ["exports"],
@@ -33,8 +33,7 @@
     "src/store/reducers/taskListProjectionReducer.ts": ["types"],
     "src/store/selectors/taskListProjectionSelectors.ts": ["exports"],
     "src/constants/constants.ts": ["exports"],
-    "src/services/sessionDurationService.ts": ["exports"],
-    "src/services/timerService.ts": ["exports"],
+    
     "src/store/actions/timerActions.ts": ["exports"],
     "src/store/selectors/quizSelectors.ts": ["exports"],
     "src/store/selectors/timerSelectors.ts": ["exports"]

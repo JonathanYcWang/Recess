@@ -11,7 +11,7 @@ export default defineConfig({
     emptyOutDir: false,
     outDir: 'dist',
     lib: {
-      entry: path.resolve(__dirname, 'src/background.ts'),
+      entry: path.resolve(__dirname, 'src/Background/background.ts'),
       formats: ['iife'],
       fileName: () => 'background.js',
       name: 'RecessBackground',
