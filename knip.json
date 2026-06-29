@@ -40,7 +40,7 @@
     "src/Background/Services/Coin/CoinService.ts": ["exports"],
     "src/Background/Services/Scheduler/SchedulerService.ts": ["exports"],
     "src/Background/Services/WorkStartReminder/WorkStartReminderService.ts": ["exports", "types"],
-    "src/Shared/Adapters/ActionBroker.ts": ["exports"],
+    "src/Shared/ActionBrokers/ActionBroker.ts": ["exports"],
     "src/Shared/Constants/Constants.ts": ["exports"],
     "src/Shared/Utils/SessionDurationService.ts": ["exports"],
     "src/Shared/Utils/TimerService.ts": ["exports"],
