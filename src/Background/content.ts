@@ -1,4 +1,3 @@
-/// <reference types="chrome-types" />
 //
 // content.ts — Content script entrypoint
 //
