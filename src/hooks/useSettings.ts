@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import type { ThemePreference } from '@/modules/persisted-application-state';
+import type { ThemePreference } from '@/runtime/persistence';
 import type { SettingsClientCommandResult } from '@/runtime';
 import { createAppSettingsClient } from '@/store/settingsClient';
 import { retrySettingsConnection } from '@/store/settingsConnectionManager';

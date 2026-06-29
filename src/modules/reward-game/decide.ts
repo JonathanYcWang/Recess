@@ -1,4 +1,4 @@
-import type { Result } from '@/modules/persisted-application-state/types';
+import type { Result } from '@/runtime/persistence/types';
 import { GAME_BUDGET_SECONDS, type RewardGameKind } from '@/modules/scheduler';
 import { resolveDestination, selectCandidates } from './candidates';
 import {

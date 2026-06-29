@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
-import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import { createPersistedApplicationState } from '@/runtime/persistence';
 import { createBackgroundCompositionRoot } from '@/runtime/background/backgroundCompositionRoot';
 
 const allDays = [true, true, true, true, true, true, true] as const;

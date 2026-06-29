@@ -1,4 +1,4 @@
-import type { VersionedDocument } from '@/modules/persisted-application-state';
+import type { VersionedDocument } from '@/runtime/persistence';
 import type { RewardGameValue, RewardGameSnapshot } from '@/modules/reward-game';
 import type { RewardGameCommandError } from './protocol/rewardGameCommand';
 import type { RuntimeCommandResponse } from './protocol/types';

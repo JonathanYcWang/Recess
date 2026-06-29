@@ -4,11 +4,11 @@ import {
   createPersistedApplicationState,
   describeSettingsDocumentIntegrationTests,
   settingsCodec,
-} from '@/modules/persisted-application-state';
-import { describeTaskListDocumentIntegrationTests } from '@/modules/persisted-application-state/integration/taskListDocument.integrationTests';
-import { createDefaultSettingsValue } from '@/modules/persisted-application-state/settings/settingsDocument';
+} from '@/runtime/persistence';
+import { describeTaskListDocumentIntegrationTests } from '@/runtime/persistence/integration/taskListDocument.integrationTests';
+import { createDefaultSettingsValue } from '@/runtime/persistence/settings/settingsDocument';
 
-import { SETTINGS_DOCUMENT_KEY } from '@/modules/persisted-application-state/registry/documentRegistry';
+import { SETTINGS_DOCUMENT_KEY } from '@/runtime/persistence/registry/documentRegistry';
 
 describeSettingsDocumentIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');
 describeTaskListDocumentIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');

@@ -11,7 +11,7 @@ import { projectBackgroundAccessContext } from '@/runtime/background/backgroundA
 import { RUNTIME_PROTOCOL_VERSION } from '@/runtime/protocol/types';
 import { startTimeOutCommandId } from '@/modules/work-rhythm';
 import { createWorkRhythmCommandEnvelope } from '@/runtime/client/inProcessWorkRhythmClient';
-import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import { createPersistedApplicationState } from '@/runtime/persistence';
 
 describe('hall pass grant integration', () => {
   it('confirms a hall pass and restores blocked tabs for one destination', async () => {

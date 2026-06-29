@@ -1,4 +1,4 @@
-import type { Result } from '@/modules/persisted-application-state/types';
+import type { Result } from '@/runtime/persistence/types';
 import { gameKindForIndex } from '@/modules/reward-game';
 import type { WorkRhythmRecess, WorkRhythmRewardGame, WorkRhythmValue } from './workRhythmDocument';
 import { decidePostGameRecess } from '@/modules/scheduler';

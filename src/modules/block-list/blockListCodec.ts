@@ -1,8 +1,4 @@
-import type {
-  DocumentCodec,
-  Result,
-  VersionedDocument,
-} from '@/modules/persisted-application-state';
+import type { DocumentCodec, Result, VersionedDocument } from '@/runtime/persistence';
 import { createDefaultBlockListValue, type BlockListValue } from './blockListDocument';
 
 export const BLOCK_LIST_SCHEMA_VERSION = 1;

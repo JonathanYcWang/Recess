@@ -2,7 +2,7 @@ import type {
   KeyValueStorageAdapter,
   PersistedApplicationState,
   VersionedDocument,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 import { canonicalizeBlockListInput, type BlockListValue } from '@/modules/block-list';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';

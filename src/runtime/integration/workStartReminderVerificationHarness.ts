@@ -3,7 +3,7 @@ import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/i
 import {
   createPersistedApplicationState,
   type PersistedApplicationState,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 import { createWorkHistoryService } from '@/modules/work-history';
 import { DEFAULT_WORK_SESSION_GOAL_SECONDS } from '@/modules/work-rhythm';
 import type { WorkStartReminderValue } from '@/modules/work-start-reminder';

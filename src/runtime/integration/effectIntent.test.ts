@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
-import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import { createPersistedApplicationState } from '@/runtime/persistence';
 import { createSettingsCommandHandler } from '@/runtime/background/settingsCommandHandler';
 import { createEffectExecutor } from '@/runtime/effects/effectExecutor';
 import { createEffectOutcomeStore } from '@/runtime/effects/effectOutcomeStore';

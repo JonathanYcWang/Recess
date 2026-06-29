@@ -2,7 +2,7 @@ import type {
   KeyValueStorageAdapter,
   PersistedApplicationState,
   VersionedDocument,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 import {
   activateOccurrenceByAlarm,
   applyOccurrenceResolution,

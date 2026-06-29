@@ -1,4 +1,4 @@
-import type { KeyValueStorageAdapter } from '@/modules/persisted-application-state';
+import type { KeyValueStorageAdapter } from '@/runtime/persistence';
 import type { EffectIntentRecord } from './types';
 
 export const EFFECT_OUTCOMES_STORAGE_KEY = '__recess_effect_outcomes';

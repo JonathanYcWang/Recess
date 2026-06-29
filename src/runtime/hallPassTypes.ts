@@ -1,4 +1,4 @@
-import type { VersionedDocument } from '@/modules/persisted-application-state';
+import type { VersionedDocument } from '@/runtime/persistence';
 import type { HallPassValue, HallPassSnapshot } from '@/modules/hall-pass';
 import type { HallPassCommandEnvelope, HallPassCommandError } from './protocol/hallPassCommand';
 import type { HallPassRuntimeTransportError } from './messaging/hallPassMessages';

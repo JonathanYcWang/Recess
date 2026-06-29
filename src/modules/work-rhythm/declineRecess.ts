@@ -1,4 +1,4 @@
-import type { Result } from '@/modules/persisted-application-state/types';
+import type { Result } from '@/runtime/persistence/types';
 import { decideFocusRecessCycle } from '@/modules/scheduler';
 import type { RewardGameBudget } from '@/modules/scheduler';
 import type { PreferredCadence } from '@/modules/workstyle-profile';

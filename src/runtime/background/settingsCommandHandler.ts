@@ -2,7 +2,7 @@ import type {
   PersistedApplicationState,
   SettingsValue,
   VersionedDocument,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 import { createCommandLedger } from '../commandLedger';
 import type { CommandOutcomeStore } from '../commandOutcomeStore';
 import type { EffectExecutor } from '../effects/effectExecutor';

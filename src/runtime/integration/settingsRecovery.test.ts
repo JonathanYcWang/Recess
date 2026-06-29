@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createInMemoryKeyValueAdapter } from '@/adapters/browser/in-memory/inMemoryKeyValueAdapter';
-import type { KeyValueStorageAdapter } from '@/modules/persisted-application-state';
-import { createPersistedApplicationState } from '@/modules/persisted-application-state';
+import type { KeyValueStorageAdapter } from '@/runtime/persistence';
+import { createPersistedApplicationState } from '@/runtime/persistence';
 import { createBackgroundCompositionRoot } from '@/runtime/background/backgroundCompositionRoot';
 import { createSettingsCommandHandler } from '@/runtime/background/settingsCommandHandler';
 import {

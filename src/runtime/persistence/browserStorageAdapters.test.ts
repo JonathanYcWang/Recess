@@ -6,7 +6,7 @@ import {
   createPersistedApplicationState,
   describeKeyValueAdapterIntegrationTests,
   describeSettingsDocumentIntegrationTests,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 
 describeKeyValueAdapterIntegrationTests(createInMemoryKeyValueAdapter, 'in-memory');
 

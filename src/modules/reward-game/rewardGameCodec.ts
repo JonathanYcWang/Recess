@@ -1,8 +1,4 @@
-import type {
-  DocumentCodec,
-  Result,
-  VersionedDocument,
-} from '@/modules/persisted-application-state';
+import type { DocumentCodec, Result, VersionedDocument } from '@/runtime/persistence';
 import type { RewardGameKind } from '@/modules/scheduler';
 import {
   cloneRewardGameValue,

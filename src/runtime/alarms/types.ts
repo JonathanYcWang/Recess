@@ -10,13 +10,7 @@ export type AlarmError =
   | { kind: 'list-failed'; cause?: unknown };
 
 export interface AlarmAdapter {
-  schedule(
-    alarm: AlarmSchedule
-  ): Promise<import('@/modules/persisted-application-state').Result<void, AlarmError>>;
-  clear(
-    name: string
-  ): Promise<import('@/modules/persisted-application-state').Result<void, AlarmError>>;
-  listAll(): Promise<
-    import('@/modules/persisted-application-state').Result<readonly AlarmSchedule[], AlarmError>
-  >;
+  schedule(alarm: AlarmSchedule): Promise<import('@/runtime/persistence').Result<void, AlarmError>>;
+  clear(name: string): Promise<import('@/runtime/persistence').Result<void, AlarmError>>;
+  listAll(): Promise<import('@/runtime/persistence').Result<readonly AlarmSchedule[], AlarmError>>;
 }

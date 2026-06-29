@@ -3,7 +3,7 @@ import {
   createPersistedApplicationState,
   type PersistedApplicationState,
   type VersionedDocument,
-} from '@/modules/persisted-application-state';
+} from '@/runtime/persistence';
 import { createWorkHistoryService } from '@/modules/work-history';
 import { createInMemoryWorkHistoryAdapter } from '@/adapters/browser/in-memory/inMemoryWorkHistoryAdapter';
 import { DEFAULT_WORK_SESSION_GOAL_SECONDS, type WorkRhythmValue } from '@/modules/work-rhythm';
