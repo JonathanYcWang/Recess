@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import App from './App';
 import type { PersistedAppState } from '../Shared/Types/AppState';
-import { getAppState, subscribeToAppState } from '../Shared/Adapters/ActionBroker';
+import { getAppState, subscribeToAppState } from '../Shared/ActionBrokers/ActionBroker';
 import { setAppState } from './Redux/Slices/AppState/actions';
 import { store } from './Redux/store';
 import './index.css';
