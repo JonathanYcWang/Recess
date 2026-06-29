@@ -32,16 +32,43 @@
     "src/store/taskListConnectionManager.ts": ["exports"],
     "src/store/taskListProjectionSubscription.ts": ["exports"],
     "src/store/reducers/taskListProjectionReducer.ts": ["types"],
-    "src/store/selectors/taskListProjectionSelectors.ts": ["exports"]
+    "src/store/selectors/taskListProjectionSelectors.ts": ["exports"],
+    "src/constants/constants.ts": ["exports"],
+    "src/services/sessionDurationService.ts": ["exports"],
+    "src/services/timerService.ts": ["exports"],
+    "src/store/actions/timerActions.ts": ["exports"],
+    "src/store/selectors/quizSelectors.ts": ["exports"],
+    "src/store/selectors/timerSelectors.ts": ["exports"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
+  "ignoreDependencies": [
+    "@internationalized/date",
+    "react-aria-components"
+  ],
   "ignoreFiles": [
     "src/components/PrizeWheel/**",
     "src/components/ParticleBurst/**",
     "src/components/QuizQuestion/**",
     "src/hooks/useParticles.ts",
-    "src/hooks/useSettings.ts",
-    "src/pages/QuizPage/**"
+    "src/pages/QuizPage/**",
+    "src/components/BlockedSites/BlockedSites.tsx",
+    "src/components/EditTimeRangeOverlay/EditTimeRangeOverlay.tsx",
+    "src/components/FocusTaskSelection/FocusTaskSelection.tsx",
+    "src/components/TaskList/TaskList.tsx",
+    "src/components/TimeField/TimeField.tsx",
+    "src/components/Toggle/Toggle.tsx",
+    "src/components/WorkHoursSettings/WorkHoursSettings.tsx",
+    "src/modules/index.ts",
+    "src/runtime/index.ts",
+    "src/runtime/workStartReminderTypes.ts",
+    "src/store/actions/blockedSitesActions.ts",
+    "src/store/actions/quizActions.ts",
+    "src/store/initialState.ts",
+    "src/store/reducers/blockedSitesReducer.ts",
+    "src/store/reducers/quizReducer.ts",
+    "src/store/reducers/timerReducer.ts",
+    "src/types/quiz.ts",
+    "src/views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {
     "config": ["vite.config.ts", "vite.background.config.ts"]
