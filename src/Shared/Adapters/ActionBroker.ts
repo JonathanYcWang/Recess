@@ -1,6 +1,6 @@
 import type {
-  AppCommand,
-  AppCommandResponse,
+  AppAction,
+  AppActionResponse,
   AppStateMessage,
   PersistedAppState,
 } from '../../Shared/Types/AppState';
@@ -8,10 +8,10 @@ import type {
 export const getAppState = async (): Promise<PersistedAppState> =>
   chrome.runtime.sendMessage({ type: 'GET_APP_STATE' } satisfies AppStateMessage);
 
-export const sendAppCommand = async (command: AppCommand): Promise<AppCommandResponse> =>
+export const sendAppAction = async (action: AppAction): Promise<AppActionResponse> =>
   chrome.runtime.sendMessage({
-    type: 'APP_COMMAND',
-    command,
+    type: 'APP_ACTION',
+    action,
   } satisfies AppStateMessage);
 
 export const subscribeToAppState = (listener: (state: PersistedAppState) => void): (() => void) => {

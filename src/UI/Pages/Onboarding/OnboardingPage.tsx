@@ -123,12 +123,12 @@ const OnboardingPage = () => {
     try {
       const response = await chrome.runtime.sendMessage({
         channel: 'recess.workstyle-profile.runtime.v1',
-        action: 'command',
+        action: 'action',
         envelope: {
           protocolVersion: 1,
-          commandId: `onboarding-${Date.now()}`,
+          actionId: `onboarding-${Date.now()}`,
           module: 'workstyle-profile',
-          command: {
+          action: {
             kind: 'initialize-from-onboarding',
             energy: draft.energy,
             cadence: draft.cadence,

@@ -45,7 +45,7 @@ export interface PersistedAppState {
   quiz: QuizValue;
 }
 
-export type AppCommand =
+export type AppAction =
   | { type: 'ADD_BLOCKED_SITE'; hostname: string }
   | { type: 'REMOVE_BLOCKED_SITE'; hostname: string }
   | { type: 'START_FOCUS' }
@@ -57,10 +57,10 @@ export type AppCommand =
 
 export type AppStateMessage =
   | { type: 'GET_APP_STATE' }
-  | { type: 'APP_COMMAND'; command: AppCommand }
+  | { type: 'APP_ACTION'; action: AppAction }
   | { type: 'APP_STATE_CHANGED'; state: PersistedAppState };
 
-export type AppCommandResponse = { ok: true } | { ok: false; error: 'invalid-command' };
+export type AppActionResponse = { ok: true } | { ok: false; error: 'invalid-action' };
 
 export const createDefaultPersistedAppState = (): PersistedAppState => ({
   blockList: createDefaultBlockListValue(),
@@ -94,50 +94,50 @@ export const isPersistedAppState = (value: unknown): value is PersistedAppState 
   (typeof value.workStartReminder.startsAt === 'string' ||
     value.workStartReminder.startsAt === null);
 
-export const applyAppCommand = (
+export const applyAppAction = (
   state: PersistedAppState,
-  command: AppCommand,
+  action: AppAction,
   now: Date
 ): PersistedAppState => {
-  if (command.type === 'ADD_BLOCKED_SITE') {
+  if (action.type === 'ADD_BLOCKED_SITE') {
     return {
       ...state,
-      blockList: addBlockListEntry(state.blockList, command.hostname),
+      blockList: addBlockListEntry(state.blockList, action.hostname),
     };
   }
 
-  if (command.type === 'REMOVE_BLOCKED_SITE') {
+  if (action.type === 'REMOVE_BLOCKED_SITE') {
     return {
       ...state,
-      blockList: removeBlockListEntry(state.blockList, command.hostname),
+      blockList: removeBlockListEntry(state.blockList, action.hostname),
     };
   }
 
-  if (command.type === 'START_FOCUS') {
+  if (action.type === 'START_FOCUS') {
     return { ...state, scheduler: startFocus(now) };
   }
 
-  if (command.type === 'PAUSE_SCHEDULER') {
+  if (action.type === 'PAUSE_SCHEDULER') {
     return { ...state, scheduler: pauseScheduler(state.scheduler, now) };
   }
 
-  if (command.type === 'RESUME_SCHEDULER') {
+  if (action.type === 'RESUME_SCHEDULER') {
     return { ...state, scheduler: resumeScheduler(state.scheduler, now) };
   }
 
-  if (command.type === 'SET_WORK_START_REMINDER') {
+  if (action.type === 'SET_WORK_START_REMINDER') {
     return {
       ...state,
-      workStartReminder: setWorkStartReminder(new Date(command.startsAt)),
+      workStartReminder: setWorkStartReminder(new Date(action.startsAt)),
     };
   }
 
-  if (command.type === 'CLEAR_WORK_START_REMINDER') {
+  if (action.type === 'CLEAR_WORK_START_REMINDER') {
     return { ...state, workStartReminder: clearWorkStartReminder() };
   }
 
   return {
     ...state,
-    coin: setCoinBalance(state.coin, command.balance),
+    coin: setCoinBalance(state.coin, action.balance),
   };
 };

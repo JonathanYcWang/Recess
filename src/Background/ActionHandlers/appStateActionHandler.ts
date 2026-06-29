@@ -1,13 +1,13 @@
 import {
   APP_STATE_STORAGE_KEY,
-  applyAppCommand,
+  applyAppAction,
   createDefaultPersistedAppState,
   isPersistedAppState,
-  type AppCommand,
-  type AppCommandResponse,
-  type AppStateMessage,
+  type AppAction,
+  type AppActionResponse,
   type PersistedAppState,
 } from '../../Shared/Types/AppState';
+import { broadcastAppState } from '../Broadcasters/appStateBroadcaster';
 
 const getStoredAppState = async (): Promise<PersistedAppState> => {
   const result = await chrome.storage.local.get(APP_STATE_STORAGE_KEY);
@@ -20,28 +20,9 @@ const saveAppState = async (state: PersistedAppState): Promise<void> => {
   await chrome.storage.local.set({ [APP_STATE_STORAGE_KEY]: state });
 };
 
-const broadcastToContentScripts = async (message: AppStateMessage): Promise<void> => {
-  const tabs = await chrome.tabs.query({});
-
-  await Promise.all(
-    tabs.map(async (tab) => {
-      if (tab.id) {
-        await chrome.tabs.sendMessage(tab.id, message).catch(() => undefined);
-      }
-    })
-  );
-};
-
-const broadcastAppState = async (state: PersistedAppState): Promise<void> => {
-  const message = { type: 'APP_STATE_CHANGED', state } satisfies AppStateMessage;
-
-  await chrome.runtime.sendMessage(message).catch(() => undefined);
-  await broadcastToContentScripts(message);
-};
-
-export const handleAppCommand = async (command: AppCommand): Promise<AppCommandResponse> => {
+export const handleAppAction = async (action: AppAction): Promise<AppActionResponse> => {
   const currentState = await getStoredAppState();
-  const nextState = applyAppCommand(currentState, command, new Date());
+  const nextState = applyAppAction(currentState, action, new Date());
 
   await saveAppState(nextState);
   await broadcastAppState(nextState);

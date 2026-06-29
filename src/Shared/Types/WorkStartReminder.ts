@@ -14,22 +14,22 @@ export type WorkStartReminderPublishedSnapshot = {
   snapshot: WorkStartReminderSnapshot;
 };
 
-export type WorkStartReminderCommandError = 'invalid-command' | 'not-found' | 'conflict';
+export type WorkStartReminderActionError = 'invalid-action' | 'not-found' | 'conflict';
 
 export type WorkStartReminderRuntimeTransportError = 'transport-unavailable' | 'timeout';
 
-export type RuntimeCommandResponse<T, E> = { ok: true; value: T } | { ok: false; error: E };
+export type RuntimeActionResponse<T, E> = { ok: true; value: T } | { ok: false; error: E };
 
-export type WorkStartReminderCommandResponse = RuntimeCommandResponse<
+export type WorkStartReminderActionResponse = RuntimeActionResponse<
   WorkStartReminderPublishedSnapshot,
-  WorkStartReminderCommandError
+  WorkStartReminderActionError
 >;
 
 export type WorkStartReminderClientError =
-  | WorkStartReminderCommandError
+  | WorkStartReminderActionError
   | WorkStartReminderRuntimeTransportError;
 
-export type WorkStartReminderClientCommandResult = RuntimeCommandResponse<
+export type WorkStartReminderClientActionResult = RuntimeActionResponse<
   WorkStartReminderPublishedSnapshot,
   WorkStartReminderClientError
 >;
@@ -40,48 +40,48 @@ export type WorkStartReminderClientCurrentResult =
 
 export type WorkStartReminderRuntimeResult =
   | { ok: true; value: WorkStartReminderPublishedSnapshot }
-  | { ok: false; error: WorkStartReminderCommandError };
+  | { ok: false; error: WorkStartReminderActionError };
 
 export interface WorkStartReminderSubscribeOptions {
   onTransportLoss?: () => void;
 }
 
-export interface WorkStartReminderCommandHandler {
+export interface WorkStartReminderActionHandler {
   current(): WorkStartReminderRuntimeResult;
-  execute(envelope: unknown): Promise<WorkStartReminderCommandResponse>;
+  execute(envelope: unknown): Promise<WorkStartReminderActionResponse>;
   subscribe(listener: (snapshot: WorkStartReminderPublishedSnapshot) => void): () => void;
-  reconcileDueReminder(alarmName: string): Promise<WorkStartReminderCommandResponse | null>;
+  reconcileDueReminder(alarmName: string): Promise<WorkStartReminderActionResponse | null>;
   bootstrapPlanning(): Promise<void>;
   applyWorkSessionStarted(input: {
     workSessionId: string;
     startedAtEpochMs: number;
-  }): Promise<WorkStartReminderCommandResponse>;
+  }): Promise<WorkStartReminderActionResponse>;
 }
 
 export interface WorkStartReminderClient {
   current(): Promise<WorkStartReminderClientCurrentResult>;
-  command(envelope: unknown): Promise<WorkStartReminderClientCommandResult>;
+  action(envelope: unknown): Promise<WorkStartReminderClientActionResult>;
   addSchedule(
     input: { time: string; days: boolean[]; enabled?: boolean },
-    options?: { commandId?: string; expectedRevision?: number }
-  ): Promise<WorkStartReminderClientCommandResult>;
+    options?: { actionId?: string; expectedRevision?: number }
+  ): Promise<WorkStartReminderClientActionResult>;
   updateSchedule(
     id: string,
     input: { time: string; days: boolean[]; enabled?: boolean },
-    options?: { commandId?: string; expectedRevision?: number }
-  ): Promise<WorkStartReminderClientCommandResult>;
+    options?: { actionId?: string; expectedRevision?: number }
+  ): Promise<WorkStartReminderClientActionResult>;
   deleteSchedule(
     id: string,
-    options?: { commandId?: string; expectedRevision?: number }
-  ): Promise<WorkStartReminderClientCommandResult>;
+    options?: { actionId?: string; expectedRevision?: number }
+  ): Promise<WorkStartReminderClientActionResult>;
   toggleScheduleEnabled(
     id: string,
-    options?: { commandId?: string; expectedRevision?: number }
-  ): Promise<WorkStartReminderClientCommandResult>;
+    options?: { actionId?: string; expectedRevision?: number }
+  ): Promise<WorkStartReminderClientActionResult>;
   skipNext(options?: {
-    commandId?: string;
+    actionId?: string;
     expectedRevision?: number;
-  }): Promise<WorkStartReminderClientCommandResult>;
+  }): Promise<WorkStartReminderClientActionResult>;
   subscribe(
     listener: (snapshot: WorkStartReminderPublishedSnapshot) => void,
     options?: WorkStartReminderSubscribeOptions

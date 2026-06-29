@@ -1,4 +1,4 @@
-import { handleAppCommand, handleGetAppState } from './Runtime/appStateCommandHandler';
+import { handleAppAction, handleGetAppState } from './ActionHandlers/appStateActionHandler';
 import type { AppStateMessage } from '../Shared/Types/AppState';
 
 chrome.runtime.onMessage.addListener((message: AppStateMessage, _sender, sendResponse) => {
@@ -7,8 +7,8 @@ chrome.runtime.onMessage.addListener((message: AppStateMessage, _sender, sendRes
     return true;
   }
 
-  if (message.type === 'APP_COMMAND') {
-    handleAppCommand(message.command).then(sendResponse);
+  if (message.type === 'APP_ACTION') {
+    handleAppAction(message.action).then(sendResponse);
     return true;
   }
 
