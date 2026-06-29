@@ -1,30 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../store';
-import {
-  selectActivePetId,
-  selectOnboardingCompleted,
-} from '../../store/selectors/workstyleProfileProjectionSelectors';
-import { getPetById } from '@/modules/pet-catalog';
-// import PrizeWheel from '@/components/PrizeWheel/PrizeWheel';
 import FocusPet from '@/components/FocusPet/FocusPet';
 import WorkPage from '@/components/WorkPage/WorkPage';
-import WorkHoursSettings from '@/components/WorkHoursSettings/WorkHoursSettings';
-import BlockedSites from '@/components/BlockedSites/BlockedSites';
-import InsightsSection from '@/components/InsightsPage/InsightsSection';
+// import WorkHoursSettings from '@/components/WorkHoursSettings/WorkHoursSettings';
+// import BlockedSites from '@/components/BlockedSites/BlockedSites';
 import InfoWidget from '@/components/InfoWidget/InfoWidget';
 import styles from './HomePage.module.css';
-// import {
-//   CoconutWheelIcon,
-//   ColorBombIcon,
-//   FishIcon,
-//   HammerIcon,
-//   JackpotIcon,
-//   LuckyCandyIcon,
-//   StripedWrappedIcon,
-//   SwitchIcon,
-// } from '@/components/PrizeWheel/PrizeIcons';
 
 import BunnyWorkingImage from '../../assets/bunny.png';
 
@@ -85,12 +66,11 @@ const renderSectionContent = (mainContent: MainSectionId) => {
   switch (mainContent) {
     case 'focus':
       return <WorkPage />;
-    case 'schedule':
-      return <WorkHoursSettings />;
-    case 'blocked':
-      return <BlockedSites />;
-    case 'insights':
-      return <InsightsSection />;
+    // case 'schedule':
+    //   return <WorkHoursSettings />;
+    // case 'blocked':
+    //   return <BlockedSites />;
+
     default:
       return null;
   }
@@ -98,46 +78,10 @@ const renderSectionContent = (mainContent: MainSectionId) => {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const onboardingCompleted = useSelector((state: RootState) => selectOnboardingCompleted(state));
-  const activePetId = useSelector((state: RootState) => selectActivePetId(state));
-  const [checkedOnboarding, setCheckedOnboarding] = useState(false);
-  const activePet = activePetId ? getPetById(activePetId) : undefined;
-  const petName = activePet?.name ?? DEFAULT_PET_NAME;
+  const petName = DEFAULT_PET_NAME;
   const petImage = DEFAULT_PET_IMAGE;
 
-  useEffect(() => {
-    if (onboardingCompleted) {
-      setCheckedOnboarding(true);
-      return;
-    }
-    void chrome.runtime
-      .sendMessage({
-        channel: 'recess.workstyle-profile.runtime.v1',
-        action: 'current',
-      })
-      .then((response) => {
-        const completed = Boolean(
-          response?.ok && response.result?.ok && response.result.value.value.onboardingCompleted
-        );
-        if (!completed) {
-          navigate('/onboarding');
-        }
-        setCheckedOnboarding(true);
-      })
-      .catch(() => {
-        navigate('/onboarding');
-        setCheckedOnboarding(true);
-      });
-  }, [navigate, onboardingCompleted]);
-
-  const handleGoHome = () => {
-    navigate('/');
-  };
-
   const [mainContent, setMainContent] = useState<MainSectionId>('focus');
-  if (!checkedOnboarding && !onboardingCompleted) {
-    return null;
-  }
   return (
     <div className={styles.homePage}>
       <div className={styles.layout}>
@@ -147,7 +91,9 @@ const HomePage = () => {
               aria-label="Go to home page"
               className={styles.brand}
               type="button"
-              onClick={handleGoHome}
+              onClick={() => {
+                navigate('/');
+              }}
             >
               <img alt="Recess" className={styles.brandIconSvg} src="/assets/logo.png" />
               <span className={styles.brandText}>Recess</span>

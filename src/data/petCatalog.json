@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "pets": [
+    {
+      "id": "pet-anchor",
+      "name": "Anchor",
+      "theme": "Steady and reassuring when work feels heavy and motivation is hard to find."
+    },
+    {
+      "id": "pet-atlas",
+      "name": "Atlas",
+      "theme": "Calm under emotional weight and naturally helps sort scattered priorities."
+    },
+    {
+      "id": "pet-beacon",
+      "name": "Beacon",
+      "theme": "Gentle and alert—helps you return when stress and distractions compete."
+    },
+    {
+      "id": "pet-bridge",
+      "name": "Bridge",
+      "theme": "Patient at the threshold, easing the step from emotional load into action."
+    },
+    {
+      "id": "pet-drift",
+      "name": "Drift",
+      "theme": "Soft-spirited and restorative when pressure and fatigue arrive together."
+    },
+    {
+      "id": "pet-ember",
+      "name": "Ember",
+      "theme": "Warm but easily dampened—benefits from clear structure and small wins."
+    },
+    {
+      "id": "pet-flux",
+      "name": "Flux",
+      "theme": "Curious and quick-moving; thrives when distractions are gently contained."
+    },
+    {
+      "id": "pet-harbor",
+      "name": "Harbor",
+      "theme": "Inviting at the start line when motivation and hesitation meet."
+    },
+    {
+      "id": "pet-haven",
+      "name": "Haven",
+      "theme": "Low-key and restorative when drive fades before energy returns."
+    },
+    {
+      "id": "pet-helm",
+      "name": "Helm",
+      "theme": "Organized at heart and sensitive to interruptions that break flow."
+    },
+    {
+      "id": "pet-latch",
+      "name": "Latch",
+      "theme": "Methodical and supportive when planning and starting both feel sticky."
+    },
+    {
+      "id": "pet-ledger",
+      "name": "Ledger",
+      "theme": "Orderly and honest about limits when structure and tiredness overlap."
+    },
+    {
+      "id": "pet-nudge",
+      "name": "Nudge",
+      "theme": "Light-footed and playful—helps redirect attention back to the task."
+    },
+    {
+      "id": "pet-pause",
+      "name": "Pause",
+      "theme": "Understands when attention wanders and energy is running low."
+    },
+    {
+      "id": "pet-summit",
+      "name": "Summit",
+      "theme": "Encouraging at the first step and patient through late-session fatigue."
+    },
+    {
+      "id": "pet-tide",
+      "name": "Tide",
+      "theme": "Even-keeled across many friction patterns—a balanced working companion."
+    }
+  ]
+}

@@ -11,7 +11,6 @@ import {
   transitionToBeforeWorkSession,
   transitionToRewardSelection,
   transitionToFocusSessionCountdown,
-  updateTimerState,
   setTotalTimer,
   updateFeedbackMultiplier,
   setGeneratedRewards,
@@ -21,7 +20,7 @@ import {
 import type { AppDispatch, RootState } from '../store';
 import { Reward } from '../types/reward';
 import { NOTIFY_TIME_LEFT_SECONDS } from '../constants/constants';
-import { calculateRemaining } from '../services/timerService';
+// import { calculateRemaining } from '../services/timerService';
 import {
   notifyFocusEnding,
   notifyFocusComplete,
@@ -58,12 +57,12 @@ export const useTimer = () => {
   const timerState = useSelector((state: RootState) => selectTimerState(state));
   const sessionState = useSelector((state: RootState) => selectSessionState(state));
   const isPaused = useSelector((state: RootState) => selectIsPaused(state));
-  const rewards = useSelector((state: RootState) => selectGeneratedRewards(state));
+  const rewards = useSelector(() => selectGeneratedRewards());
   const blockedSites = useSelector((state: RootState) => selectBlockedSites(state));
-  const shownCombinations = useSelector((state: RootState) => selectShownRewardCombinations(state));
-  const rerolls = useSelector((state: RootState) => selectRerolls(state));
-  const fatigueScore = useSelector((state: RootState) => selectFatigueScore(state));
-  const momentumScore = useSelector((state: RootState) => selectMomentumScore(state));
+  const shownCombinations = useSelector(() => selectShownRewardCombinations());
+  const rerolls = useSelector(() => selectRerolls());
+  const fatigueScore = useSelector(() => selectFatigueScore());
+  const momentumScore = useSelector(() => selectMomentumScore());
   const [, setTick] = useState(0);
   const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingCompletionSessionRef = useRef<string | null>(null);
@@ -118,30 +117,33 @@ export const useTimer = () => {
     [dispatch, isPaused, sessionState]
   );
 
-  const getActiveRemainingSeconds = useCallback((): number => {
-    if (sessionState === SESSION_STATES.ONGOING_FOCUS_SESSION) {
-      if (isPaused || timerState.currentStartTime === undefined) {
-        return timerState.currentTimerRemaining;
-      }
-      return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
-    }
+  // TO DO FOllOW
+  // const getActiveRemainingSeconds = useCallback((): number => {
+  //   if (sessionState === SESSION_STATES.ONGOING_FOCUS_SESSION) {
+  //     if (isPaused || timerState.currentStartTime === undefined) {
+  //       return timerState.currentTimerRemaining;
+  //     }
+  //     return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
+  //   }
 
-    if (sessionState === SESSION_STATES.ONGOING_BREAK_SESSION) {
-      if (timerState.currentStartTime === undefined) {
-        return timerState.currentTimerRemaining;
-      }
-      return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
-    }
+  //   if (sessionState === SESSION_STATES.ONGOING_BREAK_SESSION) {
+  //       return timerState?.currentTimerRemaining;
+  //     }
+  //     return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
+  //   }
 
-    if (sessionState === SESSION_STATES.FOCUS_SESSION_COUNTDOWN) {
-      if (isPaused || timerState.currentStartTime === undefined)
-        return timerState.currentTimerRemaining;
-      return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
-    }
+  //   if (sessionState === SESSION_STATES.FOCUS_SESSION_COUNTDOWN) {
+  //     if (isPaused || timerState.currentStartTime === undefined)
+  //       return timerState.currentTimerRemaining;
+  //     return calculateRemaining(timerState.currentTimerRemaining, timerState.currentStartTime);
+  //   }
 
-    return timerState.currentTimerRemaining;
-  }, [sessionState, isPaused, timerState.currentTimerRemaining, timerState.currentStartTime]);
+  //   return timerState.currentTimerRemaining;
+  // }, [sessionState, isPaused, timerState.currentTimerRemaining, timerState.currentStartTime]);
 
+  // const currentRemaining = getActiveRemainingSeconds();
+
+  const getActiveRemainingSeconds = () => 5 * 60;
   const currentRemaining = getActiveRemainingSeconds();
 
   useEffect(() => {
@@ -248,9 +250,11 @@ export const useTimer = () => {
 
   return {
     timerState,
-    currentTimer: timerState.currentTimer,
+    // currentTimer: timerState.currentTimer,
+    currentTimer: currentRemaining,
     currentRemaining,
-    totalRemaining: timerState.totalRemaining,
+    // totalRemaining: timerState.totalRemaining,
+    totalRemaining: currentRemaining,
     startFocusSession: () => dispatch(startFocusSession()),
     pauseSession: () => dispatch(pauseSession(currentRemaining)),
     resumeSession: () => dispatch(resumeSession()),
@@ -259,7 +263,6 @@ export const useTimer = () => {
     transitionToBeforeWorkSession: () => dispatch(transitionToBeforeWorkSession()),
     selectReward: (reward: Reward) => dispatch(selectReward(reward)),
     handleReroll,
-    updateTimerState: (updates: Partial<typeof timerState>) => dispatch(updateTimerState(updates)),
     setTotalTimer: (duration: number) => dispatch(setTotalTimer(duration)),
     updateFeedbackMultiplier: (feedbackMultiplier: number) =>
       dispatch(updateFeedbackMultiplier(feedbackMultiplier)),
@@ -267,6 +270,10 @@ export const useTimer = () => {
     sessionState,
     isPaused,
     rerolls,
-    selectedReward: timerState.selectedReward,
+    selectedReward: {
+      id: '123',
+      name: 'youtube.com',
+      duration: 15,
+    },
   };
 };

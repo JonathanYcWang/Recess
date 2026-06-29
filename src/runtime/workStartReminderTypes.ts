@@ -1,21 +1,24 @@
-import type { VersionedDocument } from '@/runtime/persistence';
-import type {
-  WorkStartReminderSnapshot,
-  WorkStartReminderValue,
-} from '@/modules/work-start-reminder';
-import type {
-  WorkStartReminderCommandEnvelope,
-  WorkStartReminderCommandError,
-} from './protocol/workStartReminderCommand';
-import type { WorkStartReminderRuntimeTransportError } from './messaging/workStartReminderMessages';
-import type { RuntimeCommandResponse } from './protocol/types';
+export type WorkStartReminderValue = {
+  startsAt: string | null;
+};
 
-export type WorkStartReminderDocumentSnapshot = VersionedDocument<WorkStartReminderValue>;
+export type WorkStartReminderSnapshot = WorkStartReminderValue;
+
+export type WorkStartReminderDocumentSnapshot = {
+  revision: number;
+  snapshot: WorkStartReminderSnapshot;
+};
 
 export type WorkStartReminderPublishedSnapshot = {
   revision: number;
   snapshot: WorkStartReminderSnapshot;
 };
+
+export type WorkStartReminderCommandError = 'invalid-command' | 'not-found' | 'conflict';
+
+export type WorkStartReminderRuntimeTransportError = 'transport-unavailable' | 'timeout';
+
+export type RuntimeCommandResponse<T, E> = { ok: true; value: T } | { ok: false; error: E };
 
 export type WorkStartReminderCommandResponse = RuntimeCommandResponse<
   WorkStartReminderPublishedSnapshot,
@@ -57,9 +60,7 @@ export interface WorkStartReminderCommandHandler {
 
 export interface WorkStartReminderClient {
   current(): Promise<WorkStartReminderClientCurrentResult>;
-  command(
-    envelope: WorkStartReminderCommandEnvelope
-  ): Promise<WorkStartReminderClientCommandResult>;
+  command(envelope: unknown): Promise<WorkStartReminderClientCommandResult>;
   addSchedule(
     input: { time: string; days: boolean[]; enabled?: boolean },
     options?: { commandId?: string; expectedRevision?: number }

@@ -1,15 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button/Button';
-import {
-  ENERGY_LEVELS,
-  FRICTION_DIMENSIONS,
-  PREFERRED_CADENCES,
-  type EnergyLevel,
-  type FrictionDimension,
-  type PreferredCadence,
-} from '@/modules/workstyle-profile';
 import styles from './OnboardingPage.module.css';
+
+type EnergyLevel = 'low' | 'steady' | 'high';
+type PreferredCadence = '15/5' | '25/5' | '45/10';
+type FrictionDimension =
+  | 'emotional-load'
+  | 'motivation'
+  | 'organization'
+  | 'distraction'
+  | 'starting'
+  | 'fatigue';
+
+const ENERGY_LEVELS: EnergyLevel[] = ['low', 'steady', 'high'];
+const PREFERRED_CADENCES: PreferredCadence[] = ['15/5', '25/5', '45/10'];
+const FRICTION_DIMENSIONS: FrictionDimension[] = [
+  'emotional-load',
+  'motivation',
+  'organization',
+  'distraction',
+  'starting',
+  'fatigue',
+];
 
 const ONBOARDING_PROGRESS_KEY = '__recess_onboarding_progress';
 
@@ -151,7 +164,7 @@ const OnboardingPage = () => {
         <section className={styles.section}>
           <h2>How is your energy right now?</h2>
           <div className={styles.optionList}>
-            {ENERGY_LEVELS.map((energy) => (
+            {ENERGY_LEVELS.map((energy: EnergyLevel) => (
               <button
                 key={energy}
                 type="button"
@@ -169,7 +182,7 @@ const OnboardingPage = () => {
         <section className={styles.section}>
           <h2>Which focus rhythm feels most natural?</h2>
           <div className={styles.optionList}>
-            {PREFERRED_CADENCES.map((cadence) => (
+            {PREFERRED_CADENCES.map((cadence: PreferredCadence) => (
               <button
                 key={cadence}
                 type="button"
@@ -192,7 +205,7 @@ const OnboardingPage = () => {
         <section className={styles.section}>
           <h2>What gets in the way most often?</h2>
           <div className={styles.optionList}>
-            {FRICTION_DIMENSIONS.map((friction) => (
+            {FRICTION_DIMENSIONS.map((friction: FrictionDimension) => (
               <button
                 key={friction}
                 type="button"

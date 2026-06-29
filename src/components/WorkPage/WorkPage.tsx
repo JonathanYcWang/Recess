@@ -1,13 +1,12 @@
-import WorkRhythmProjectionView from '@/components/WorkRhythmProjection/WorkRhythmProjectionView';
-import TaskList from '@/components/TaskList/TaskList';
-import FocusTaskSelection from '@/components/FocusTaskSelection/FocusTaskSelection';
+// import TaskList from '@/components/TaskList/TaskList';
+// import FocusTaskSelection from '@/components/FocusTaskSelection/FocusTaskSelection';
 import { useTimer } from '../../hooks/useTimer';
 import BeforeWorkSessionView from '../../views/BeforeWorkSessionView/BeforeWorkSessionView';
 import OngoingFocusSessionView from '../../views/OngoingFocusSessionView/OngoingFocusSessionView';
 import RewardSelectionView from '../../views/RewardSelectionView/RewardSelectionView';
 import OngoingBreakSessionView from '../../views/OngoingBreakSessionView/OngoingBreakSessionView';
 import FocusSessionCountdownView from '../../views/FocusSessionCountdownView/FocusSessionCountdownView';
-import WorkSessionCompleteView from '../../views/WorkSessionCompleteView/WorkSessionCompleteView';
+// import WorkSessionCompleteView from '../../views/WorkSessionCompleteView/WorkSessionCompleteView';
 import styles from './WorkPage.module.css';
 import { SESSION_STATES } from '../../constants/constants';
 
@@ -23,7 +22,7 @@ const WorkPage = () => {
     handleReroll,
     endSessionEarly,
     endWorkSessionEarly,
-    transitionToBeforeWorkSession,
+    // transitionToBeforeWorkSession,
     setTotalTimer,
     updateFeedbackMultiplier,
     isPaused,
@@ -76,10 +75,10 @@ const WorkPage = () => {
           />
         );
 
-      case SESSION_STATES.WORK_SESSION_COMPLETE:
-        return (
-          <WorkSessionCompleteView transitionToBeforeWorkSession={transitionToBeforeWorkSession} />
-        );
+      // case SESSION_STATES.WORK_SESSION_COMPLETE:
+      //   return (
+      //     <WorkSessionCompleteView transitionToBeforeWorkSession={transitionToBeforeWorkSession} />
+      //   );
 
       default:
         return null;
@@ -88,9 +87,8 @@ const WorkPage = () => {
 
   return (
     <div className={styles.workPage}>
-      <TaskList />
-      <FocusTaskSelection />
-      <WorkRhythmProjectionView />
+      {/* <TaskList /> */}
+      {/* <FocusTaskSelection /> */}
       {renderContent()}
     </div>
   );
