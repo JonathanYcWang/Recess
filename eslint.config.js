@@ -36,7 +36,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/components/PrizeWheel/**/*.{ts,tsx}'],
+    files: ['src/UI/Components/PrizeWheel/**/*.{ts,tsx}'],
     rules: {
       'react-hooks/immutability': 'off',
     },
