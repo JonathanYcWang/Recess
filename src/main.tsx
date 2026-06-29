@@ -23,6 +23,6 @@ if (root) {
       <Provider store={store}>
         <App />
       </Provider>
-    </StrictMode>,
+    </StrictMode>
   );
 }

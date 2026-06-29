@@ -8,17 +8,13 @@ import type {
 export const getAppState = async (): Promise<PersistedAppState> =>
   chrome.runtime.sendMessage({ type: 'GET_APP_STATE' } satisfies AppStateMessage);
 
-export const sendAppCommand = async (
-  command: AppCommand,
-): Promise<AppCommandResponse> =>
+export const sendAppCommand = async (command: AppCommand): Promise<AppCommandResponse> =>
   chrome.runtime.sendMessage({
     type: 'APP_COMMAND',
     command,
   } satisfies AppStateMessage);
 
-export const subscribeToAppState = (
-  listener: (state: PersistedAppState) => void,
-): (() => void) => {
+export const subscribeToAppState = (listener: (state: PersistedAppState) => void): (() => void) => {
   const onMessage = (message: AppStateMessage): void => {
     if (message.type === 'APP_STATE_CHANGED') {
       listener(message.state);

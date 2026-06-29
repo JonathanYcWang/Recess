@@ -20,9 +20,7 @@ const saveAppState = async (state: PersistedAppState): Promise<void> => {
   await chrome.storage.local.set({ [APP_STATE_STORAGE_KEY]: state });
 };
 
-const broadcastToContentScripts = async (
-  message: AppStateMessage,
-): Promise<void> => {
+const broadcastToContentScripts = async (message: AppStateMessage): Promise<void> => {
   const tabs = await chrome.tabs.query({});
 
   await Promise.all(
@@ -30,7 +28,7 @@ const broadcastToContentScripts = async (
       if (tab.id) {
         await chrome.tabs.sendMessage(tab.id, message).catch(() => undefined);
       }
-    }),
+    })
   );
 };
 
@@ -41,9 +39,7 @@ const broadcastAppState = async (state: PersistedAppState): Promise<void> => {
   await broadcastToContentScripts(message);
 };
 
-export const handleAppCommand = async (
-  command: AppCommand,
-): Promise<AppCommandResponse> => {
+export const handleAppCommand = async (command: AppCommand): Promise<AppCommandResponse> => {
   const currentState = await getStoredAppState();
   const nextState = applyAppCommand(currentState, command, new Date());
 
