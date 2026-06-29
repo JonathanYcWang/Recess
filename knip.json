@@ -72,8 +72,7 @@
     "src/UI/Redux/Slices/Quiz/reducer.ts",
     "src/UI/Redux/Slices/Timer/reducer.ts",
     "src/Shared/Types/Quiz.ts",
-    "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx",
-    "src/runtime/index.ts"
+    "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {
     "config": ["vite.config.ts", "vite.background.config.ts"]
