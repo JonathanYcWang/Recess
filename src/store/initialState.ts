@@ -9,10 +9,6 @@ import type { TimerState } from '../types/timer';
 import type { BlockedSitesState } from './actions/blockedSitesActions';
 import type { QuizReduxState } from './actions/quizActions';
 
-export interface RoutingState {
-  hasOnboarded: boolean;
-}
-
 const DEFAULT_BLOCKED_SITES = [
   'youtube.com',
   'instagram.com',
@@ -63,10 +59,6 @@ export const createInitialTimerState = (): TimerState => {
 
   return base;
 };
-
-export const createInitialRoutingState = (): RoutingState => ({
-  hasOnboarded: false,
-});
 
 export const createInitialQuizState = (): QuizReduxState => ({
   currentQuestionId: 'Q1',
