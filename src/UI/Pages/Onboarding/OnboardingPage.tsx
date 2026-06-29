@@ -1,17 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/UI/Components/Button/Button';
+import { sendAppAction } from '@/Shared/ActionBrokers/ActionBroker';
+import type { EnergyLevel, PreferredCadence, FrictionDimension } from '@/Shared/Types/AppState';
 import styles from './OnboardingPage.module.css';
-
-type EnergyLevel = 'low' | 'steady' | 'high';
-type PreferredCadence = '15/5' | '25/5' | '45/10';
-type FrictionDimension =
-  | 'emotional-load'
-  | 'motivation'
-  | 'organization'
-  | 'distraction'
-  | 'starting'
-  | 'fatigue';
 
 const ENERGY_LEVELS: EnergyLevel[] = ['low', 'steady', 'high'];
 const PREFERRED_CADENCES: PreferredCadence[] = ['15/5', '25/5', '45/10'];
@@ -23,8 +15,6 @@ const FRICTION_DIMENSIONS: FrictionDimension[] = [
   'starting',
   'fatigue',
 ];
-
-const ONBOARDING_PROGRESS_KEY = '__recess_onboarding_progress';
 
 type OnboardingDraft = {
   step: number;
@@ -61,55 +51,18 @@ const defaultDraft = (): OnboardingDraft => ({
   primaryFriction: null,
 });
 
-const loadDraft = async (): Promise<OnboardingDraft> => {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
-    return defaultDraft();
-  }
-  const stored = await chrome.storage.local.get(ONBOARDING_PROGRESS_KEY);
-  const draft = stored[ONBOARDING_PROGRESS_KEY];
-  if (!draft || typeof draft !== 'object') {
-    return defaultDraft();
-  }
-  return { ...defaultDraft(), ...(draft as OnboardingDraft) };
-};
-
-const saveDraft = async (draft: OnboardingDraft): Promise<void> => {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
-    return;
-  }
-  await chrome.storage.local.set({ [ONBOARDING_PROGRESS_KEY]: draft });
-};
-
-const clearDraft = async (): Promise<void> => {
-  if (typeof chrome === 'undefined' || !chrome.storage?.local) {
-    return;
-  }
-  await chrome.storage.local.remove(ONBOARDING_PROGRESS_KEY);
-};
-
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const [draft, setDraft] = useState<OnboardingDraft>(defaultDraft);
-  const [loaded, setLoaded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void loadDraft().then((saved) => {
-      setDraft(saved);
-      setLoaded(true);
-    });
-  }, []);
-
   const updateDraft = (next: OnboardingDraft) => {
     setDraft(next);
-    void saveDraft(next);
   };
 
   const handleRestart = () => {
-    const reset = defaultDraft();
-    setDraft(reset);
-    void saveDraft(reset);
+    setDraft(defaultDraft());
     setError(null);
   };
 
@@ -121,26 +74,16 @@ const OnboardingPage = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const response = await chrome.runtime.sendMessage({
-        channel: 'recess.workstyle-profile.runtime.v1',
-        action: 'action',
-        envelope: {
-          protocolVersion: 1,
-          actionId: `onboarding-${Date.now()}`,
-          module: 'workstyle-profile',
-          action: {
-            kind: 'initialize-from-onboarding',
-            energy: draft.energy,
-            cadence: draft.cadence,
-            primaryFriction: draft.primaryFriction,
-          },
-        },
+      const response = await sendAppAction({
+        type: 'INITIALIZE_FROM_ONBOARDING',
+        energy: draft.energy,
+        cadence: draft.cadence,
+        primaryFriction: draft.primaryFriction,
       });
-      if (!response?.ok || !response.result?.ok) {
+      if (!response.ok) {
         setError('We could not save your workstyle setup. Try again.');
         return;
       }
-      await clearDraft();
       navigate('/');
     } catch {
       setError('Recess could not reach the background worker. Reload and try again.');
@@ -148,10 +91,6 @@ const OnboardingPage = () => {
       setSubmitting(false);
     }
   };
-
-  if (!loaded) {
-    return <div className={styles.container}>Loading your onboarding progress…</div>;
-  }
 
   return (
     <div className={styles.container}>

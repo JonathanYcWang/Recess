@@ -1,12 +1,13 @@
 import type { AppStateMessage, PersistedAppState } from '../../Shared/Types/AppState';
+import { getAllTabs, sendMessageToTab, broadcastToRuntime } from '../Adapters/TabAdapter';
 
 const broadcastToContentScripts = async (message: AppStateMessage): Promise<void> => {
-  const tabs = await chrome.tabs.query({});
+  const tabs = await getAllTabs();
 
   await Promise.all(
     tabs.map(async (tab) => {
       if (tab.id) {
-        await chrome.tabs.sendMessage(tab.id, message).catch(() => undefined);
+        await sendMessageToTab(tab.id, message);
       }
     })
   );
@@ -15,6 +16,6 @@ const broadcastToContentScripts = async (message: AppStateMessage): Promise<void
 export const broadcastAppState = async (state: PersistedAppState): Promise<void> => {
   const message = { type: 'APP_STATE_CHANGED', state } satisfies AppStateMessage;
 
-  await chrome.runtime.sendMessage(message).catch(() => undefined);
+  await broadcastToRuntime(message);
   await broadcastToContentScripts(message);
 };

@@ -1,41 +1,41 @@
-import { SESSION_STATES } from '@/Shared/Constants/Constants';
-import { createSelector } from '@reduxjs/toolkit';
+import type { TimerValue } from '@/Shared/Types/AppState';
 import type { RootState } from '../../../Redux/store';
 
-export const selectTimerState = (state: RootState) =>
-  state.appState?.scheduler ?? {
-    status: 'idle',
-    phase: 'idle',
+export const selectTimerState = (state: RootState): TimerValue =>
+  state.appState?.timer ?? {
+    sessionState: 'before-work-session',
+    isPaused: false,
+    totalTimer: 0,
+    totalRemaining: 0,
+    currentTimer: 0,
+    currentTimerRemaining: 0,
+    currentStartTime: undefined,
+    rerolls: 3,
+    selectedReward: null,
+    shownRewardCombinations: [],
+    generatedRewards: [],
+    lastFocusSessionCompleted: false,
+    momentumScore: 1,
+    fatigueScore: 0,
+    lastFocusSessionDuration: 0,
+    feedbackMultiplier: 1.0,
   };
 
-export const selectSessionState = createSelector([selectTimerState], (scheduler) => {
-  if (scheduler.status === 'running') {
-    if (scheduler.phase === 'reward-game') return SESSION_STATES.REWARD_SELECTION;
-    else if (scheduler.phase === 'return-countdown') return SESSION_STATES.FOCUS_SESSION_COUNTDOWN;
-    return SESSION_STATES.ONGOING_FOCUS_SESSION;
-  }
-  if (scheduler.status === 'paused') {
-    if (scheduler.phase === 'reward-game') return SESSION_STATES.REWARD_SELECTION;
-    return SESSION_STATES.ONGOING_BREAK_SESSION;
-  }
-  return SESSION_STATES.BEFORE_WORK_SESSION;
-});
+export const selectSessionState = (state: RootState): string =>
+  selectTimerState(state).sessionState;
 
-export const selectIsPaused = createSelector(
-  [selectTimerState],
-  (scheduler) => scheduler.status === 'paused'
-);
+export const selectIsPaused = (state: RootState): boolean => selectTimerState(state).isPaused;
 
-export const selectRerolls = () => 3;
+export const selectRerolls = (state: RootState): number => selectTimerState(state).rerolls;
 
-export const selectGeneratedRewards = () => [];
+export const selectGeneratedRewards = (state: RootState): TimerValue['generatedRewards'] =>
+  selectTimerState(state).generatedRewards;
 
-export const selectShownRewardCombinations = () => [];
+export const selectShownRewardCombinations = (state: RootState): string[] =>
+  selectTimerState(state).shownRewardCombinations;
 
-export const setInRewardSelection = createSelector(
-  [selectSessionState],
-  (sessionState) => sessionState === SESSION_STATES.REWARD_SELECTION
-);
+export const selectFatigueScore = (state: RootState): number =>
+  selectTimerState(state).fatigueScore;
 
-export const selectFatigueScore = () => 0;
-export const selectMomentumScore = () => 1;
+export const selectMomentumScore = (state: RootState): number =>
+  selectTimerState(state).momentumScore;
