@@ -125,7 +125,7 @@ currentPhaseDuration = null
 #### Reward Game and Back to Work Countdown
 
 Duration for Reward Game set to a constant value of 1 min
-Back to work countdown set to duration of 5 seconds
+Back to work countdown set to duration of 7 seconds
 
 Same pattern as Recess — phase starts, duration tracked, elapsed added to workSessionElapsed on completion. Time Out cannot occur during these phases per the rules file.
 

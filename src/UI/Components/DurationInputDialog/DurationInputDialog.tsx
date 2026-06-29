@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
 import { toPressableDivProps } from '@/Shared/Utils/pressable';
-import TimesIcon from '../../../assets/times.svg?url';
+import TimesIcon from '../../../Assets/Icons/times.svg?url';
 
 import styles from './DurationInputDialog.module.css';
 

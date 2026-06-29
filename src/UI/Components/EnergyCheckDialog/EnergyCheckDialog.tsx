@@ -1,8 +1,8 @@
 import Icon from '../Icon/Icon';
-import InPainIcon from '../../../assets/emoji-in-pain.svg?url';
-import MehIcon from '../../../assets/emoji-meh.svg?url';
-import SmileIcon from '../../../assets/emoji-smile.svg?url';
-import TimesIcon from '../../../assets/times.svg?url';
+import InPainIcon from '../../../Assets/Icons/emoji-in-pain.svg?url';
+import MehIcon from '../../../Assets/Icons/emoji-meh.svg?url';
+import SmileIcon from '../../../Assets/Icons/emoji-smile.svg?url';
+import TimesIcon from '../../../Assets/Icons/times.svg?url';
 import { toPressableDivProps } from '@/Shared/Utils/pressable';
 import styles from './EnergyCheckDialog.module.css';
 

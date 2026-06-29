@@ -7,7 +7,7 @@ import WorkPage from '@/UI/Components/WorkPage/WorkPage';
 import InfoWidget from '@/UI/Components/InfoWidget/InfoWidget';
 import styles from './HomePage.module.css';
 
-import BunnyWorkingImage from '../../../assets/bunny.png';
+import BunnyWorkingImage from '../../../Assets/Animals/bunny.png';
 
 const DEFAULT_PET_NAME = 'Companion';
 const DEFAULT_PET_IMAGE = BunnyWorkingImage;

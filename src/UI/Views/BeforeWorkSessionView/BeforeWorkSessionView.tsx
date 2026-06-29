@@ -6,7 +6,7 @@ import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
 import Button from '@/UI/Components/Button/Button';
 import DurationInputDialog from '@/UI/Components/DurationInputDialog/DurationInputDialog';
 // import TaskPlanner from '../../components/TaskPlanner/TaskPlanner';
-import PlayIcon from '../../../assets/play.svg?url';
+import PlayIcon from '../../../Assets/Icons/play.svg?url';
 
 interface BeforeWorkSessionViewProps {
   startFocusSession: () => void;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
 import Button from '@/UI/Components/Button/Button';
 import EnergyCheckDialog from '@/UI/Components/EnergyCheckDialog/EnergyCheckDialog';
-import PlayIcon from '../../../assets/play.svg?url';
+import PlayIcon from '../../../Assets/Icons/play.svg?url';
 import styles from './FocusSessionCountdownView.module.css';
 
 interface FocusSessionCountdownViewProps {

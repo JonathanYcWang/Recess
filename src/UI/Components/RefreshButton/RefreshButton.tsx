@@ -1,4 +1,4 @@
-import RedoIcon from '../../../assets/redo.svg?url';
+import RedoIcon from '../../../Assets/Icons/redo.svg?url';
 import Icon from '../Icon/Icon';
 import { toPressableDivProps } from '@/Shared/Utils/pressable';
 import styles from './RefreshButton.module.css';

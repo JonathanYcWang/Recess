@@ -2,8 +2,8 @@ import { useState } from 'react';
 import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
 import PausedTimer from '@/UI/Components/PausedTimer/PausedTimer';
 import Button from '@/UI/Components/Button/Button';
-import PauseIcon from '../../../assets/pause.svg?url';
-import PlayIcon from '../../../assets/play.svg?url';
+import PauseIcon from '../../../Assets/Icons/pause.svg?url';
+import PlayIcon from '../../../Assets/Icons/play.svg?url';
 import styles from './OngoingFocusSessionView.module.css';
 
 const TOTAL_SESSIONS = 5;
