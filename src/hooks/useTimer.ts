@@ -143,7 +143,7 @@ export const useTimer = () => {
 
   // const currentRemaining = getActiveRemainingSeconds();
 
-  const getActiveRemainingSeconds = () => 5 * 60;
+  const getActiveRemainingSeconds = useCallback(() => 5 * 60, []);
   const currentRemaining = getActiveRemainingSeconds();
 
   useEffect(() => {

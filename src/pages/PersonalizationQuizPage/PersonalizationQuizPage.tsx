@@ -25,11 +25,11 @@ const PersonalizationQuizPage = () => {
     setSubmitting(false);
   };
 
-  const handleSelectOption = async (_scenarioId: string, _optionId: string) => {
-    setSubmitting(true);
-    setError(null);
-    setSubmitting(false);
-  };
+  // const handleSelectOption = async (scenarioId: string, optionId: string) => {
+  //   setSubmitting(true);
+  //   setError(null);
+  //   setSubmitting(false);
+  // };
 
   if (!loaded) {
     return <div className={styles.container}>Loading your quiz progress…</div>;
@@ -53,7 +53,7 @@ const PersonalizationQuizPage = () => {
             type="button"
             className={styles.option}
             disabled={submitting}
-            onClick={() => void handleSelectOption('q1', 'ready')}
+            // onClick={() => handleSelectOption('q1', 'ready')}
           >
             Ready to focus
           </button>
@@ -61,7 +61,7 @@ const PersonalizationQuizPage = () => {
             type="button"
             className={styles.option}
             disabled={submitting}
-            onClick={() => void handleSelectOption('q1', 'hesitant')}
+            // onClick={() => handleSelectOption('q1', 'hesitant')}
           >
             Hesitant
           </button>
@@ -69,7 +69,7 @@ const PersonalizationQuizPage = () => {
             type="button"
             className={styles.option}
             disabled={submitting}
-            onClick={() => void handleSelectOption('q1', 'overwhelmed')}
+            // onClick={() => handleSelectOption('q1', 'overwhelmed')}
           >
             Overwhelmed
           </button>
