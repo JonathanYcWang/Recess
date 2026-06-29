@@ -2,7 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["index.html", "src/Background/background.ts", "src/Background/content.ts"],
   "ignoreIssues": {
-    "src/adapters/browser/**": ["exports", "types"],
     "src/Background/Runtime/**": ["exports", "types"],
     "src/store/selectors/settingsProjectionSelectors.ts": ["exports"],
     "src/store/settingsClient.ts": ["exports"],
@@ -32,11 +31,20 @@
     "src/store/taskListProjectionSubscription.ts": ["exports"],
     "src/store/reducers/taskListProjectionReducer.ts": ["types"],
     "src/store/selectors/taskListProjectionSelectors.ts": ["exports"],
-    "src/constants/constants.ts": ["exports"],
-    
+
     "src/UI/Redux/Slices/Timer/actions.ts": ["exports"],
     "src/UI/Redux/Selectors/Quiz/quizSelectors.ts": ["exports"],
-    "src/UI/Redux/Selectors/Timer/timerSelectors.ts": ["exports"]
+    "src/UI/Redux/Selectors/Timer/timerSelectors.ts": ["exports"],
+
+    "src/Background/Services/BlockListManagement/BlockListManagementService.ts": ["exports", "types"],
+    "src/Background/Services/Coin/CoinService.ts": ["exports"],
+    "src/Background/Services/Scheduler/SchedulerService.ts": ["exports"],
+    "src/Background/Services/WorkStartReminder/WorkStartReminderService.ts": ["exports", "types"],
+    "src/Shared/Adapters/ActionBroker.ts": ["exports"],
+    "src/Shared/Constants/Constants.ts": ["exports"],
+    "src/Shared/Utils/SessionDurationService.ts": ["exports"],
+    "src/Shared/Utils/TimerService.ts": ["exports"],
+    "src/Shared/Types/AppState.ts": ["types"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreDependencies": [
@@ -44,19 +52,18 @@
     "react-aria-components"
   ],
   "ignoreFiles": [
-    "src/components/PrizeWheel/**",
-    "src/components/ParticleBurst/**",
-    "src/components/QuizQuestion/**",
-    "src/hooks/useParticles.ts",
-    "src/pages/QuizPage/**",
-    "src/components/BlockedSites/BlockedSites.tsx",
-    "src/components/EditTimeRangeOverlay/EditTimeRangeOverlay.tsx",
-    "src/components/FocusTaskSelection/FocusTaskSelection.tsx",
-    "src/components/TaskList/TaskList.tsx",
-    "src/components/TimeField/TimeField.tsx",
-    "src/components/Toggle/Toggle.tsx",
-    "src/components/WorkHoursSettings/WorkHoursSettings.tsx",
-    "src/runtime/index.ts",
+    "src/UI/Components/PrizeWheel/**",
+    "src/UI/Components/ParticleBurst/**",
+    "src/UI/Components/QuizQuestion/**",
+    "src/UI/Hooks/useParticles.ts",
+    "src/UI/Pages/Quiz/**",
+    "src/UI/Components/BlockedSites/BlockedSites.tsx",
+    "src/UI/Components/EditTimeRangeOverlay/EditTimeRangeOverlay.tsx",
+    "src/UI/Components/FocusTaskSelection/FocusTaskSelection.tsx",
+    "src/UI/Components/TaskList/TaskList.tsx",
+    "src/UI/Components/TimeField/TimeField.tsx",
+    "src/UI/Components/Toggle/Toggle.tsx",
+    "src/UI/Components/WorkHoursSettings/WorkHoursSettings.tsx",
     "src/Shared/Types/WorkStartReminder.ts",
     "src/UI/Redux/Slices/BlockedSites/actions.ts",
     "src/UI/Redux/Slices/Quiz/actions.ts",
@@ -65,7 +72,8 @@
     "src/UI/Redux/Slices/Quiz/reducer.ts",
     "src/UI/Redux/Slices/Timer/reducer.ts",
     "src/Shared/Types/Quiz.ts",
-    "src/views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
+    "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx",
+    "src/runtime/index.ts"
   ],
   "vite": {
     "config": ["vite.config.ts", "vite.background.config.ts"]
