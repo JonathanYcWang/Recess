@@ -1,20 +1,19 @@
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import QuizQuestion from '@/UI/Components/QuizQuestion/QuizQuestion';
 import Button from '@/UI/Components/Button/Button';
 import { QuizOption } from '../../../Shared/Types/Quiz';
-import type { AppDispatch, RootState } from '../../Redux/store';
+import { sendAppAction } from '../../../Shared/ActionBrokers/ActionBroker';
+import type { RootState } from '../../Redux/store';
 import {
   selectCurrentQuestion,
   selectIsQuizComplete,
   selectQuizResults,
   selectSelectedChoices,
 } from '../../Redux/Selectors/index';
-import { restartQuiz, selectOption } from '../../Redux/Slices/Quiz/actions';
 import styles from './QuizPage.module.css';
 
 const QuizPage = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const currentQuestion = useSelector((state: RootState) => selectCurrentQuestion(state));
   const selectedChoices = useSelector((state: RootState) => selectSelectedChoices(state));
   const isComplete = useSelector((state: RootState) => selectIsQuizComplete(state));
@@ -22,11 +21,11 @@ const QuizPage = () => {
   const navigate = useNavigate();
 
   const handleSelectOption = (option: QuizOption) => {
-    dispatch(selectOption(option));
+    void sendAppAction({ type: 'QUIZ_SELECT_OPTION', option });
   };
 
   const handleRestart = () => {
-    dispatch(restartQuiz());
+    void sendAppAction({ type: 'QUIZ_RESTART' });
   };
 
   const handleBackToHome = () => {

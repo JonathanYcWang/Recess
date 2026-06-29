@@ -8,16 +8,15 @@ import {
   type PersistedAppState,
 } from '../../Shared/Types/AppState';
 import { broadcastAppState } from '../Broadcasters/appStateBroadcaster';
+import { storageRepository } from '../Repositories/StorageRepository';
 
 const getStoredAppState = async (): Promise<PersistedAppState> => {
-  const result = await chrome.storage.local.get(APP_STATE_STORAGE_KEY);
-  const value = result[APP_STATE_STORAGE_KEY];
-
+  const value = await storageRepository.read<PersistedAppState>(APP_STATE_STORAGE_KEY);
   return isPersistedAppState(value) ? value : createDefaultPersistedAppState();
 };
 
 const saveAppState = async (state: PersistedAppState): Promise<void> => {
-  await chrome.storage.local.set({ [APP_STATE_STORAGE_KEY]: state });
+  await storageRepository.write(APP_STATE_STORAGE_KEY, state);
 };
 
 export const handleAppAction = async (action: AppAction): Promise<AppActionResponse> => {

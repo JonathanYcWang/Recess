@@ -1,26 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  startFocusSession,
-  pauseSession,
-  resumeSession,
-  endSessionEarly,
-  endWorkSessionEarly,
-  selectReward,
-  transitionToFocusSession,
-  transitionToBeforeWorkSession,
-  transitionToRewardSelection,
-  transitionToFocusSessionCountdown,
-  setTotalTimer,
-  updateFeedbackMultiplier,
-  setGeneratedRewards,
-  setShownRewardCombinations,
-  rerollReward as rerollRewardAction,
-} from '../Redux/Slices/Timer/actions';
-import type { AppDispatch, RootState } from '../Redux/store';
+import { useSelector } from 'react-redux';
+import { sendAppAction } from '../../Shared/ActionBrokers/ActionBroker';
+import type { RootState } from '../Redux/store';
 import { Reward } from '../../Shared/Types/Reward';
 import { NOTIFY_TIME_LEFT_SECONDS } from '../../Shared/Constants/Constants';
-// import { calculateRemaining } from '../../Shared/Utils/TimerService';
 import {
   notifyFocusEnding,
   notifyFocusComplete,
@@ -49,20 +32,19 @@ const ACTIVE_SESSION_STATES = [
 const COMPLETE_TIMER_DISPLAY_DELAY_MS = 1000;
 
 /**
- * Custom hook that provides timer functionality to components
- * Directly orchestrates Redux actions and selectors - no thunks
+ * Custom hook that provides timer functionality to components.
+ * Sends domain actions through ActionBroker; reads state from Redux selectors.
  */
 export const useTimer = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const timerState = useSelector((state: RootState) => selectTimerState(state));
   const sessionState = useSelector((state: RootState) => selectSessionState(state));
   const isPaused = useSelector((state: RootState) => selectIsPaused(state));
-  const rewards = useSelector(() => selectGeneratedRewards());
+  const rewards = useSelector((state: RootState) => selectGeneratedRewards(state));
   const blockedSites = useSelector((state: RootState) => selectBlockedSites(state));
-  const shownCombinations = useSelector(() => selectShownRewardCombinations());
-  const rerolls = useSelector(() => selectRerolls());
-  const fatigueScore = useSelector(() => selectFatigueScore());
-  const momentumScore = useSelector(() => selectMomentumScore());
+  const shownCombinations = useSelector((state: RootState) => selectShownRewardCombinations(state));
+  const rerolls = useSelector((state: RootState) => selectRerolls(state));
+  const fatigueScore = useSelector((state: RootState) => selectFatigueScore(state));
+  const momentumScore = useSelector((state: RootState) => selectMomentumScore(state));
   const [, setTick] = useState(0);
   const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingCompletionSessionRef = useRef<string | null>(null);
@@ -93,7 +75,7 @@ export const useTimer = () => {
         notifyFocusComplete();
         completionTimeoutRef.current = setTimeout(() => {
           completionTimeoutRef.current = null;
-          dispatch(transitionToRewardSelection());
+          void sendAppAction({ type: 'TIMER_TRANSITION_TO_REWARD_SELECTION' });
         }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
         return;
       }
@@ -102,7 +84,7 @@ export const useTimer = () => {
         notifyBreakComplete();
         completionTimeoutRef.current = setTimeout(() => {
           completionTimeoutRef.current = null;
-          dispatch(transitionToFocusSessionCountdown());
+          void sendAppAction({ type: 'TIMER_TRANSITION_TO_FOCUS_SESSION_COUNTDOWN' });
         }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
         return;
       }
@@ -110,11 +92,11 @@ export const useTimer = () => {
       if (sessionState === SESSION_STATES.FOCUS_SESSION_COUNTDOWN) {
         completionTimeoutRef.current = setTimeout(() => {
           completionTimeoutRef.current = null;
-          dispatch(transitionToFocusSession());
+          void sendAppAction({ type: 'TIMER_TRANSITION_TO_FOCUS_SESSION' });
         }, COMPLETE_TIMER_DISPLAY_DELAY_MS);
       }
     },
-    [dispatch, isPaused, sessionState]
+    [isPaused, sessionState]
   );
 
   // TO DO FOllOW
@@ -156,12 +138,13 @@ export const useTimer = () => {
       const newRewards = Array.from({ length: 3 }, () =>
         generateReward(blockedSites, seenRewardCombinations, fatigueScore, momentumScore)
       );
-      dispatch(setGeneratedRewards(newRewards));
-      dispatch(setShownRewardCombinations(seenRewardCombinations));
+      void sendAppAction({ type: 'TIMER_SET_GENERATED_REWARDS', rewards: newRewards });
+      void sendAppAction({
+        type: 'TIMER_SET_SHOWN_REWARD_COMBINATIONS',
+        combinations: seenRewardCombinations,
+      });
     }
-    // Reward generation is intentionally tied to session entry, not every score change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- blockedSites and scores are read at entry only.
-  }, [sessionState, dispatch, rewards.length]);
+  }, [sessionState, rewards.length, blockedSites, shownCombinations, fatigueScore, momentumScore]);
 
   // Timer tick and notification effect
   useEffect(() => {
@@ -217,7 +200,7 @@ export const useTimer = () => {
 
       return () => clearInterval(intervalId);
     }
-  }, [sessionState, isPaused, getActiveRemainingSeconds, handleExpiredSession, dispatch]);
+  }, [sessionState, isPaused, getActiveRemainingSeconds, handleExpiredSession]);
 
   useEffect(() => {
     handleExpiredSession(currentRemaining);
@@ -241,31 +224,35 @@ export const useTimer = () => {
           fatigueScore,
           momentumScore
         );
-        dispatch(rerollRewardAction({ index, reward }));
-        dispatch(setShownRewardCombinations(seenRewardCombinations));
+        void sendAppAction({ type: 'TIMER_REROLL_REWARD', index, reward });
+        void sendAppAction({
+          type: 'TIMER_SET_SHOWN_REWARD_COMBINATIONS',
+          combinations: seenRewardCombinations,
+        });
       }
     },
-    [rerolls, blockedSites, shownCombinations, dispatch, fatigueScore, momentumScore]
+    [rerolls, blockedSites, shownCombinations, fatigueScore, momentumScore]
   );
 
   return {
     timerState,
-    // currentTimer: timerState.currentTimer,
     currentTimer: currentRemaining,
     currentRemaining,
-    // totalRemaining: timerState.totalRemaining,
     totalRemaining: currentRemaining,
-    startFocusSession: () => dispatch(startFocusSession()),
-    pauseSession: () => dispatch(pauseSession(currentRemaining)),
-    resumeSession: () => dispatch(resumeSession()),
-    endSessionEarly: () => dispatch(endSessionEarly()),
-    endWorkSessionEarly: () => dispatch(endWorkSessionEarly()),
-    transitionToBeforeWorkSession: () => dispatch(transitionToBeforeWorkSession()),
-    selectReward: (reward: Reward) => dispatch(selectReward(reward)),
+    startFocusSession: () => void sendAppAction({ type: 'TIMER_START_FOCUS_SESSION' }),
+    pauseSession: () =>
+      void sendAppAction({ type: 'TIMER_PAUSE_SESSION', remaining: currentRemaining }),
+    resumeSession: () => void sendAppAction({ type: 'TIMER_RESUME_SESSION' }),
+    endSessionEarly: () => void sendAppAction({ type: 'TIMER_END_SESSION_EARLY' }),
+    endWorkSessionEarly: () => void sendAppAction({ type: 'TIMER_END_WORK_SESSION_EARLY' }),
+    transitionToBeforeWorkSession: () =>
+      void sendAppAction({ type: 'TIMER_TRANSITION_TO_BEFORE_WORK_SESSION' }),
+    selectReward: (reward: Reward) => void sendAppAction({ type: 'TIMER_SELECT_REWARD', reward }),
     handleReroll,
-    setTotalTimer: (duration: number) => dispatch(setTotalTimer(duration)),
-    updateFeedbackMultiplier: (feedbackMultiplier: number) =>
-      dispatch(updateFeedbackMultiplier(feedbackMultiplier)),
+    setTotalTimer: (duration: number) =>
+      void sendAppAction({ type: 'TIMER_SET_TOTAL_TIMER', duration }),
+    updateFeedbackMultiplier: (multiplier: number) =>
+      void sendAppAction({ type: 'TIMER_UPDATE_FEEDBACK_MULTIPLIER', multiplier }),
     rewards,
     sessionState,
     isPaused,

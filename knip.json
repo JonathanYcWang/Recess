@@ -32,11 +32,10 @@
     "src/store/reducers/taskListProjectionReducer.ts": ["types"],
     "src/store/selectors/taskListProjectionSelectors.ts": ["exports"],
 
-    "src/UI/Redux/Slices/Timer/actions.ts": ["exports"],
-    "src/UI/Redux/Selectors/Quiz/quizSelectors.ts": ["exports"],
-    "src/UI/Redux/Selectors/Timer/timerSelectors.ts": ["exports"],
-
-    "src/Background/Services/BlockListManagement/BlockListManagementService.ts": ["exports", "types"],
+    "src/Background/Services/BlockListManagement/BlockListManagementService.ts": [
+      "exports",
+      "types"
+    ],
     "src/Background/Services/Coin/CoinService.ts": ["exports"],
     "src/Background/Services/Scheduler/SchedulerService.ts": ["exports"],
     "src/Background/Services/WorkStartReminder/WorkStartReminderService.ts": ["exports", "types"],
@@ -47,10 +46,7 @@
     "src/Shared/Types/AppState.ts": ["types"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
-  "ignoreDependencies": [
-    "@internationalized/date",
-    "react-aria-components"
-  ],
+  "ignoreDependencies": ["@internationalized/date", "react-aria-components"],
   "ignoreFiles": [
     "src/UI/Components/PrizeWheel/**",
     "src/UI/Components/ParticleBurst/**",
@@ -65,12 +61,6 @@
     "src/UI/Components/Toggle/Toggle.tsx",
     "src/UI/Components/WorkHoursSettings/WorkHoursSettings.tsx",
     "src/Shared/Types/WorkStartReminder.ts",
-    "src/UI/Redux/Slices/BlockedSites/actions.ts",
-    "src/UI/Redux/Slices/Quiz/actions.ts",
-    "src/UI/Redux/initialState.ts",
-    "src/UI/Redux/Slices/BlockedSites/reducer.ts",
-    "src/UI/Redux/Slices/Quiz/reducer.ts",
-    "src/UI/Redux/Slices/Timer/reducer.ts",
     "src/Shared/Types/Quiz.ts",
     "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
