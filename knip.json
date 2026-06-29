@@ -34,9 +34,9 @@
     "src/store/selectors/taskListProjectionSelectors.ts": ["exports"],
     "src/constants/constants.ts": ["exports"],
     
-    "src/store/actions/timerActions.ts": ["exports"],
-    "src/store/selectors/quizSelectors.ts": ["exports"],
-    "src/store/selectors/timerSelectors.ts": ["exports"]
+    "src/UI/Redux/Slices/Timer/actions.ts": ["exports"],
+    "src/UI/Redux/Selectors/Quiz/quizSelectors.ts": ["exports"],
+    "src/UI/Redux/Selectors/Timer/timerSelectors.ts": ["exports"]
   },
   "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
   "ignoreDependencies": [
@@ -58,12 +58,12 @@
     "src/components/WorkHoursSettings/WorkHoursSettings.tsx",
     "src/runtime/index.ts",
     "src/Shared/Types/WorkStartReminder.ts",
-    "src/store/actions/blockedSitesActions.ts",
-    "src/store/actions/quizActions.ts",
-    "src/store/initialState.ts",
-    "src/store/reducers/blockedSitesReducer.ts",
-    "src/store/reducers/quizReducer.ts",
-    "src/store/reducers/timerReducer.ts",
+    "src/UI/Redux/Slices/BlockedSites/actions.ts",
+    "src/UI/Redux/Slices/Quiz/actions.ts",
+    "src/UI/Redux/initialState.ts",
+    "src/UI/Redux/Slices/BlockedSites/reducer.ts",
+    "src/UI/Redux/Slices/Quiz/reducer.ts",
+    "src/UI/Redux/Slices/Timer/reducer.ts",
     "src/Shared/Types/Quiz.ts",
     "src/views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
