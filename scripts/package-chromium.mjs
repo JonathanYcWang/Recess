@@ -2,7 +2,7 @@ import { accessSync } from 'node:fs';
 import path from 'node:path';
 
 const distDir = path.resolve('dist');
-const requiredArtifacts = ['manifest.json', 'background.js', 'index.html'];
+const requiredArtifacts = ['manifest.json', 'service-worker-loader.js', 'index.html'];
 
 for (const artifact of requiredArtifacts) {
   accessSync(path.join(distDir, artifact));
