@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["index.html", "src/Background/background.ts", "src/Background/content.ts"],
+  "entry": ["index.html", "manifest.config.ts", "src/Background/background.ts", "src/Background/content.ts"],
   "ignoreIssues": {
     "src/Background/Runtime/**": ["exports", "types"],
     "src/store/selectors/settingsProjectionSelectors.ts": ["exports"],
@@ -65,6 +65,6 @@
     "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {
-    "config": ["vite.config.ts"]
+    "config": ["vite.config.ts", "manifest.config.ts"]
   }
 }
