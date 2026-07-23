@@ -31,7 +31,6 @@
     "src/store/taskListProjectionSubscription.ts": ["exports"],
     "src/store/reducers/taskListProjectionReducer.ts": ["types"],
     "src/store/selectors/taskListProjectionSelectors.ts": ["exports"],
-
     "src/Background/Services/BlockListManagement/BlockListManagementService.ts": [
       "exports",
       "types"
