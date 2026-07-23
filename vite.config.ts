@@ -9,29 +9,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-<<<<<<< Updated upstream
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  publicDir: 'public',
-  test: {
-    exclude: ['e2e/**', 'node_modules/**', 'dist/**', 'build/**'],
-  },
-});
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'manifest.json') {
-            return 'manifest.json';
-          }
-          return 'assets/[name].[ext]';
-        },
-      },
-    },
-=======
->>>>>>> Stashed changes
   },
   resolve: {
     alias: {
