@@ -31,7 +31,6 @@
     "src/store/taskListProjectionSubscription.ts": ["exports"],
     "src/store/reducers/taskListProjectionReducer.ts": ["types"],
     "src/store/selectors/taskListProjectionSelectors.ts": ["exports"],
-
     "src/Background/Services/BlockListManagement/BlockListManagementService.ts": [
       "exports",
       "types"
@@ -66,6 +65,6 @@
     "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {
-    "config": ["vite.config.ts", "vite.background.config.ts"]
+    "config": ["vite.config.ts"]
   }
 }
