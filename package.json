@@ -8,9 +8,6 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && npm run build:scripts",
-    "build:scripts": "node build-scripts.mjs",
-    "sync-codex-agents": "node scripts/sync-codex-agents.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "knip": "knip --no-progress",
