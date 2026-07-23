@@ -66,6 +66,6 @@
     "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {
-    "config": ["vite.config.ts", "vite.background.config.ts"]
+    "config": ["vite.config.ts"]
   }
 }

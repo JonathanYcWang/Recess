@@ -1,28 +1,26 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { crx } from '@crxjs/vite-plugin';
 import path from 'path';
+import manifest from './manifest.config';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'manifest.json',
-          dest: '.',
-        },
-      ],
-    }),
-  ],
+  plugins: [react(), crx({ manifest })],
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
-      },
-      output: {
-        entryFileNames: 'assets/[name].js',
+    emptyOutDir: true,
+<<<<<<< Updated upstream
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  publicDir: 'public',
+  test: {
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**', 'build/**'],
+  },
+});
         chunkFileNames: 'assets/[name].js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'manifest.json') {
@@ -32,6 +30,8 @@ export default defineConfig({
         },
       },
     },
+=======
+>>>>>>> Stashed changes
   },
   resolve: {
     alias: {
