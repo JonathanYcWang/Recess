@@ -8,9 +8,9 @@
 // Currently a placeholder — listens for state changes but takes no action.
 // Future: enforce block list, detect navigation, report page metadata.
 
-import type { AppStateMessage } from '../Shared/Types/AppState';
+import type { RuntimeMessage } from '../Shared/Types/AppState';
 
-chrome.runtime.onMessage.addListener((message: AppStateMessage) => {
+chrome.runtime.onMessage.addListener((message: RuntimeMessage) => {
   if (message.type === 'APP_STATE_CHANGED') {
     return;
   }

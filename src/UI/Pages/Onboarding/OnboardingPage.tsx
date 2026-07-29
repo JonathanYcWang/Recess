@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/UI/Components/Button/Button';
 import { sendAppAction } from '@/Shared/ActionBrokers/ActionBroker';
+import { APP_ACTION } from '@/Shared/Constants/Constants';
 import type { EnergyLevel, PreferredCadence, FrictionDimension } from '@/Shared/Types/AppState';
 import styles from './OnboardingPage.module.css';
 
@@ -75,7 +76,7 @@ const OnboardingPage = () => {
     setError(null);
     try {
       const response = await sendAppAction({
-        type: 'INITIALIZE_FROM_ONBOARDING',
+        type: APP_ACTION.INITIALIZE_FROM_ONBOARDING,
         energy: draft.energy,
         cadence: draft.cadence,
         primaryFriction: draft.primaryFriction,

@@ -1,6 +1,5 @@
 import styles from './FocusTimer.module.css';
 import { formatTime } from '../../../Shared/Utils/TimerService';
-import { FOCUS_TIMER_RADIUS } from '@/Shared/Constants/Constants';
 
 interface FocusTimerProps {
   label: string;
@@ -8,6 +7,8 @@ interface FocusTimerProps {
   timer: number;
   remainingTimer?: number;
 }
+
+export const FOCUS_TIMER_RADIUS = 154;
 
 const FocusTimer = ({
   timer,

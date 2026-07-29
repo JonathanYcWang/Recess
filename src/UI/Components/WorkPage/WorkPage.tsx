@@ -1,84 +1,31 @@
 // import TaskList from '@/UI/Components/TaskList/TaskList';
 // import FocusTaskSelection from '@/UI/Components/FocusTaskSelection/FocusTaskSelection';
-import { useTimer } from '@/UI/Hooks/useTimer';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/UI/Redux/store';
+import { selectScheduler } from '@/UI/Redux/Selectors/Scheduler/schedulerSelectors';
+import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
 import BeforeWorkSessionView from '@/UI/Views/BeforeWorkSessionView/BeforeWorkSessionView';
 import OngoingFocusSessionView from '@/UI/Views/OngoingFocusSessionView/OngoingFocusSessionView';
 import RewardSelectionView from '@/UI/Views/RewardSelectionView/RewardSelectionView';
 import OngoingBreakSessionView from '@/UI/Views/OngoingBreakSessionView/OngoingBreakSessionView';
-import FocusSessionCountdownView from '@/UI/Views/FocusSessionCountdownView/FocusSessionCountdownView';
-// import WorkSessionCompleteView from '@/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView';
 import styles from './WorkPage.module.css';
-import { SESSION_STATES } from '../../../Shared/Constants/Constants';
 
 const WorkPage = () => {
-  const {
-    currentTimer,
-    currentRemaining,
-    totalRemaining,
-    startFocusSession,
-    pauseSession,
-    resumeSession,
-    selectReward,
-    handleReroll,
-    endSessionEarly,
-    endWorkSessionEarly,
-    // transitionToBeforeWorkSession,
-    setTotalTimer,
-    updateFeedbackMultiplier,
-    isPaused,
-    sessionState,
-  } = useTimer();
+  const activePhase = useSelector((state: RootState) => selectScheduler(state).activePhase);
 
   const renderContent = () => {
-    switch (sessionState) {
-      case SESSION_STATES.BEFORE_WORK_SESSION:
-        return (
-          <BeforeWorkSessionView
-            startFocusSession={startFocusSession}
-            onDurationChange={setTotalTimer}
-          />
-        );
+    switch (activePhase) {
+      case null:
+        return <BeforeWorkSessionView />;
 
-      case SESSION_STATES.ONGOING_FOCUS_SESSION:
-        return (
-          <OngoingFocusSessionView
-            isPaused={isPaused}
-            currentTimer={currentTimer}
-            currentRemaining={currentRemaining}
-            totalRemaining={totalRemaining}
-            pauseSession={pauseSession}
-            resumeSession={resumeSession}
-            endSessionEarly={endSessionEarly}
-          />
-        );
+      case SCHEDULER_PHASE.FOCUS_BLOCK:
+        return <OngoingFocusSessionView />;
 
-      case SESSION_STATES.REWARD_SELECTION:
-        return <RewardSelectionView selectReward={selectReward} handleReroll={handleReroll} />;
+      case SCHEDULER_PHASE.REWARD_GAME:
+        return <RewardSelectionView />;
 
-      case SESSION_STATES.ONGOING_BREAK_SESSION:
-        return (
-          <OngoingBreakSessionView
-            currentTimer={currentTimer}
-            currentRemaining={currentRemaining}
-            endSessionEarly={endSessionEarly}
-          />
-        );
-
-      case SESSION_STATES.FOCUS_SESSION_COUNTDOWN:
-        return (
-          <FocusSessionCountdownView
-            currentTimer={currentTimer}
-            currentRemaining={currentRemaining}
-            startFocusSession={startFocusSession}
-            updateFeedbackMultiplier={updateFeedbackMultiplier}
-            endWorkSessionEarly={endWorkSessionEarly}
-          />
-        );
-
-      // case SESSION_STATES.WORK_SESSION_COMPLETE:
-      //   return (
-      //     <WorkSessionCompleteView transitionToBeforeWorkSession={transitionToBeforeWorkSession} />
-      //   );
+      case SCHEDULER_PHASE.RECESS:
+        return <OngoingBreakSessionView />;
 
       default:
         return null;

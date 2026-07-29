@@ -1,13 +1,7 @@
-import { useState } from 'react';
-import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
-import PausedTimer from '@/UI/Components/PausedTimer/PausedTimer';
 import Button from '@/UI/Components/Button/Button';
-import PauseIcon from '../../../Assets/Icons/pause.svg?url';
-import PlayIcon from '../../../Assets/Icons/play.svg?url';
+import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
+import { useTimer } from '@/UI/Hooks/useTimer';
 import styles from './OngoingFocusSessionView.module.css';
-
-const TOTAL_SESSIONS = 5;
-const CURRENT_SESSION = 2;
 
 const ClockIcon = () => (
   <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true">
@@ -44,52 +38,27 @@ const formatDurationShort = (totalSeconds: number) => {
   return `${hours > 0 ? `${hours}h ` : ''}${minutes}m`;
 };
 
-interface OngoingFocusSessionViewProps {
-  isPaused: boolean;
-  currentTimer: number;
-  currentRemaining: number;
-  totalRemaining: number;
-  pauseSession: () => void;
-  resumeSession: () => void;
-  endSessionEarly: () => void;
-}
+const OngoingFocusSessionView = () => {
+  const { endSessionEarly, phaseDuration, phaseRemaining, sessionRemaining } =
+    useTimer();
 
-const OngoingFocusSessionView = ({
-  isPaused,
-  currentTimer,
-  currentRemaining,
-  totalRemaining,
-  pauseSession,
-  resumeSession,
-  endSessionEarly,
-}: OngoingFocusSessionViewProps) => {
-  const [showPauseConfirm, setShowPauseConfirm] = useState(false);
-  const nextRecessMinutes = Math.max(0, Math.ceil(currentRemaining / 60));
-
-  const handleConfirmPause = () => {
-    setShowPauseConfirm(false);
-    pauseSession();
-  };
+  const nextRecessMinutes = Math.max(0, Math.ceil(phaseRemaining / 60));
 
   return (
     <>
       <div className={styles.timerHeader}>
         <div className={styles.statusPill}>
           <CoffeeIcon />
-          Deep Work · Session {CURRENT_SESSION} of {TOTAL_SESSIONS}
+          Work Session Left:{formatDurationShort(sessionRemaining)}
         </div>
       </div>
 
-      {isPaused ? (
-        <PausedTimer />
-      ) : (
-        <FocusTimer
-          timer={currentTimer}
-          remainingTimer={currentRemaining}
-          label="Remaining"
-          description="Active Focus Session"
-        />
-      )}
+      <FocusTimer
+        timer={phaseDuration}
+        remainingTimer={phaseRemaining}
+        label="Remaining"
+        description="Active Focus Session"
+      />
 
       <div className={styles.summaryGrid}>
         <div className={styles.summaryCard}>
@@ -98,7 +67,7 @@ const OngoingFocusSessionView = ({
           </div>
           <div className={styles.summaryCopy}>
             <p className={styles.summaryLabel}>Total left today</p>
-            <p className={styles.summaryValue}>{formatDurationShort(totalRemaining)}</p>
+            <p className={styles.summaryValue}>{formatDurationShort(sessionRemaining)}</p>
           </div>
         </div>
 
@@ -113,50 +82,7 @@ const OngoingFocusSessionView = ({
         </div>
       </div>
 
-      {isPaused ? (
-        <div className={styles.contentContainer}>
-          <Button
-            text="Resume Focus Session"
-            onClick={resumeSession}
-            iconSrc={PlayIcon}
-            variant="primary"
-          />
-          <Button text="End Focus Session Early" onClick={endSessionEarly} variant="tertiary" />
-        </div>
-      ) : (
-        <Button
-          text="Pause Focus Session"
-          onClick={() => setShowPauseConfirm(true)}
-          iconSrc={PauseIcon}
-          variant="secondary"
-        />
-      )}
-
-      {showPauseConfirm && (
-        <div className={styles.dialogBackdrop} role="presentation">
-          <div className={styles.confirmDialog} role="dialog" aria-modal="true">
-            <div className={styles.confirmIcon} aria-hidden="true">
-              <CoffeeIcon />
-            </div>
-            <h3 className={styles.confirmTitle}>Take a break?</h3>
-            <p className={styles.confirmCopy}>
-              Are you sure you want to pause your deep work session?
-            </p>
-            <div className={styles.confirmActions}>
-              <button
-                className={styles.cancelButton}
-                type="button"
-                onClick={() => setShowPauseConfirm(false)}
-              >
-                No
-              </button>
-              <button className={styles.confirmButton} type="button" onClick={handleConfirmPause}>
-                Yes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Button text="End Work Session Early" onClick={endSessionEarly} variant="tertiary" />
     </>
   );
 };
