@@ -39,8 +39,7 @@ const formatDurationShort = (totalSeconds: number) => {
 };
 
 const OngoingFocusSessionView = () => {
-  const { endSessionEarly, phaseDuration, phaseRemaining, sessionRemaining } =
-    useTimer();
+  const { endSessionEarly, phaseDuration, phaseRemaining, sessionRemaining } = useTimer();
 
   const nextRecessMinutes = Math.max(0, Math.ceil(phaseRemaining / 60));
 

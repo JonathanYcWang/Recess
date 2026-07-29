@@ -7,8 +7,7 @@ import PlayIcon from '../../../Assets/Icons/play.svg?url';
 import styles from './FocusSessionCountdownView.module.css';
 
 const FocusSessionCountdownView = () => {
-  const { startWorkSession, endWorkSession, phaseDuration, phaseRemaining } =
-    useTimer();
+  const { startWorkSession, endWorkSession, phaseDuration, phaseRemaining } = useTimer();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -40,11 +39,7 @@ const FocusSessionCountdownView = () => {
         <p className={styles.header}>Alright, Back To It.</p>
         <p className={styles.caption}>Next focus session is starting soon.</p>
       </div>
-      <FocusTimer
-        timer={phaseDuration}
-        remainingTimer={phaseRemaining}
-        label="starting in"
-      />
+      <FocusTimer timer={phaseDuration} remainingTimer={phaseRemaining} label="starting in" />
       <div className={styles.contentContainer}>
         <Button
           text="Start Focus Session Now"

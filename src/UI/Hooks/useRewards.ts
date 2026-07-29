@@ -18,11 +18,14 @@ export const useRewards = () => {
     void sendAppAction({ type: APP_ACTION.REWARDS_SELECT_REWARD, reward });
   }, []);
 
-  const handleReroll = useCallback((index: number) => {
-    if (rerolls > 0) {
-      void sendAppAction({ type: APP_ACTION.REWARDS_REROLL_REWARD, index });
-    }
-  }, [rerolls]);
+  const handleReroll = useCallback(
+    (index: number) => {
+      if (rerolls > 0) {
+        void sendAppAction({ type: APP_ACTION.REWARDS_REROLL_REWARD, index });
+      }
+    },
+    [rerolls]
+  );
 
   return {
     rewards,

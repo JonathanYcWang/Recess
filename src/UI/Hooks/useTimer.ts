@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { sendAppAction } from '../../Shared/ActionBrokers/ActionBroker';
-import { APP_ACTION, NOTIFY_TIME_LEFT_SECONDS, SCHEDULER_PHASE } from '../../Shared/Constants/Constants';
+import {
+  APP_ACTION,
+  NOTIFY_TIME_LEFT_SECONDS,
+  SCHEDULER_PHASE,
+} from '../../Shared/Constants/Constants';
 import type { SchedulerPhase, SchedulerState } from '../../Shared/Types/AppState';
 import type { RootState } from '../Redux/store';
 import { computeFocusBlockDuration } from '../../Background/Services/Scheduler/SchedulerService';
@@ -16,15 +20,10 @@ import { selectScheduler } from '../Redux/Selectors/Scheduler/schedulerSelectors
 const TICK_MS = 1000;
 const ENDING_SOON_MINUTES = Math.ceil(NOTIFY_TIME_LEFT_SECONDS / 60);
 
-const TIMED_PHASES = new Set<SchedulerPhase>([
-  SCHEDULER_PHASE.FOCUS_BLOCK,
-  SCHEDULER_PHASE.RECESS,
-]);
+const TIMED_PHASES = new Set<SchedulerPhase>([SCHEDULER_PHASE.FOCUS_BLOCK, SCHEDULER_PHASE.RECESS]);
 
 const phaseDuration = (scheduler: SchedulerState): number =>
-  scheduler.activePhase === null
-    ? computeFocusBlockDuration(scheduler)
-    : scheduler.phaseTarget;
+  scheduler.activePhase === null ? computeFocusBlockDuration(scheduler) : scheduler.phaseTarget;
 
 const elapsedSecondsInPhase = (scheduler: SchedulerState, now: number): number => {
   if (scheduler.phaseStart === null) {

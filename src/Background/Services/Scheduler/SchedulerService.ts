@@ -82,8 +82,7 @@ export const endWorkSession = (state: SchedulerState): SchedulerState => ({
 //   ),
 // });
 
-
-// The core tick: if the current phase's duration has elapsed, advance to the next 
+// The core tick: if the current phase's duration has elapsed, advance to the next
 export const evaluateScheduler = (state: SchedulerState, now: Date): SchedulerState => {
   if (state.activePhase === null || state.phaseStart === null) {
     return state;

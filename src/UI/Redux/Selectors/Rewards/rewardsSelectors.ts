@@ -14,5 +14,3 @@ export const selectGeneratedRewards = (state: RootState): Reward[] =>
   selectRewardsState(state).rewards;
 export const selectRerolls = (state: RootState): number => selectRewardsState(state).rerolls;
 export const selectSelectedReward = (state: RootState) => selectRewardsState(state).selectedReward;
-
-

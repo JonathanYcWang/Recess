@@ -11,11 +11,7 @@ const WorkSessionCompleteView = () => {
         <p className={styles.caption}>You've completed your work session for today.</p>
       </div>
       <div className={styles.contentContainer}>
-        <Button
-          text="Start Next Work Session"
-          onClick={()=>{}}
-          variant="primary"
-        />
+        <Button text="Start Next Work Session" onClick={() => {}} variant="primary" />
       </div>
     </>
   );

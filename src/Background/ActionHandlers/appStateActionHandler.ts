@@ -115,7 +115,10 @@ export const applyAppAction = (
 ): PersistedAppState => {
   if (action.type === APP_ACTION.SCHEDULER_EVALUATE) {
     const nextScheduler = evaluateScheduler(state.scheduler, now);
-    if (nextScheduler.activePhase === SCHEDULER_PHASE.REWARD_GAME && state.blockList.entries.length > 0) {
+    if (
+      nextScheduler.activePhase === SCHEDULER_PHASE.REWARD_GAME &&
+      state.blockList.entries.length > 0
+    ) {
       return {
         ...state,
         scheduler: nextScheduler,

@@ -1,7 +1,4 @@
-import {
-  DEFAULT_BREAK_DURATION_SECONDS,
-  REWARD_OPTIONS_COUNT,
-} from '@/Shared/Constants/Constants';
+import { DEFAULT_BREAK_DURATION_SECONDS, REWARD_OPTIONS_COUNT } from '@/Shared/Constants/Constants';
 import type { BlockListValue } from '@/Background/Services/BlockListManagement/BlockListManagementService';
 import type { Reward } from '@/Shared/Types/Reward';
 

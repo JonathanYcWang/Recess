@@ -15,7 +15,6 @@ const RewardSelectionView = () => {
     refreshOnClick: () => handleReroll(index),
   }));
 
-
   return (
     <>
       <div className={styles.headerContainer}>
