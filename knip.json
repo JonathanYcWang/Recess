@@ -52,6 +52,8 @@
     "src/UI/Components/PrizeWheel/**",
     "src/UI/Components/ParticleBurst/**",
     "src/UI/Components/QuizQuestion/**",
+    "src/UI/Components/DurationInputDialog/**",
+    "src/UI/Components/EnergyCheckDialog/**",
     "src/UI/Hooks/useParticles.ts",
     "src/UI/Pages/Quiz/**",
     "src/UI/Components/BlockedSites/BlockedSites.tsx",
@@ -62,6 +64,7 @@
     "src/UI/Components/Toggle/Toggle.tsx",
     "src/UI/Components/WorkHoursSettings/WorkHoursSettings.tsx",
     "src/Shared/Types/WorkStartReminder.ts",
+    "src/UI/Views/FocusSessionCountdownView/**",
     "src/UI/Views/WorkSessionCompleteView/WorkSessionCompleteView.tsx"
   ],
   "vite": {
