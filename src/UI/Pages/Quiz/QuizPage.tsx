@@ -4,6 +4,7 @@ import QuizQuestion from '@/UI/Components/QuizQuestion/QuizQuestion';
 import Button from '@/UI/Components/Button/Button';
 import { QuizOption } from '../../../Shared/Types/Quiz';
 import { sendAppAction } from '../../../Shared/ActionBrokers/ActionBroker';
+import { APP_ACTION } from '../../../Shared/Constants/Constants';
 import type { RootState } from '../../Redux/store';
 import {
   selectCurrentQuestion,
@@ -21,11 +22,11 @@ const QuizPage = () => {
   const navigate = useNavigate();
 
   const handleSelectOption = (option: QuizOption) => {
-    void sendAppAction({ type: 'QUIZ_SELECT_OPTION', option });
+    void sendAppAction({ type: APP_ACTION.QUIZ_SELECT_OPTION, option });
   };
 
   const handleRestart = () => {
-    void sendAppAction({ type: 'QUIZ_RESTART' });
+    void sendAppAction({ type: APP_ACTION.QUIZ_RESTART });
   };
 
   const handleBackToHome = () => {

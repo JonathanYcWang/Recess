@@ -1,22 +1,15 @@
 import RewardLink from '@/UI/Components/RewardLink/RewardLink';
 import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
 import Button from '@/UI/Components/Button/Button';
+import { useRewards } from '@/UI/Hooks/useRewards';
 import { useTimer } from '@/UI/Hooks/useTimer';
 
 import styles from './OngoingBreakSessionView.module.css';
 
-interface OngoingBreakSessionViewProps {
-  currentTimer: number;
-  currentRemaining: number;
-  endSessionEarly: () => void;
-}
+const OngoingBreakSessionView = () => {
+  const { selectedReward } = useRewards();
+  const { endSessionEarly, phaseDuration, phaseRemaining } = useTimer();
 
-const OngoingBreakSessionView = ({
-  currentTimer,
-  currentRemaining,
-  endSessionEarly,
-}: OngoingBreakSessionViewProps) => {
-  const { selectedReward } = useTimer();
   return (
     <>
       <div className={styles.headerContainer}>
@@ -26,8 +19,8 @@ const OngoingBreakSessionView = ({
         </p>
       </div>
       <FocusTimer
-        timer={currentTimer}
-        remainingTimer={currentRemaining}
+        timer={phaseDuration}
+        remainingTimer={phaseRemaining}
         label="Remaining"
         description={''}
       />

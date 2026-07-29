@@ -1,13 +1,8 @@
 import SecondaryTimerDescription from '@/UI/Components/SecondaryTimerDescription/SecondaryTimerDescription';
 import Button from '@/UI/Components/Button/Button';
 import styles from './WorkSessionCompleteView.module.css';
-interface WorkSessionCompleteViewProps {
-  transitionToBeforeWorkSession: () => void;
-}
 
-const WorkSessionCompleteView = ({
-  transitionToBeforeWorkSession,
-}: WorkSessionCompleteViewProps) => {
+const WorkSessionCompleteView = () => {
   return (
     <>
       <SecondaryTimerDescription text="Work Session Complete" />
@@ -16,11 +11,7 @@ const WorkSessionCompleteView = ({
         <p className={styles.caption}>You've completed your work session for today.</p>
       </div>
       <div className={styles.contentContainer}>
-        <Button
-          text="Start Next Work Session"
-          onClick={transitionToBeforeWorkSession}
-          variant="primary"
-        />
+        <Button text="Start Next Work Session" onClick={() => {}} variant="primary" />
       </div>
     </>
   );

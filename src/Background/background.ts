@@ -14,9 +14,9 @@
 // the browser's messaging system and the architecture layers.
 
 import { handleAppAction, handleGetAppState } from './ActionHandlers/appStateActionHandler';
-import type { AppStateMessage } from '../Shared/Types/AppState';
+import type { RuntimeMessage } from '../Shared/Types/AppState';
 
-chrome.runtime.onMessage.addListener((message: AppStateMessage, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResponse) => {
   if (message.type === 'GET_APP_STATE') {
     handleGetAppState().then(sendResponse);
     return true;
