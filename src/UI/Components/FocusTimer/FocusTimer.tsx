@@ -8,7 +8,7 @@ interface FocusTimerProps {
   remainingTimer?: number;
 }
 
-export const FOCUS_TIMER_RADIUS = 154;
+const FOCUS_TIMER_RADIUS = 154;
 
 const FocusTimer = ({
   timer,

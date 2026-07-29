@@ -32,7 +32,7 @@ import type {
 } from '@/Shared/Types/AppState';
 import type { QuizOption } from '@/Shared/Types/Quiz';
 
-export const APP_STATE_STORAGE_KEY = 'appState';
+const APP_STATE_STORAGE_KEY = 'appState';
 
 export const createDefaultPersistedAppState = (): PersistedAppState => ({
   blockList: createDefaultBlockListValue(),
@@ -59,7 +59,7 @@ export const createDefaultPersistedAppState = (): PersistedAppState => ({
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-export const isPersistedAppState = (value: unknown): value is PersistedAppState =>
+const isPersistedAppState = (value: unknown): value is PersistedAppState =>
   isRecord(value) &&
   isRecord(value.blockList) &&
   Array.isArray(value.blockList.entries) &&
@@ -108,7 +108,7 @@ export const handleAppAction = async (action: AppAction): Promise<AppActionRespo
   return { ok: true };
 };
 
-export const applyAppAction = (
+const applyAppAction = (
   state: PersistedAppState,
   action: AppAction,
   now: Date
