@@ -1,5 +1,4 @@
 import type { BlockListValue } from '@/Background/Services/BlockListManagement/BlockListManagementService';
-import type { WorkStartReminderValue } from '@/Background/Services/WorkStartReminder/WorkStartReminderService';
 import type { Reward } from './Reward';
 import type { QuizOption, QuizResults } from './Quiz';
 import { APP_ACTION, SCHEDULER_PHASE } from '../Constants/Constants';
@@ -33,20 +32,16 @@ export interface QuizValue {
   results: QuizResults | null;
 }
 
-export interface RewardsState {
+export interface RecessPickerState {
   rerolls: number;
-  selectedReward: Reward | null;
-  rewards: Reward[];
+  selectedRecess: Reward | null;
+  recessOptions: Reward[];
 }
 
 export interface PersistedAppState {
   blockList: BlockListValue;
-  coin: number;
   scheduler: SchedulerState;
-  workStartReminder: WorkStartReminderValue;
-  workstyleProfile: WorkstyleProfileValue;
-  quiz: QuizValue;
-  rewardsState: RewardsState;
+  recessPicker: RecessPickerState;
 }
 
 export type EnergyLevel = 'low' | 'steady' | 'high';
@@ -77,9 +72,9 @@ export type AppAction =
       cadence: PreferredCadence;
       primaryFriction: FrictionDimension;
     }
-  | { type: typeof APP_ACTION.REWARDS_SELECT_REWARD; reward: Reward }
-  | { type: typeof APP_ACTION.REWARDS_REROLL_REWARD; index: number }
-  | { type: typeof APP_ACTION.REWARDS_SET_SHOWN_COMBINATIONS; combinations: string[] }
+  | { type: typeof APP_ACTION.RECESS_PICKER_SELECT_RECESS; recess: Reward }
+  | { type: typeof APP_ACTION.RECESS_PICKER_REROLL; index: number }
+  | { type: typeof APP_ACTION.RECESS_PICKER_SET_SHOWN_COMBINATIONS; combinations: string[] }
   | { type: typeof APP_ACTION.QUIZ_SELECT_OPTION; option: QuizOption }
   | { type: typeof APP_ACTION.QUIZ_RESTART };
 

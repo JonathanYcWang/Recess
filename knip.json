@@ -35,7 +35,7 @@
       "exports",
       "types"
     ],
-    "src/Background/Services/Coin/CoinService.ts": ["exports"],
+    "src/Background/Services/Coin/CoinService.ts": ["exports", "files"],
     "src/Background/Services/Scheduler/SchedulerService.ts": ["exports"],
     "src/Background/Services/WorkStartReminder/WorkStartReminderService.ts": ["exports", "types"],
     "src/Shared/ActionBrokers/ActionBroker.ts": ["exports"],
