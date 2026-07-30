@@ -9,7 +9,7 @@ const defaultRecessPicker = (): RecessPickerState => ({
   recessOptions: [],
 });
 
-export const selectRecessPicker = (state: RootState): RecessPickerState =>
+const selectRecessPicker = (state: RootState): RecessPickerState =>
   state.appState?.recessPicker ?? defaultRecessPicker();
 
 export const selectRecessOptions = (state: RootState): Reward[] =>
