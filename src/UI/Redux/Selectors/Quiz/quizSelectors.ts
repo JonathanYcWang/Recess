@@ -2,9 +2,9 @@ import { createSelector } from '@reduxjs/toolkit';
 import type { QuizValue } from '@/Shared/Types/AppState';
 import type { RootState } from '../../../Redux/store';
 
-const selectQuizState = (_state: RootState) : QuizValue =>
-  // state.appState?.quiz ?? 
-({
+const selectQuizState = (_state: RootState): QuizValue =>
+  // state.appState?.quiz ??
+  ({
     currentQuestionId: 'Q1',
     selectedChoices: [],
     isComplete: false,
