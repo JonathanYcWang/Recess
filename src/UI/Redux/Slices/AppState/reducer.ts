@@ -1,5 +1,5 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { createDefaultPersistedAppState } from '@/Background/ActionHandlers/appStateActionHandler';
+import { createDefaultPersistedAppState } from '@/Shared/Schema/PersistedAppStateSchema';
 import { PersistedAppState } from '@/Shared/Types/AppState';
 import { setAppState } from './actions';
 

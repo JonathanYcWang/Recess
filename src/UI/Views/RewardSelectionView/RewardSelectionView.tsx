@@ -1,18 +1,18 @@
 import SecondaryTimerDescription from '@/UI/Components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CardCarousel, { CardCarouselItem } from '@/UI/Components/CardCarousel/CardCarousel';
 import { Reward } from '@/Shared/Types/Reward';
-import { useRewards } from '@/UI/Hooks/useRewards';
+import { useRecessPicker } from '@/UI/Hooks/useRecessPicker';
 import { formatWorkSessionTime } from '../../../Shared/Utils/TimerService';
 import styles from './RewardSelectionView.module.css';
 
 const RewardSelectionView = () => {
-  const { rewards, rerolls, selectReward, handleReroll } = useRewards();
-  const rewardCards: CardCarouselItem[] = rewards.map((reward: Reward, index: number) => ({
-    id: reward.id,
-    title: formatWorkSessionTime(reward.duration),
-    description: reward.name,
-    onClick: () => selectReward(reward),
-    refreshOnClick: () => handleReroll(index),
+  const { recessOptions, rerolls, selectRecess, rerollRecessOption } = useRecessPicker();
+  const rewardCards: CardCarouselItem[] = recessOptions.map((recess: Reward, index: number) => ({
+    id: recess.id,
+    title: formatWorkSessionTime(recess.duration),
+    description: recess.name,
+    onClick: () => selectRecess(recess),
+    refreshOnClick: () => rerollRecessOption(index),
   }));
 
   return (

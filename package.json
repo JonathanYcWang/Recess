@@ -26,7 +26,8 @@
     "react-aria-components": "1.19.0",
     "react-dom": "19.2.7",
     "react-redux": "9.3.0",
-    "react-router-dom": "7.18.0"
+    "react-router-dom": "7.18.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.7.1",

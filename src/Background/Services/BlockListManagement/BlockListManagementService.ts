@@ -1,25 +1,13 @@
+import { DEFAULT_BLOCK_LIST_ENTRIES } from '@/Shared/Constants/Constants';
+
 export type BlockListValue = {
   entries: string[];
 };
 
 export type BlockListDecision = { outcome: 'allow' } | { outcome: 'block'; entry: string };
 
-const DEFAULT_ENTRIES = [
-  'youtube.com',
-  'instagram.com',
-  'facebook.com',
-  'messenger.com',
-  'web.whatsapp.com',
-  'discord.com',
-  'tiktok.com',
-  'netflix.com',
-  'primevideo.com',
-  'amazon.com',
-  'reddit.com',
-];
-
 export const createDefaultBlockListValue = (): BlockListValue => ({
-  entries: [...DEFAULT_ENTRIES],
+  entries: [...DEFAULT_BLOCK_LIST_ENTRIES],
 });
 
 export const normalizeBlockListEntry = (input: string): string | null => {

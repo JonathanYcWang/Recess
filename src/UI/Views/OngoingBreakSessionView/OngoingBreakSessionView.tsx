@@ -1,13 +1,13 @@
 import RewardLink from '@/UI/Components/RewardLink/RewardLink';
 import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
 import Button from '@/UI/Components/Button/Button';
-import { useRewards } from '@/UI/Hooks/useRewards';
+import { useRecessPicker } from '@/UI/Hooks/useRecessPicker';
 import { useTimer } from '@/UI/Hooks/useTimer';
 
 import styles from './OngoingBreakSessionView.module.css';
 
 const OngoingBreakSessionView = () => {
-  const { selectedReward } = useRewards();
+  const { selectedRecess } = useRecessPicker();
   const { endSessionEarly, phaseDuration, phaseRemaining } = useTimer();
 
   return (
@@ -25,11 +25,11 @@ const OngoingBreakSessionView = () => {
         description={''}
       />
       <div className={styles.contentContainer}>
-        {selectedReward && (
+        {selectedRecess && (
           <RewardLink
-            siteName={selectedReward.name}
+            siteName={selectedRecess.name}
             status="Site Unlocked"
-            siteUrl={selectedReward.name}
+            siteUrl={selectedRecess.name}
           />
         )}
         <Button text="Wrap up break early" onClick={endSessionEarly} variant="tertiary" />

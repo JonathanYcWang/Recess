@@ -3,17 +3,18 @@
  * All storage access routes through this repository.
  */
 
-const read = async <T>(key: string): Promise<T | undefined> => {
-  const result = await chrome.storage.local.get(key);
-  return result[key] as T | undefined;
+import { parsePersistedAppState } from '@/Shared/Schema/PersistedAppStateSchema';
+import type { PersistedAppState } from '@/Shared/Types/AppState';
+
+const APP_STATE_STORAGE_KEY = 'appState';
+
+const readAppState = async (): Promise<PersistedAppState> => {
+  const result = await chrome.storage.local.get(APP_STATE_STORAGE_KEY);
+  return parsePersistedAppState(result[APP_STATE_STORAGE_KEY]);
 };
 
-const write = async <T>(key: string, value: T): Promise<void> => {
-  await chrome.storage.local.set({ [key]: value });
+const writeAppState = async (state: PersistedAppState): Promise<void> => {
+  await chrome.storage.local.set({ [APP_STATE_STORAGE_KEY]: state });
 };
 
-const remove = async (key: string): Promise<void> => {
-  await chrome.storage.local.remove(key);
-};
-
-export const storageRepository = { read, write, remove };
+export const storageRepository = { readAppState, writeAppState };
