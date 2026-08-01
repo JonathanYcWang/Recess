@@ -1,16 +1,24 @@
 /**
  * TabAdapter — wraps browser tab APIs.
- * Owns all chrome.tabs.* and chrome.runtime.sendMessage calls for the background layer.
+ * Owns all browser.tabs.* and browser.runtime.sendMessage calls for the background layer.
  */
 
-export const getAllTabs = async (): Promise<chrome.tabs.Tab[]> => {
-  return chrome.tabs.query({});
+import browser from 'webextension-polyfill';
+import { normalizeBlockListEntry } from '@/Background/Services/BlockListManagement/BlockListManagementService';
+
+export const getAllTabs = async (): Promise<browser.Tabs.Tab[]> => browser.tabs.query({});
+
+export const removeTabById = async (tabId: number): Promise<void> => {
+  await browser.tabs.remove(tabId).catch(() => undefined);
 };
 
+export const hostnameFromTabUrl = (url: string | undefined): string | null =>
+  url === undefined ? null : normalizeBlockListEntry(url);
+
 export const sendMessageToTab = async (tabId: number, message: unknown): Promise<void> => {
-  await chrome.tabs.sendMessage(tabId, message).catch(() => undefined);
+  await browser.tabs.sendMessage(tabId, message).catch(() => undefined);
 };
 
 export const broadcastToRuntime = async (message: unknown): Promise<void> => {
-  await chrome.runtime.sendMessage(message).catch(() => undefined);
+  await browser.runtime.sendMessage(message).catch(() => undefined);
 };
