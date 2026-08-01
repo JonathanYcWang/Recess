@@ -4,16 +4,12 @@
  */
 
 import browser from 'webextension-polyfill';
-import { normalizeBlockListEntry } from '@/Background/Services/BlockListManagement/BlockListManagementService';
 
 export const getAllTabs = async (): Promise<browser.Tabs.Tab[]> => browser.tabs.query({});
 
 export const removeTabById = async (tabId: number): Promise<void> => {
   await browser.tabs.remove(tabId).catch(() => undefined);
 };
-
-export const hostnameFromTabUrl = (url: string | undefined): string | null =>
-  url === undefined ? null : normalizeBlockListEntry(url);
 
 export const sendMessageToTab = async (tabId: number, message: unknown): Promise<void> => {
   await browser.tabs.sendMessage(tabId, message).catch(() => undefined);

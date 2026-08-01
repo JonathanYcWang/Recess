@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getAllTabs, hostnameFromTabUrl, removeTabById } from '@/Background/Adapters/TabAdapter';
+import { getAllTabs, removeTabById } from '@/Background/Adapters/TabAdapter';
 
 const tabQuery = vi.hoisted(() => vi.fn());
 const tabRemove = vi.hoisted(() => vi.fn());
@@ -15,25 +15,6 @@ vi.mock('webextension-polyfill', () => ({
 
 afterEach(() => {
   vi.clearAllMocks();
-});
-
-describe('hostnameFromTabUrl', () => {
-  it('returns a normalized hostname for a tab URL', () => {
-    expect(hostnameFromTabUrl('https://www.youtube.com/watch?v=1')).toBe('www.youtube.com');
-  });
-
-  it('returns null when the URL is missing', () => {
-    expect(hostnameFromTabUrl(undefined)).toBeNull();
-  });
-
-  it('returns null for internal browser URLs', () => {
-    expect(hostnameFromTabUrl('chrome://newtab/')).toBeNull();
-    expect(hostnameFromTabUrl('about:blank')).toBeNull();
-  });
-
-  it('returns null for unparseable URLs', () => {
-    expect(hostnameFromTabUrl('not a url')).toBeNull();
-  });
 });
 
 describe('getAllTabs', () => {
