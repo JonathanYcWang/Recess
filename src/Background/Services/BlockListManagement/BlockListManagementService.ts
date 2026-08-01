@@ -1,4 +1,5 @@
 import { DEFAULT_BLOCK_LIST_ENTRIES } from '@/Shared/Constants/Constants';
+import { normalizeBlockListEntry } from '@/Background/Utils/normalizeBlockListEntry';
 
 export type BlockListValue = {
   entries: string[];
@@ -9,24 +10,6 @@ export type BlockListDecision = { outcome: 'allow' } | { outcome: 'block'; entry
 export const createDefaultBlockListValue = (): BlockListValue => ({
   entries: [...DEFAULT_BLOCK_LIST_ENTRIES],
 });
-
-export const normalizeBlockListEntry = (input: string): string | null => {
-  const trimmed = input.trim().toLowerCase();
-
-  if (!trimmed) {
-    return null;
-  }
-
-  const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-
-  try {
-    const url = new URL(withProtocol);
-    const host = url.hostname.replace(/\.$/, '');
-    return host.includes('.') ? host : null;
-  } catch {
-    return null;
-  }
-};
 
 export const addBlockListEntry = (value: BlockListValue, input: string): BlockListValue => {
   const entry = normalizeBlockListEntry(input);
