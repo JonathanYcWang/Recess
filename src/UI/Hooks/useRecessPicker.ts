@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { sendAppAction } from '../../Shared/ActionBrokers/ActionBroker';
 import { APP_ACTION } from '../../Shared/Constants/Constants';
-import { Reward } from '../../Shared/Types/Reward';
+import { Reward } from '@/Shared/Types/AppState';
 import {
   selectRecessOptions,
   selectRecessPickerRerolls,

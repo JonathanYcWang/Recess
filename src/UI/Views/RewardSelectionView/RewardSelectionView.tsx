@@ -1,6 +1,6 @@
 import SecondaryTimerDescription from '@/UI/Components/SecondaryTimerDescription/SecondaryTimerDescription';
 import CardCarousel, { CardCarouselItem } from '@/UI/Components/CardCarousel/CardCarousel';
-import { Reward } from '@/Shared/Types/Reward';
+import { Reward } from '@/Shared/Types/AppState';
 import { useRecessPicker } from '@/UI/Hooks/useRecessPicker';
 import { formatWorkSessionTime } from '../../../Shared/Utils/TimerService';
 import styles from './RewardSelectionView.module.css';

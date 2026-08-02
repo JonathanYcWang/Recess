@@ -1,6 +1,6 @@
 import type { RootState } from '../../store';
 import type { RecessPickerState } from '@/Shared/Types/AppState';
-import type { Reward } from '@/Shared/Types/Reward';
+import type { Reward } from '@/Shared/Types/AppState';
 import { DEFAULT_REROLLS } from '@/Shared/Constants/Constants';
 
 const defaultRecessPicker = (): RecessPickerState => ({

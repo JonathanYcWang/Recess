@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeBlockListEntry } from '@/Background/Utils/normalizeBlockListEntry';
+import { normalizeBlockListEntry } from '@/Shared/Utils/normalizeBlockListEntry';
 
 describe('normalizeBlockListEntry', () => {
   it('normalizes a full tab URL to a hostname', () => {

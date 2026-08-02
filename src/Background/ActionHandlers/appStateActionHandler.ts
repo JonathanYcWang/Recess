@@ -13,10 +13,11 @@ import {
 import { broadcastAppState } from '@/Background/Broadcasters/appStateBroadcaster';
 import { storageRepository } from '@/Background/Repositories/StorageRepository';
 import { APP_ACTION, DEFAULT_REROLLS, SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
+import { applyBlockListEnforcement } from '@/Shared/Utils/blockListEnforcement';
 import type { AppAction, AppActionResponse, PersistedAppState } from '@/Shared/Types/AppState';
 
 export const handleGetAppState = async (): Promise<PersistedAppState> => {
-  const state = await storageRepository.readAppState();
+  const state = applyBlockListEnforcement(await storageRepository.readAppState());
 
   await storageRepository.writeAppState(state);
 
@@ -38,11 +39,20 @@ const applyAppAction = (
   action: AppAction,
   now: Date
 ): PersistedAppState => {
+  const nextState = applyAppActionWithoutBlockListSync(state, action, now);
+  return applyBlockListEnforcement(nextState);
+};
+
+const applyAppActionWithoutBlockListSync = (
+  state: PersistedAppState,
+  action: AppAction,
+  now: Date
+): PersistedAppState => {
   if (action.type === APP_ACTION.SCHEDULER_EVALUATE) {
     const nextScheduler = evaluateScheduler(state.scheduler, now);
     if (
       nextScheduler.activePhase === SCHEDULER_PHASE.REWARD_GAME &&
-      state.blockList.entries.length > 0
+      state.blockList.length > 0
     ) {
       return {
         ...state,
@@ -75,7 +85,7 @@ const applyAppAction = (
   }
 
   if (action.type === APP_ACTION.RECESS_PICKER_REROLL) {
-    if (state.recessPicker.rerolls <= 0 || state.blockList.entries.length === 0) return state;
+    if (state.recessPicker.rerolls <= 0 || state.blockList.length === 0) return state;
     const recessOptions = [...state.recessPicker.recessOptions];
     recessOptions[action.index] = generateReward(state.blockList);
     return {
