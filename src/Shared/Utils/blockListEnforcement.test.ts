@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
 import { createDefaultPersistedAppState } from '@/Shared/Schema/PersistedAppStateSchema';
 import type { BlockListEntry, PersistedAppState, Reward } from '@/Shared/Types/AppState';
-import { isBlocked, applyBlockListEnforcement, findBlockListEntry } from '@/Shared/Utils/blockListEnforcement';
+import {
+  isBlocked,
+  applyBlockListEnforcement,
+  findBlockListEntry,
+} from '@/Shared/Utils/blockListEnforcement';
 
 const withBlockListContext = (
   blockList: BlockListEntry[],
@@ -22,12 +26,13 @@ const withBlockListContext = (
 });
 
 describe('applyBlockListEnforcement', () => {
-  const entries = [{ url: 'youtube.com', isBlocked: false }, { url: 'instagram.com', isBlocked: false }];
+  const entries = [
+    { url: 'youtube.com', isBlocked: false },
+    { url: 'instagram.com', isBlocked: false },
+  ];
 
   it('clears isBlocked when there is no active phase', () => {
-    expect(
-      applyBlockListEnforcement(withBlockListContext(entries, null, null)).blockList
-    ).toEqual([
+    expect(applyBlockListEnforcement(withBlockListContext(entries, null, null)).blockList).toEqual([
       { url: 'youtube.com', isBlocked: false },
       { url: 'instagram.com', isBlocked: false },
     ]);
@@ -120,7 +125,11 @@ describe('tab block lookup after applyBlockListEnforcement', () => {
 
   it('does not block hostnames that are not on the list', () => {
     const state = applyBlockListEnforcement(
-      withBlockListContext([{ url: 'youtube.com', isBlocked: false }], SCHEDULER_PHASE.FOCUS_BLOCK, null)
+      withBlockListContext(
+        [{ url: 'youtube.com', isBlocked: false }],
+        SCHEDULER_PHASE.FOCUS_BLOCK,
+        null
+      )
     );
 
     expect(tabIsBlocked(state, 'example.com')).toBe(false);
@@ -128,7 +137,11 @@ describe('tab block lookup after applyBlockListEnforcement', () => {
 
   it('blocks list matches during Focus Block using subdomain rules', () => {
     const state = applyBlockListEnforcement(
-      withBlockListContext([{ url: 'youtube.com', isBlocked: false }], SCHEDULER_PHASE.FOCUS_BLOCK, null)
+      withBlockListContext(
+        [{ url: 'youtube.com', isBlocked: false }],
+        SCHEDULER_PHASE.FOCUS_BLOCK,
+        null
+      )
     );
 
     expect(tabIsBlocked(state, 'www.youtube.com')).toBe(true);

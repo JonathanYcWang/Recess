@@ -1,5 +1,10 @@
 import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
-import type { BlockListEntry, PersistedAppState, Reward, SchedulerPhase } from '@/Shared/Types/AppState';
+import type {
+  BlockListEntry,
+  PersistedAppState,
+  Reward,
+  SchedulerPhase,
+} from '@/Shared/Types/AppState';
 import { normalizeBlockListEntry } from '@/Shared/Utils/normalizeBlockListEntry';
 
 export const isBlocked = (
@@ -15,7 +20,11 @@ export const isBlocked = (
     return true;
   }
 
-  if (activePhase === SCHEDULER_PHASE.RECESS && selectedRecess && entryUrl === selectedRecess.name) {
+  if (
+    activePhase === SCHEDULER_PHASE.RECESS &&
+    selectedRecess &&
+    entryUrl === selectedRecess.name
+  ) {
     return false;
   }
 
@@ -46,8 +55,6 @@ export const findBlockListEntry = (
   }
 
   return blockList.find(
-    (entry) =>
-      normalizedHost === entry.url ||
-      normalizedHost.endsWith(`.${entry.url}`)
+    (entry) => normalizedHost === entry.url || normalizedHost.endsWith(`.${entry.url}`)
   );
 };

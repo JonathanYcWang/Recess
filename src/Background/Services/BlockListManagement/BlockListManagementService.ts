@@ -17,7 +17,10 @@ export const addBlockListEntry = (blockList: BlockListEntry[], input: string): B
   );
 };
 
-export const removeBlockListEntry = (blockList: BlockListEntry[], input: string): BlockListEntry[] => {
+export const removeBlockListEntry = (
+  blockList: BlockListEntry[],
+  input: string
+): BlockListEntry[] => {
   const url = normalizeBlockListEntry(input);
 
   if (!url) {
