@@ -36,7 +36,7 @@ describe('parsePersistedAppState', () => {
     ).toEqual(stored);
   });
 
-  it('accepts a populated scheduler state', () => {
+  it('accepts a populated scheduler state and syncs block list enforcement flags', () => {
     const stored = {
       ...createDefaultPersistedAppState(),
       scheduler: {
@@ -48,6 +48,19 @@ describe('parsePersistedAppState', () => {
       },
     };
 
-    expect(parsePersistedAppState(stored)).toEqual(stored);
+    expect(parsePersistedAppState(stored)).toEqual({
+      ...stored,
+      blockList: stored.blockList.map((entry) => ({ ...entry, isBlocked: true })),
+    });
+  });
+
+  it('migrates legacy block list entries arrays', () => {
+    const stored = createDefaultPersistedAppState();
+    expect(
+      parsePersistedAppState({
+        ...stored,
+        blockList: { entries: ['youtube.com', 'instagram.com'] },
+      }).blockList.map((entry) => entry.url)
+    ).toEqual(['youtube.com', 'instagram.com']);
   });
 });

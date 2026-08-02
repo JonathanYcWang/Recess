@@ -1,11 +1,11 @@
+import type { BlockListEntry } from '@/Shared/Types/AppState';
+import type { Reward } from '@/Shared/Types/AppState';
 import { DEFAULT_BREAK_DURATION_SECONDS, REWARD_OPTIONS_COUNT } from '@/Shared/Constants/Constants';
-import type { BlockListValue } from '@/Background/Services/BlockListManagement/BlockListManagementService';
-import type { Reward } from '@/Shared/Types/Reward';
 
 const getRandomCombo = (
-  blockListValue: BlockListValue
+  blockList: BlockListEntry[]
 ): { site: string; duration: number; rewardKey: string } => {
-  const site = blockListValue.entries[Math.floor(Math.random() * blockListValue.entries.length)];
+  const site = blockList[Math.floor(Math.random() * blockList.length)].url;
   const duration = DEFAULT_BREAK_DURATION_SECONDS;
   const rewardKey = `${site}-${duration}`;
   return {
@@ -15,7 +15,7 @@ const getRandomCombo = (
   };
 };
 
-export const generateReward = (blockList: BlockListValue): Reward => {
+export const generateReward = (blockList: BlockListEntry[]): Reward => {
   const { site, duration, rewardKey } = getRandomCombo(blockList);
   return {
     id: rewardKey,
@@ -24,5 +24,5 @@ export const generateReward = (blockList: BlockListValue): Reward => {
   };
 };
 
-export const generateRewardSet = (blockList: BlockListValue): Reward[] =>
+export const generateRewardSet = (blockList: BlockListEntry[]): Reward[] =>
   Array.from({ length: REWARD_OPTIONS_COUNT }, () => generateReward(blockList));

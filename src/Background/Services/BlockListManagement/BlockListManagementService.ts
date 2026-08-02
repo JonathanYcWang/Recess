@@ -1,54 +1,31 @@
 import { DEFAULT_BLOCK_LIST_ENTRIES } from '@/Shared/Constants/Constants';
-import { normalizeBlockListEntry } from '@/Background/Utils/normalizeBlockListEntry';
+import type { BlockListEntry } from '@/Shared/Types/AppState';
+import { normalizeBlockListEntry } from '@/Shared/Utils/normalizeBlockListEntry';
 
-export type BlockListValue = {
-  entries: string[];
-};
+export const createDefaultBlockList = (): BlockListEntry[] =>
+  DEFAULT_BLOCK_LIST_ENTRIES.map((url) => ({ url, isBlocked: false }));
 
-export type BlockListDecision = { outcome: 'allow' } | { outcome: 'block'; entry: string };
+export const addBlockListEntry = (blockList: BlockListEntry[], input: string): BlockListEntry[] => {
+  const url = normalizeBlockListEntry(input);
 
-export const createDefaultBlockListValue = (): BlockListValue => ({
-  entries: [...DEFAULT_BLOCK_LIST_ENTRIES],
-});
-
-export const addBlockListEntry = (value: BlockListValue, input: string): BlockListValue => {
-  const entry = normalizeBlockListEntry(input);
-
-  if (!entry || value.entries.includes(entry)) {
-    return value;
+  if (!url || blockList.some((entry) => entry.url === url)) {
+    return blockList;
   }
 
-  return { entries: [...value.entries, entry].sort() };
-};
-
-export const removeBlockListEntry = (value: BlockListValue, input: string): BlockListValue => {
-  const entry = normalizeBlockListEntry(input);
-
-  if (!entry) {
-    return value;
-  }
-
-  return { entries: value.entries.filter((current) => current !== entry) };
-};
-
-export const hostnameMatchesBlockListEntry = (hostname: string, entry: string): boolean => {
-  const normalizedHost = normalizeBlockListEntry(hostname);
-  const normalizedEntry = normalizeBlockListEntry(entry);
-
-  if (!normalizedHost || !normalizedEntry) {
-    return false;
-  }
-
-  return normalizedHost === normalizedEntry || normalizedHost.endsWith(`.${normalizedEntry}`);
-};
-
-export const decideBlockListAccess = (
-  value: BlockListValue,
-  hostname: string
-): BlockListDecision => {
-  const entry = value.entries.find((candidate) =>
-    hostnameMatchesBlockListEntry(hostname, candidate)
+  return [...blockList, { url, isBlocked: false }].sort((left, right) =>
+    left.url.localeCompare(right.url)
   );
+};
 
-  return entry ? { outcome: 'block', entry } : { outcome: 'allow' };
+export const removeBlockListEntry = (
+  blockList: BlockListEntry[],
+  input: string
+): BlockListEntry[] => {
+  const url = normalizeBlockListEntry(input);
+
+  if (!url) {
+    return blockList;
+  }
+
+  return blockList.filter((entry) => entry.url !== url);
 };

@@ -1,9 +1,13 @@
-import type { BlockListValue } from '@/Background/Services/BlockListManagement/BlockListManagementService';
-import type { Reward } from './Reward';
 import type { QuizOption, QuizResults } from './Quiz';
 import { APP_ACTION, SCHEDULER_PHASE } from '../Constants/Constants';
 
 export type SchedulerPhase = (typeof SCHEDULER_PHASE)[keyof typeof SCHEDULER_PHASE];
+
+export interface Reward {
+  id: string;
+  name: string;
+  duration: number;
+}
 
 // interface SchedulerPhaseTimelineEntry {
 //   phase: SchedulerPhase;
@@ -38,8 +42,13 @@ export interface RecessPickerState {
   recessOptions: Reward[];
 }
 
+export interface BlockListEntry {
+  url: string;
+  isBlocked: boolean;
+}
+
 export interface PersistedAppState {
-  blockList: BlockListValue;
+  blockList: BlockListEntry[];
   scheduler: SchedulerState;
   recessPicker: RecessPickerState;
 }
