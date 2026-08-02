@@ -14,6 +14,7 @@ import { broadcastAppState } from '@/Background/Broadcasters/appStateBroadcaster
 import { storageRepository } from '@/Background/Repositories/StorageRepository';
 import { APP_ACTION, DEFAULT_REROLLS, SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
 import { applyBlockListEnforcement } from '@/Shared/Utils/blockListEnforcement';
+import { withUpdatedScheduler } from '@/Shared/Utils/recessPickerOnSchedulerTransition';
 import type { AppAction, AppActionResponse, PersistedAppState } from '@/Shared/Types/AppState';
 
 export const handleGetAppState = async (): Promise<PersistedAppState> => {
@@ -62,21 +63,21 @@ const applyAppActionWithoutBlockListSync = (
         },
       };
     }
-    return { ...state, scheduler: nextScheduler };
+    return withUpdatedScheduler(state, nextScheduler);
   }
 
   if (action.type === APP_ACTION.START_FOCUS) {
-    return { ...state, scheduler: startFocusBlock(state.scheduler, now) };
+    return withUpdatedScheduler(state, startFocusBlock(state.scheduler, now));
   }
 
   if (action.type === APP_ACTION.START_WORK_SESSION) {
-    return { ...state, scheduler: startWorkSession(now) };
+    return withUpdatedScheduler(state, startWorkSession(now));
   }
 
   if (action.type === APP_ACTION.RECESS_PICKER_SELECT_RECESS) {
+    const nextScheduler = startRecess(state.scheduler, now);
     return {
-      ...state,
-      scheduler: startRecess(state.scheduler, now),
+      ...withUpdatedScheduler(state, nextScheduler),
       recessPicker: { ...state.recessPicker, selectedRecess: action.recess },
     };
   }
@@ -96,7 +97,7 @@ const applyAppActionWithoutBlockListSync = (
   }
 
   if (action.type === APP_ACTION.END_WORK_SESSION_EARLY) {
-    return { ...state, scheduler: endWorkSession(state.scheduler) };
+    return withUpdatedScheduler(state, endWorkSession(state.scheduler));
   }
 
   if (action.type === APP_ACTION.ADD_BLOCKED_SITE) {
