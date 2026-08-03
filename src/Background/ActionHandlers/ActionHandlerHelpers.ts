@@ -12,10 +12,10 @@ import type {
   SchedulerState,
 } from '@/Shared/Types/AppState';
 
-export const createDefaultBlockList = (): BlockListEntry[] =>
+const createDefaultBlockList = (): BlockListEntry[] =>
   DEFAULT_BLOCK_LIST_ENTRIES.map((url) => ({ url, isBlocked: false }));
 
-export const createDefaultSchedulerState = (): SchedulerState => ({
+const createDefaultSchedulerState = (): SchedulerState => ({
   activePhase: null,
   phaseStart: null,
   phaseTarget: 0,
@@ -23,7 +23,7 @@ export const createDefaultSchedulerState = (): SchedulerState => ({
   workSessionRemaining: WORK_SESSION_DURATION,
 });
 
-export const createDefaultRecessPickerState = (): RecessPickerState => ({
+const createDefaultRecessPickerState = (): RecessPickerState => ({
   rerolls: DEFAULT_REROLLS,
   selectedRecess: null,
   recessOptions: [],
@@ -43,10 +43,7 @@ export const isEnteringRecessPicker = (
   nextScheduler.activePhase === SCHEDULER_PHASE.REWARD_GAME &&
   state.blockList.length > 0;
 
-export const isExitingRecess = (
-  state: PersistedAppState,
-  nextScheduler: SchedulerState
-): boolean =>
+export const isExitingRecess = (state: PersistedAppState, nextScheduler: SchedulerState): boolean =>
   state.scheduler.activePhase === SCHEDULER_PHASE.RECESS &&
   nextScheduler.activePhase !== SCHEDULER_PHASE.RECESS;
 
