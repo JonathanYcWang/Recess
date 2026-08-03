@@ -90,7 +90,7 @@ describe('isExitingRecess', () => {
 });
 
 describe('enterRecessPicker', () => {
-  it('sets up picker when entering Reward Game from Focus Block', () => {
+  it('sets up picker and scheduler', () => {
     const state: PersistedAppState = {
       ...createDefaultPersistedAppState(),
       blockList: [{ url: 'youtube.com', isBlocked: false }],
@@ -106,22 +106,10 @@ describe('enterRecessPicker', () => {
     expect(result.recessPicker.rerolls).toBe(DEFAULT_REROLLS);
     expect(result.recessPicker.recessOptions.length).toBeGreaterThan(0);
   });
-
-  it('leaves state unchanged while Reward Game continues', () => {
-    const rewardGame = schedulerInPhase(SCHEDULER_PHASE.REWARD_GAME);
-    const state: PersistedAppState = {
-      ...createDefaultPersistedAppState(),
-      blockList: [{ url: 'youtube.com', isBlocked: false }],
-      scheduler: rewardGame,
-      recessPicker: recessPickerWithSelection(),
-    };
-
-    expect(enterRecessPicker(state, rewardGame)).toBe(state);
-  });
 });
 
 describe('exitRecess', () => {
-  it('resets picker when leaving Recess for Focus Block', () => {
+  it('resets picker and sets scheduler', () => {
     const state: PersistedAppState = {
       ...createDefaultPersistedAppState(),
       scheduler: schedulerInPhase(SCHEDULER_PHASE.RECESS),
@@ -137,20 +125,6 @@ describe('exitRecess', () => {
       selectedRecess: null,
       recessOptions: [],
     });
-  });
-
-  it('keeps picker when entering Recess from Reward Game', () => {
-    const picker = recessPickerWithSelection();
-    const state: PersistedAppState = {
-      ...createDefaultPersistedAppState(),
-      scheduler: schedulerInPhase(SCHEDULER_PHASE.REWARD_GAME),
-      recessPicker: picker,
-    };
-    const nextScheduler = schedulerInPhase(SCHEDULER_PHASE.RECESS);
-
-    const result = exitRecess(state, nextScheduler);
-
-    expect(result.recessPicker).toBe(picker);
   });
 });
 

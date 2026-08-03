@@ -53,34 +53,22 @@ export const isExitingRecess = (
 export const enterRecessPicker = (
   state: PersistedAppState,
   nextScheduler: SchedulerState
-): PersistedAppState => {
-  if (!isEnteringRecessPicker(state, nextScheduler)) {
-    return state;
-  }
-
-  return {
-    ...state,
-    scheduler: nextScheduler,
-    recessPicker: {
-      ...state.recessPicker,
-      recessOptions: generateRewardSet(state.blockList),
-      selectedRecess: null,
-      rerolls: DEFAULT_REROLLS,
-    },
-  };
-};
+): PersistedAppState => ({
+  ...state,
+  scheduler: nextScheduler,
+  recessPicker: {
+    ...state.recessPicker,
+    recessOptions: generateRewardSet(state.blockList),
+    selectedRecess: null,
+    rerolls: DEFAULT_REROLLS,
+  },
+});
 
 export const exitRecess = (
   state: PersistedAppState,
   nextScheduler: SchedulerState
-): PersistedAppState => {
-  if (!isExitingRecess(state, nextScheduler)) {
-    return { ...state, scheduler: nextScheduler };
-  }
-
-  return {
-    ...state,
-    scheduler: nextScheduler,
-    recessPicker: createDefaultRecessPickerState(),
-  };
-};
+): PersistedAppState => ({
+  ...state,
+  scheduler: nextScheduler,
+  recessPicker: createDefaultRecessPickerState(),
+});
