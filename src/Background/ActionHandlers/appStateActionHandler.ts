@@ -2,24 +2,28 @@ import {
   addBlockListEntry,
   removeBlockListEntry,
 } from '@/Background/Services/BlockListManagement/BlockListManagementService';
-import { generateReward, generateRewardSet } from '@/Background/Services/Reward/RewardService';
+import { generateReward } from '@/Background/Services/Reward/RewardService';
 import {
-  endWorkSession,
   evaluateScheduler,
-  startFocusBlock,
   startRecess,
   startWorkSession,
 } from '@/Background/Services/Scheduler/SchedulerService';
 import { broadcastAppState } from '@/Background/Broadcasters/appStateBroadcaster';
 import { storageRepository } from '@/Background/Repositories/StorageRepository';
-import { APP_ACTION, DEFAULT_REROLLS, SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
+import { APP_ACTION } from '@/Shared/Constants/Constants';
 import { applyBlockListEnforcement } from '@/Shared/Utils/blockListEnforcement';
-import { withUpdatedScheduler } from '@/Shared/Utils/recessPickerOnSchedulerTransition';
 import type { AppAction, AppActionResponse, PersistedAppState } from '@/Shared/Types/AppState';
+
+import {
+  createDefaultPersistedAppState,
+  enterRecessPicker,
+  exitRecess,
+  isEnteringRecessPicker,
+  isExitingRecess,
+} from '@/Background/ActionHandlers/ActionHandlerHelpers';
 
 export const handleGetAppState = async (): Promise<PersistedAppState> => {
   const state = applyBlockListEnforcement(await storageRepository.readAppState());
-
   await storageRepository.writeAppState(state);
 
   return state;
@@ -51,33 +55,29 @@ const applyAppActionWithoutBlockListSync = (
 ): PersistedAppState => {
   if (action.type === APP_ACTION.SCHEDULER_EVALUATE) {
     const nextScheduler = evaluateScheduler(state.scheduler, now);
-    if (nextScheduler.activePhase === SCHEDULER_PHASE.REWARD_GAME && state.blockList.length > 0) {
-      return {
-        ...state,
-        scheduler: nextScheduler,
-        recessPicker: {
-          ...state.recessPicker,
-          recessOptions: generateRewardSet(state.blockList),
-          selectedRecess: null,
-          rerolls: DEFAULT_REROLLS,
-        },
-      };
+    if (isEnteringRecessPicker(state, nextScheduler)) {
+      return enterRecessPicker(state, nextScheduler);
     }
-    return withUpdatedScheduler(state, nextScheduler);
-  }
 
-  if (action.type === APP_ACTION.START_FOCUS) {
-    return withUpdatedScheduler(state, startFocusBlock(state.scheduler, now));
+    if (isExitingRecess(state, nextScheduler)) {
+      return exitRecess(state, nextScheduler);
+    }
+
+    return { ...state, scheduler: nextScheduler };
   }
 
   if (action.type === APP_ACTION.START_WORK_SESSION) {
-    return withUpdatedScheduler(state, startWorkSession(now));
+    return {
+      ...createDefaultPersistedAppState(),
+      blockList: state.blockList,
+      scheduler: startWorkSession(now),
+    };
   }
 
   if (action.type === APP_ACTION.RECESS_PICKER_SELECT_RECESS) {
-    const nextScheduler = startRecess(state.scheduler, now);
     return {
-      ...withUpdatedScheduler(state, nextScheduler),
+      ...state,
+      scheduler: startRecess(state.scheduler, now),
       recessPicker: { ...state.recessPicker, selectedRecess: action.recess },
     };
   }
@@ -97,7 +97,10 @@ const applyAppActionWithoutBlockListSync = (
   }
 
   if (action.type === APP_ACTION.END_WORK_SESSION_EARLY) {
-    return withUpdatedScheduler(state, endWorkSession(state.scheduler));
+    return {
+      ...createDefaultPersistedAppState(),
+      blockList: state.blockList,
+    };
   }
 
   if (action.type === APP_ACTION.ADD_BLOCKED_SITE) {

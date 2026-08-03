@@ -1,11 +1,7 @@
 import { z } from 'zod';
-import {
-  DEFAULT_BLOCK_LIST_ENTRIES,
-  DEFAULT_REROLLS,
-  SCHEDULER_PHASE,
-  WORK_SESSION_DURATION,
-} from '@/Shared/Constants/Constants';
+import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
 import { applyBlockListEnforcement } from '@/Shared/Utils/blockListEnforcement';
+import { createDefaultPersistedAppState } from '@/Background/ActionHandlers/ActionHandlerHelpers';
 import type { PersistedAppState } from '@/Shared/Types/AppState';
 
 const recessOptionSchema = z.object({
@@ -50,22 +46,6 @@ const persistedAppStateSchema = z.object({
     workSessionRemaining: z.number().nonnegative(),
   }),
   recessPicker: recessPickerSchema,
-});
-
-export const createDefaultPersistedAppState = (): PersistedAppState => ({
-  blockList: DEFAULT_BLOCK_LIST_ENTRIES.map((url) => ({ url, isBlocked: false })),
-  scheduler: {
-    activePhase: null,
-    phaseStart: null,
-    phaseTarget: 0,
-    workSessionTarget: WORK_SESSION_DURATION,
-    workSessionRemaining: WORK_SESSION_DURATION,
-  },
-  recessPicker: {
-    rerolls: DEFAULT_REROLLS,
-    selectedRecess: null,
-    recessOptions: [],
-  },
 });
 
 export const parsePersistedAppState = (value: unknown): PersistedAppState => {

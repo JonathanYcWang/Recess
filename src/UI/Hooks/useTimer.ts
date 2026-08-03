@@ -65,7 +65,6 @@ const handlePhaseEnd = (phase: SchedulerPhase): void => {
 
   if (phase === SCHEDULER_PHASE.RECESS) {
     notifyBreakComplete();
-    void sendAppAction({ type: APP_ACTION.START_FOCUS });
   }
 };
 
