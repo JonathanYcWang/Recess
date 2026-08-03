@@ -40,7 +40,7 @@ Hooks read current state from Redux selectors and send actions when the user act
 
 | Hook / page        | Example actions                                      |
 | ------------------ | ---------------------------------------------------- |
-| `useTimer`         | `START_WORK_SESSION`, `START_FOCUS`, `SCHEDULER_EVALUATE`, `END_WORK_SESSION_EARLY` |
+| `useTimer`         | `START_WORK_SESSION`, `SCHEDULER_EVALUATE`, `END_WORK_SESSION_EARLY` |
 | `useRecessPicker`  | `RECESS_PICKER_SELECT_RECESS`, `RECESS_PICKER_REROLL` |
 | `QuizPage`         | `QUIZ_SELECT_OPTION`, `QUIZ_RESTART`                 |
 | `OnboardingPage`   | `INITIALIZE_FROM_ONBOARDING`                         |
@@ -129,7 +129,6 @@ Action type strings are defined in `APP_ACTION` (`/Shared/Constants/Constants.ts
 | --------------------------- | ---------------------------------------------------- |
 | `ADD_BLOCKED_SITE`          | `hostname`                                           |
 | `REMOVE_BLOCKED_SITE`       | `hostname`                                           |
-| `START_FOCUS`               | —                                                    |
 | `START_WORK_SESSION`        | —                                                    |
 | `END_WORK_SESSION_EARLY`    | —                                                    |
 | `SCHEDULER_EVALUATE`        | Called on timer ticks; advances scheduler phases     |

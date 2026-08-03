@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
-import { createDefaultPersistedAppState } from '@/Shared/Schema/PersistedAppStateSchema';
+import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
 import type { BlockListEntry, PersistedAppState, Reward } from '@/Shared/Types/AppState';
 import {
   isBlocked,

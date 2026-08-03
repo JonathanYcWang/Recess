@@ -68,7 +68,6 @@ export type AppActionName = (typeof APP_ACTION)[keyof typeof APP_ACTION];
 export type AppAction =
   | { type: typeof APP_ACTION.ADD_BLOCKED_SITE; hostname: string }
   | { type: typeof APP_ACTION.REMOVE_BLOCKED_SITE; hostname: string }
-  | { type: typeof APP_ACTION.START_FOCUS }
   | { type: typeof APP_ACTION.START_WORK_SESSION }
   | { type: typeof APP_ACTION.END_WORK_SESSION_EARLY }
   | { type: typeof APP_ACTION.SCHEDULER_EVALUATE }
