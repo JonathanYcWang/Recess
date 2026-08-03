@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
 import { applyBlockListEnforcement } from '@/Shared/Utils/blockListEnforcement';
-import { createDefaultPersistedAppState } from '@/Background/ActionHandlers/ActionHandlerHelpers';
+import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
 import type { PersistedAppState } from '@/Shared/Types/AppState';
 
 const recessOptionSchema = z.object({

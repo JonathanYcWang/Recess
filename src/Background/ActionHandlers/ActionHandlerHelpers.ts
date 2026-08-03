@@ -1,39 +1,7 @@
 import { generateRewardSet } from '@/Background/Services/Reward/RewardService';
-import {
-  DEFAULT_BLOCK_LIST_ENTRIES,
-  DEFAULT_REROLLS,
-  SCHEDULER_PHASE,
-  WORK_SESSION_DURATION,
-} from '@/Shared/Constants/Constants';
-import type {
-  BlockListEntry,
-  PersistedAppState,
-  RecessPickerState,
-  SchedulerState,
-} from '@/Shared/Types/AppState';
-
-const createDefaultBlockList = (): BlockListEntry[] =>
-  DEFAULT_BLOCK_LIST_ENTRIES.map((url) => ({ url, isBlocked: false }));
-
-const createDefaultSchedulerState = (): SchedulerState => ({
-  activePhase: null,
-  phaseStart: null,
-  phaseTarget: 0,
-  workSessionTarget: WORK_SESSION_DURATION,
-  workSessionRemaining: WORK_SESSION_DURATION,
-});
-
-const createDefaultRecessPickerState = (): RecessPickerState => ({
-  rerolls: DEFAULT_REROLLS,
-  selectedRecess: null,
-  recessOptions: [],
-});
-
-export const createDefaultPersistedAppState = (): PersistedAppState => ({
-  blockList: createDefaultBlockList(),
-  scheduler: createDefaultSchedulerState(),
-  recessPicker: createDefaultRecessPickerState(),
-});
+import { DEFAULT_REROLLS, SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
+import { createDefaultRecessPickerState } from '@/Shared/State/defaults';
+import type { PersistedAppState, SchedulerState } from '@/Shared/Types/AppState';
 
 export const isEnteringRecessPicker = (
   state: PersistedAppState,

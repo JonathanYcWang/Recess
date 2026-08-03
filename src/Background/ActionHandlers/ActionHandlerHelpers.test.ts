@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_REROLLS, SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
-import { createDefaultPersistedAppState } from '@/Background/ActionHandlers/ActionHandlerHelpers';
+import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
 import type { PersistedAppState, RecessPickerState, SchedulerState } from '@/Shared/Types/AppState';
 import {
   enterRecessPicker,

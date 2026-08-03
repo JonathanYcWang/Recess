@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SCHEDULER_PHASE, WORK_SESSION_DURATION } from '@/Shared/Constants/Constants';
-import { createDefaultPersistedAppState } from '@/Background/ActionHandlers/ActionHandlerHelpers';
+import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
 import { parsePersistedAppState } from '@/Shared/Schema/PersistedAppStateSchema';
 
 describe('parsePersistedAppState', () => {

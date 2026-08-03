@@ -15,12 +15,12 @@ import { applyBlockListEnforcement } from '@/Shared/Utils/blockListEnforcement';
 import type { AppAction, AppActionResponse, PersistedAppState } from '@/Shared/Types/AppState';
 
 import {
-  createDefaultPersistedAppState,
   enterRecessPicker,
   exitRecess,
   isEnteringRecessPicker,
   isExitingRecess,
 } from '@/Background/ActionHandlers/ActionHandlerHelpers';
+import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
 
 export const handleGetAppState = async (): Promise<PersistedAppState> => {
   const state = applyBlockListEnforcement(await storageRepository.readAppState());
