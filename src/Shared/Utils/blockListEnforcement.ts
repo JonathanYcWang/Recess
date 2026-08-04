@@ -75,7 +75,7 @@ export const applyBlockListEnforcement = async (
   const tabs = await getAllTabs();
 
   for (const tab of tabs) {
-    if (!tab.url || !tab.id) {
+    if (!tab.url || tab.id === undefined) {
       continue;
     }
 
