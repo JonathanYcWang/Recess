@@ -11,9 +11,11 @@ import {
 import { broadcastAppState } from '@/Background/Broadcasters/appStateBroadcaster';
 import { storageRepository } from '@/Background/Repositories/StorageRepository';
 import { APP_ACTION } from '@/Shared/Constants/Constants';
-import { applyBlockListEnforcement } from '@/Shared/Utils/blockListEnforcement';
+import {
+  applyBlockListEnforcement,
+  syncBlockListEnforcementFlags,
+} from '@/Background/Services/BlockListManagement/BlockListManagementService';
 import type { AppAction, AppActionResponse, PersistedAppState } from '@/Shared/Types/AppState';
-
 import {
   enterRecessPicker,
   exitRecess,
@@ -21,9 +23,10 @@ import {
   isExitingRecess,
 } from '@/Background/ActionHandlers/ActionHandlerHelpers';
 import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
+import type { SchedulerState } from '@/Shared/Types/AppState';
 
 export const handleGetAppState = async (): Promise<PersistedAppState> => {
-  const state = applyBlockListEnforcement(await storageRepository.readAppState());
+  const state = syncBlockListEnforcementFlags(await storageRepository.readAppState());
   await storageRepository.writeAppState(state);
 
   return state;
@@ -32,23 +35,18 @@ export const handleGetAppState = async (): Promise<PersistedAppState> => {
 export const handleAppAction = async (action: AppAction): Promise<AppActionResponse> => {
   const currentState = await storageRepository.readAppState();
   const nextState = applyAppAction(currentState, action, new Date());
+  const enforcedState = await applyBlockListEnforcement(nextState);
 
-  await storageRepository.writeAppState(nextState);
-  await broadcastAppState(nextState);
+  await storageRepository.writeAppState(enforcedState);
+  await broadcastAppState(enforcedState);
 
   return { ok: true };
 };
 
-const applyAppAction = (
-  state: PersistedAppState,
-  action: AppAction,
-  now: Date
-): PersistedAppState => {
-  const nextState = applyAppActionWithoutBlockListSync(state, action, now);
-  return applyBlockListEnforcement(nextState);
-};
+const isWorkSessionEnded = (before: PersistedAppState, nextScheduler: SchedulerState): boolean =>
+  before.scheduler.activePhase !== null && nextScheduler.activePhase === null;
 
-const applyAppActionWithoutBlockListSync = (
+const applyAppAction = (
   state: PersistedAppState,
   action: AppAction,
   now: Date
@@ -61,6 +59,10 @@ const applyAppActionWithoutBlockListSync = (
 
     if (isExitingRecess(state, nextScheduler)) {
       return exitRecess(state, nextScheduler);
+    }
+
+    if (isWorkSessionEnded(state, nextScheduler)) {
+      return createDefaultPersistedAppState();
     }
 
     return { ...state, scheduler: nextScheduler };
@@ -97,10 +99,7 @@ const applyAppActionWithoutBlockListSync = (
   }
 
   if (action.type === APP_ACTION.END_WORK_SESSION_EARLY) {
-    return {
-      ...createDefaultPersistedAppState(),
-      blockList: state.blockList,
-    };
+    return createDefaultPersistedAppState();
   }
 
   if (action.type === APP_ACTION.ADD_BLOCKED_SITE) {

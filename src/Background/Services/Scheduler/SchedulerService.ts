@@ -1,11 +1,9 @@
-import { SCHEDULER_PHASE, WORK_SESSION_DURATION } from '@/Shared/Constants/Constants';
+import {
+  PHASE_DURATION,
+  SCHEDULER_PHASE,
+  WORK_SESSION_DURATION,
+} from '@/Shared/Constants/Constants';
 import type { SchedulerPhase, SchedulerState } from '@/Shared/Types/AppState';
-
-export const PHASE_DURATION: Record<SchedulerPhase, number> = {
-  FOCUS_BLOCK: 25 * 60,
-  REWARD_GAME: 60,
-  RECESS: 5 * 60,
-};
 
 const iso = (date: Date): string => date.toISOString();
 
