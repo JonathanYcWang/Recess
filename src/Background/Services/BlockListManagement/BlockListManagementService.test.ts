@@ -1,4 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('webextension-polyfill', () => ({
+  default: {
+    tabs: { query: vi.fn(), remove: vi.fn(), onUpdated: { addListener: vi.fn() } },
+    runtime: { sendMessage: vi.fn() },
+  },
+}));
+
 import {
   addBlockListEntry,
   createDefaultBlockList,

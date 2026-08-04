@@ -1,6 +1,6 @@
 import { DEFAULT_BLOCK_LIST_ENTRIES } from '@/Shared/Constants/Constants';
 import type { BlockListEntry } from '@/Shared/Types/AppState';
-import { normalizeBlockListEntry } from '@/Shared/Utils/normalizeBlockListEntry';
+import { normalizeBlockListEntry } from '@/Shared/Utils/blockListEnforcement';
 
 export const createDefaultBlockList = (): BlockListEntry[] =>
   DEFAULT_BLOCK_LIST_ENTRIES.map((url) => ({ url, isBlocked: false }));

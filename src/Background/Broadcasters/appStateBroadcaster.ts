@@ -2,13 +2,11 @@ import type { BackgroundEvent, PersistedAppState } from '../../Shared/Types/AppS
 import { getAllTabs, sendMessageToTab, broadcastToRuntime } from '../Adapters/TabAdapter';
 
 const broadcastToContentScripts = async (message: BackgroundEvent): Promise<void> => {
-  const tabs = await getAllTabs();
+  const tabsById = await getAllTabs();
 
   await Promise.all(
-    tabs.map(async (tab) => {
-      if (tab.id) {
-        await sendMessageToTab(tab.id, message);
-      }
+    [...tabsById.keys()].map(async (tabId) => {
+      await sendMessageToTab(tabId, message);
     })
   );
 };

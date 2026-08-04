@@ -4,6 +4,8 @@
  */
 
 import browser from 'webextension-polyfill';
+import { storageRepository } from '@/Background/Repositories/StorageRepository';
+import { findBlockListEntry } from '@/Shared/Utils/blockListEnforcement';
 
 export const getAllTabs = async (): Promise<browser.Tabs.Tab[]> => browser.tabs.query({});
 
@@ -17,4 +19,19 @@ export const sendMessageToTab = async (tabId: number, message: unknown): Promise
 
 export const broadcastToRuntime = async (message: unknown): Promise<void> => {
   await browser.runtime.sendMessage(message).catch(() => undefined);
+};
+
+export const registerBlockedTabEnforcementOnTabUpdates = () => {
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+    const url = changeInfo.url;
+
+    if (url && changeInfo.status === 'complete') {
+      const state = await storageRepository.readAppState();
+      const entry = findBlockListEntry(state.blockList, url);
+
+      if (entry?.isBlocked) {
+        await removeTabById(tabId);
+      }
+    }
+  });
 };

@@ -13,8 +13,11 @@
 // This file contains no business logic — it is pure plumbing between
 // the browser's messaging system and the architecture layers.
 
+import { registerBlockedTabEnforcementOnTabUpdates } from './Adapters/TabAdapter';
 import { handleAppAction, handleGetAppState } from './ActionHandlers/appStateActionHandler';
 import type { RuntimeMessage } from '../Shared/Types/AppState';
+
+registerBlockedTabEnforcementOnTabUpdates();
 
 chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResponse) => {
   if (message.type === 'GET_APP_STATE') {

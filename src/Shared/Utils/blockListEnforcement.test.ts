@@ -1,12 +1,37 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
 import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
 import type { BlockListEntry, PersistedAppState, Reward } from '@/Shared/Types/AppState';
+
+const tabQuery = vi.hoisted(() => vi.fn());
+const tabRemove = vi.hoisted(() => vi.fn());
+
+vi.mock('webextension-polyfill', () => ({
+  default: {
+    tabs: {
+      query: tabQuery,
+      remove: tabRemove,
+      onUpdated: { addListener: vi.fn() },
+    },
+    runtime: { sendMessage: vi.fn() },
+  },
+}));
+
+vi.mock('@/Background/Repositories/StorageRepository', () => ({
+  storageRepository: { readAppState: vi.fn() },
+}));
+
 import {
   isBlocked,
   applyBlockListEnforcement,
+  syncBlockListEnforcementFlags,
   findBlockListEntry,
+  normalizeBlockListEntry,
 } from '@/Shared/Utils/blockListEnforcement';
+
+afterEach(() => {
+  vi.clearAllMocks();
+});
 
 const withBlockListContext = (
   blockList: BlockListEntry[],
@@ -25,14 +50,16 @@ const withBlockListContext = (
   },
 });
 
-describe('applyBlockListEnforcement', () => {
+describe('syncBlockListEnforcementFlags', () => {
   const entries = [
     { url: 'youtube.com', isBlocked: false },
     { url: 'instagram.com', isBlocked: false },
   ];
 
   it('clears isBlocked when there is no active phase', () => {
-    expect(applyBlockListEnforcement(withBlockListContext(entries, null, null)).blockList).toEqual([
+    expect(
+      syncBlockListEnforcementFlags(withBlockListContext(entries, null, null)).blockList
+    ).toEqual([
       { url: 'youtube.com', isBlocked: false },
       { url: 'instagram.com', isBlocked: false },
     ]);
@@ -40,15 +67,17 @@ describe('applyBlockListEnforcement', () => {
 
   it('blocks every entry during Focus Block and Reward Game', () => {
     expect(
-      applyBlockListEnforcement(withBlockListContext(entries, SCHEDULER_PHASE.FOCUS_BLOCK, null))
-        .blockList
+      syncBlockListEnforcementFlags(
+        withBlockListContext(entries, SCHEDULER_PHASE.FOCUS_BLOCK, null)
+      ).blockList
     ).toEqual([
       { url: 'youtube.com', isBlocked: true },
       { url: 'instagram.com', isBlocked: true },
     ]);
     expect(
-      applyBlockListEnforcement(withBlockListContext(entries, SCHEDULER_PHASE.REWARD_GAME, null))
-        .blockList
+      syncBlockListEnforcementFlags(
+        withBlockListContext(entries, SCHEDULER_PHASE.REWARD_GAME, null)
+      ).blockList
     ).toEqual([
       { url: 'youtube.com', isBlocked: true },
       { url: 'instagram.com', isBlocked: true },
@@ -59,7 +88,7 @@ describe('applyBlockListEnforcement', () => {
     const selectedRecess = { id: '1', name: 'youtube.com', duration: 10 };
 
     expect(
-      applyBlockListEnforcement(
+      syncBlockListEnforcementFlags(
         withBlockListContext(entries, SCHEDULER_PHASE.RECESS, selectedRecess)
       ).blockList
     ).toEqual([
@@ -70,7 +99,7 @@ describe('applyBlockListEnforcement', () => {
 
   it('blocks every entry during Recess when nothing is selected', () => {
     expect(
-      applyBlockListEnforcement(withBlockListContext(entries, SCHEDULER_PHASE.RECESS, null))
+      syncBlockListEnforcementFlags(withBlockListContext(entries, SCHEDULER_PHASE.RECESS, null))
         .blockList
     ).toEqual([
       { url: 'youtube.com', isBlocked: true },
@@ -79,7 +108,7 @@ describe('applyBlockListEnforcement', () => {
   });
 
   it('derives flags from scheduler and recess picker on the full state', () => {
-    const state = applyBlockListEnforcement({
+    const state = syncBlockListEnforcementFlags({
       ...createDefaultPersistedAppState(),
       scheduler: {
         ...createDefaultPersistedAppState().scheduler,
@@ -88,6 +117,94 @@ describe('applyBlockListEnforcement', () => {
     });
 
     expect(state.blockList.every((entry) => entry.isBlocked)).toBe(true);
+  });
+});
+
+describe('applyBlockListEnforcement', () => {
+  it('syncs flags and closes tabs that match blocked block-list entries', async () => {
+    tabRemove.mockResolvedValue(undefined);
+    tabQuery.mockResolvedValue([
+      { id: 1, url: 'https://www.youtube.com/watch' },
+      { id: 2, url: 'https://example.com/' },
+      { id: 3, url: 'https://instagram.com/' },
+    ]);
+
+    const result = await applyBlockListEnforcement(
+      withBlockListContext(
+        [
+          { url: 'youtube.com', isBlocked: false },
+          { url: 'instagram.com', isBlocked: false },
+        ],
+        SCHEDULER_PHASE.FOCUS_BLOCK,
+        null
+      )
+    );
+
+    expect(result.blockList).toEqual([
+      { url: 'youtube.com', isBlocked: true },
+      { url: 'instagram.com', isBlocked: true },
+    ]);
+    expect(tabRemove).toHaveBeenCalledTimes(2);
+    expect(tabRemove).toHaveBeenCalledWith(1);
+    expect(tabRemove).toHaveBeenCalledWith(3);
+  });
+
+  it('closes only blocked list tabs during Recess', async () => {
+    tabRemove.mockResolvedValue(undefined);
+    tabQuery.mockResolvedValue([
+      { id: 1, url: 'https://www.youtube.com/' },
+      { id: 2, url: 'https://instagram.com/' },
+    ]);
+
+    await applyBlockListEnforcement(
+      withBlockListContext(
+        [
+          { url: 'youtube.com', isBlocked: false },
+          { url: 'instagram.com', isBlocked: false },
+        ],
+        SCHEDULER_PHASE.RECESS,
+        { id: '1', name: 'youtube.com', duration: 10 }
+      )
+    );
+
+    expect(tabRemove).toHaveBeenCalledTimes(1);
+    expect(tabRemove).toHaveBeenCalledWith(2);
+  });
+
+  it('does not query or close tabs when there is no active phase', async () => {
+    tabQuery.mockResolvedValue([{ id: 1, url: 'https://www.youtube.com/' }]);
+
+    const result = await applyBlockListEnforcement(
+      withBlockListContext([{ url: 'youtube.com', isBlocked: true }], null, null)
+    );
+
+    expect(result.blockList).toEqual([{ url: 'youtube.com', isBlocked: false }]);
+    expect(tabQuery).not.toHaveBeenCalled();
+    expect(tabRemove).not.toHaveBeenCalled();
+  });
+});
+
+describe('normalizeBlockListEntry', () => {
+  it('normalizes a full tab URL to a hostname', () => {
+    expect(normalizeBlockListEntry('https://www.youtube.com/watch?v=1')).toBe('www.youtube.com');
+  });
+
+  it('normalizes bare hostnames for block-list input', () => {
+    expect(normalizeBlockListEntry('YouTube.com')).toBe('youtube.com');
+  });
+
+  it('returns undefined for empty input', () => {
+    expect(normalizeBlockListEntry('')).toBeUndefined();
+    expect(normalizeBlockListEntry('   ')).toBeUndefined();
+  });
+
+  it('returns undefined for internal browser URLs', () => {
+    expect(normalizeBlockListEntry('chrome://newtab/')).toBeUndefined();
+    expect(normalizeBlockListEntry('about:blank')).toBeUndefined();
+  });
+
+  it('returns undefined for unparseable input', () => {
+    expect(normalizeBlockListEntry('not a url')).toBeUndefined();
   });
 });
 
@@ -108,60 +225,6 @@ describe('findBlockListEntry', () => {
 
   it('returns undefined for unenforceable URLs', () => {
     expect(findBlockListEntry(blockList, 'chrome://newtab/')).toBeUndefined();
-  });
-});
-
-describe('tab block lookup after applyBlockListEnforcement', () => {
-  const tabIsBlocked = (state: PersistedAppState, hostnameOrUrl: string): boolean =>
-    findBlockListEntry(state.blockList, hostnameOrUrl)?.isBlocked === true;
-
-  it('does not block when there is no active scheduler phase', () => {
-    const state = applyBlockListEnforcement(
-      withBlockListContext([{ url: 'youtube.com', isBlocked: false }], null, null)
-    );
-
-    expect(tabIsBlocked(state, 'www.youtube.com')).toBe(false);
-  });
-
-  it('does not block hostnames that are not on the list', () => {
-    const state = applyBlockListEnforcement(
-      withBlockListContext(
-        [{ url: 'youtube.com', isBlocked: false }],
-        SCHEDULER_PHASE.FOCUS_BLOCK,
-        null
-      )
-    );
-
-    expect(tabIsBlocked(state, 'example.com')).toBe(false);
-  });
-
-  it('blocks list matches during Focus Block using subdomain rules', () => {
-    const state = applyBlockListEnforcement(
-      withBlockListContext(
-        [{ url: 'youtube.com', isBlocked: false }],
-        SCHEDULER_PHASE.FOCUS_BLOCK,
-        null
-      )
-    );
-
-    expect(tabIsBlocked(state, 'www.youtube.com')).toBe(true);
-  });
-
-  it('allows only the selected recess site during Recess', () => {
-    const selectedRecess = { id: '1', name: 'youtube.com', duration: 10 };
-    const state = applyBlockListEnforcement(
-      withBlockListContext(
-        [
-          { url: 'youtube.com', isBlocked: false },
-          { url: 'instagram.com', isBlocked: false },
-        ],
-        SCHEDULER_PHASE.RECESS,
-        selectedRecess
-      )
-    );
-
-    expect(tabIsBlocked(state, 'www.youtube.com')).toBe(false);
-    expect(tabIsBlocked(state, 'instagram.com')).toBe(true);
   });
 });
 

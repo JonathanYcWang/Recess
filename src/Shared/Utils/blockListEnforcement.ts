@@ -5,7 +5,26 @@ import type {
   Reward,
   SchedulerPhase,
 } from '@/Shared/Types/AppState';
-import { normalizeBlockListEntry } from '@/Shared/Utils/normalizeBlockListEntry';
+import { getAllTabs, removeTabById } from '@/Background/Adapters/TabAdapter';
+
+/** Normalizes user input or a tab URL to a block-list hostname, or undefined if not enforceable. */
+export const normalizeBlockListEntry = (input: string): string | undefined => {
+  const trimmed = input.trim().toLowerCase();
+
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const url = new URL(withProtocol);
+    const host = url.hostname.replace(/\.$/, '');
+    return host.includes('.') ? host : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 export const isBlocked = (
   entryUrl: string,
@@ -31,7 +50,7 @@ export const isBlocked = (
   return true;
 };
 
-export const applyBlockListEnforcement = (state: PersistedAppState): PersistedAppState => {
+export const syncBlockListEnforcementFlags = (state: PersistedAppState): PersistedAppState => {
   const { activePhase } = state.scheduler;
   const selectedRecess = state.recessPicker.selectedRecess;
 
@@ -44,11 +63,35 @@ export const applyBlockListEnforcement = (state: PersistedAppState): PersistedAp
   };
 };
 
+export const applyBlockListEnforcement = async (
+  state: PersistedAppState
+): Promise<PersistedAppState> => {
+  const nextState = syncBlockListEnforcementFlags(state);
+
+  if (nextState.scheduler.activePhase === null) {
+    return nextState;
+  }
+
+  const tabs = await getAllTabs();
+
+  for (const tab of tabs) {
+    if (!tab.url || !tab.id) {
+      continue;
+    }
+
+    if (findBlockListEntry(nextState.blockList, tab.url)?.isBlocked) {
+      await removeTabById(tab.id);
+    }
+  }
+
+  return nextState;
+};
+
 export const findBlockListEntry = (
   blockList: BlockListEntry[],
-  hostnameOrUrl: string
+  url: string
 ): BlockListEntry | undefined => {
-  const normalizedHost = normalizeBlockListEntry(hostnameOrUrl);
+  const normalizedHost = normalizeBlockListEntry(url);
 
   if (!normalizedHost) {
     return undefined;
