@@ -14,7 +14,7 @@ import { APP_ACTION } from '@/Shared/Constants/Constants';
 import {
   applyBlockListEnforcement,
   syncBlockListEnforcementFlags,
-} from '@/Shared/Utils/blockListEnforcement';
+} from '@/Background/Services/BlockListManagement/BlockListManagementService';
 import type { AppAction, AppActionResponse, PersistedAppState } from '@/Shared/Types/AppState';
 import {
   enterRecessPicker,

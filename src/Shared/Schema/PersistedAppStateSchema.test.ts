@@ -1,11 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-
-vi.mock('webextension-polyfill', () => ({
-  default: {
-    tabs: { query: vi.fn(), remove: vi.fn(), onUpdated: { addListener: vi.fn() } },
-    runtime: { sendMessage: vi.fn() },
-  },
-}));
+import { describe, expect, it } from 'vitest';
 
 import { SCHEDULER_PHASE, WORK_SESSION_DURATION } from '@/Shared/Constants/Constants';
 import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
@@ -42,7 +35,7 @@ describe('parsePersistedAppState', () => {
     ).toEqual(stored);
   });
 
-  it('accepts a populated scheduler state and syncs block list enforcement flags', () => {
+  it('accepts a populated scheduler state', () => {
     const stored = {
       ...createDefaultPersistedAppState(),
       scheduler: {
@@ -54,10 +47,7 @@ describe('parsePersistedAppState', () => {
       },
     };
 
-    expect(parsePersistedAppState(stored)).toEqual({
-      ...stored,
-      blockList: stored.blockList.map((entry) => ({ ...entry, isBlocked: true })),
-    });
+    expect(parsePersistedAppState(stored)).toEqual(stored);
   });
 
   it('migrates legacy block list entries arrays', () => {

@@ -5,7 +5,7 @@
 
 import browser from 'webextension-polyfill';
 import { storageRepository } from '@/Background/Repositories/StorageRepository';
-import { findBlockListEntry } from '@/Shared/Utils/blockListEnforcement';
+import { findBlockListEntry } from '@/Background/Services/BlockListManagement/BlockListManagementService';
 
 export const getAllTabs = async (): Promise<browser.Tabs.Tab[]> => browser.tabs.query({});
 

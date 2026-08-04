@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
-import { syncBlockListEnforcementFlags } from '@/Shared/Utils/blockListEnforcement';
 import { createDefaultPersistedAppState } from '@/Shared/State/defaults';
 import type { PersistedAppState } from '@/Shared/Types/AppState';
 
@@ -54,5 +53,5 @@ export const parsePersistedAppState = (value: unknown): PersistedAppState => {
     return createDefaultPersistedAppState();
   }
 
-  return syncBlockListEnforcementFlags(result.data);
+  return result.data;
 };
