@@ -63,9 +63,7 @@ describe('registerBlockedTabEnforcementOnTabUpdates', () => {
     registerBlockedTabEnforcementOnTabUpdates();
 
     const listener = onUpdatedAddListener.mock.calls[0]?.[0];
-    listener(7, { url: 'https://www.youtube.com/', status: 'complete' });
-    await Promise.resolve();
-    await Promise.resolve();
+    await listener(7, { url: 'https://www.youtube.com/', status: 'complete' });
 
     expect(tabRemove).toHaveBeenCalledWith(7);
   });
