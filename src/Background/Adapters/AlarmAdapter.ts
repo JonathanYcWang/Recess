@@ -4,16 +4,12 @@ import { SCHEDULER_ALARM } from '@/Shared/Constants/Constants';
 import type { SchedulerState } from '@/Shared/Types/AppState';
 
 export const activePhaseHasEndAlarm = async (phaseEnd: Date): Promise<boolean> => {
-  if (phaseEnd === null) {
-    return false;
-  }
-
   const existing = await browser.alarms.get(SCHEDULER_ALARM.PHASE_END);
   if (existing === undefined) {
     return false;
   }
 
-  return existing.scheduledTime === phaseEnd.getTime();
+  return Math.abs(existing.scheduledTime - phaseEnd.getTime()) < 1000;
 };
 
 export const schedulePhaseEndAlarm = async (scheduler: SchedulerState): Promise<void> => {
