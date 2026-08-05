@@ -10,6 +10,15 @@ const iso = (date: Date): string => date.toISOString();
 const elapsedSince = (startTime: string, now: Date): number =>
   Math.max(0, Math.floor((now.getTime() - new Date(startTime).getTime()) / 1000));
 
+export const computePhaseEndTime = (scheduler: SchedulerState): Date | null => {
+  if (scheduler.phaseStart === null) {
+    return null;
+  }
+
+  const phaseStartMs = new Date(scheduler.phaseStart).getTime();
+  return new Date(phaseStartMs + scheduler.phaseTarget * 1000);
+};
+
 export const computeFocusBlockDuration = (state: SchedulerState): number => {
   const remainingAfterRecess = Math.max(0, state.workSessionRemaining - PHASE_DURATION.RECESS);
   return Math.min(PHASE_DURATION.FOCUS_BLOCK, remainingAfterRecess);

@@ -110,7 +110,6 @@ export const useTimer = () => {
 
     const intervalId = setInterval(() => {
       setNow(Date.now());
-      void sendAppAction({ type: APP_ACTION.SCHEDULER_EVALUATE });
     }, TICK_MS);
 
     return () => clearInterval(intervalId);

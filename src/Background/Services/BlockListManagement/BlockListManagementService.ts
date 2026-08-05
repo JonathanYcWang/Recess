@@ -91,28 +91,20 @@ export const syncBlockListEnforcementFlags = (state: PersistedAppState): Persist
   };
 };
 
-export const applyBlockListEnforcement = async (
-  state: PersistedAppState
-): Promise<PersistedAppState> => {
-  const nextState = syncBlockListEnforcementFlags(state);
+export const applyBlockListEnforcement = async (state: PersistedAppState) => {
+  if (state.scheduler.activePhase !== null) {
+    const tabs = await getAllTabs();
 
-  if (nextState.scheduler.activePhase === null) {
-    return nextState;
-  }
+    for (const tab of tabs) {
+      if (!tab.url || tab.id === undefined) {
+        continue;
+      }
 
-  const tabs = await getAllTabs();
-
-  for (const tab of tabs) {
-    if (!tab.url || tab.id === undefined) {
-      continue;
-    }
-
-    if (findBlockListEntry(nextState.blockList, tab.url)?.isBlocked) {
-      await removeTabById(tab.id);
+      if (findBlockListEntry(state.blockList, tab.url)?.isBlocked) {
+        await removeTabById(tab.id);
+      }
     }
   }
-
-  return nextState;
 };
 
 export const findBlockListEntry = (

@@ -3,11 +3,14 @@ import {
   removeBlockListEntry,
 } from '@/Background/Services/BlockListManagement/BlockListManagementService';
 import { generateReward } from '@/Background/Services/Reward/RewardService';
+import { computePhaseEndTime } from '@/Background/Services/Scheduler/SchedulerService';
 import {
   evaluateScheduler,
   startRecess,
   startWorkSession,
 } from '@/Background/Services/Scheduler/SchedulerService';
+import { openActionPopup } from '@/Background/Adapters/ActionAdapter';
+import { activePhaseHasEndAlarm, schedulePhaseEndAlarm } from '@/Background/Adapters/AlarmAdapter';
 import { broadcastAppState } from '@/Background/Broadcasters/appStateBroadcaster';
 import { storageRepository } from '@/Background/Repositories/StorageRepository';
 import { APP_ACTION } from '@/Shared/Constants/Constants';
@@ -31,14 +34,35 @@ export const handleGetAppState = async (): Promise<PersistedAppState> => {
 
   return state;
 };
+export const runScheduler = async (): Promise<void> => {
+  const now = new Date();
+  const state = await storageRepository.readAppState();
+  const phaseEnd = computePhaseEndTime(state.scheduler);
+  if (phaseEnd) {
+    if (phaseEnd.getTime() <= now.getTime()) {
+      await handleAppAction({ type: APP_ACTION.SCHEDULER_EVALUATE });
+    } else if (!(await activePhaseHasEndAlarm(phaseEnd))) {
+      await schedulePhaseEndAlarm(state.scheduler);
+    }
+  }
+};
 
 export const handleAppAction = async (action: AppAction): Promise<AppActionResponse> => {
   const currentState = await storageRepository.readAppState();
   const nextState = applyAppAction(currentState, action, new Date());
-  const enforcedState = await applyBlockListEnforcement(nextState);
+  const enforcedState = syncBlockListEnforcementFlags(nextState);
+  await applyBlockListEnforcement(enforcedState);
 
   await storageRepository.writeAppState(enforcedState);
   await broadcastAppState(enforcedState);
+
+  if (currentState.scheduler.activePhase !== enforcedState.scheduler.activePhase) {
+    await schedulePhaseEndAlarm(enforcedState.scheduler);
+  }
+
+  if (isEnteringRecessPicker(currentState, enforcedState.scheduler)) {
+    await openActionPopup();
+  }
 
   return { ok: true };
 };

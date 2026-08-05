@@ -49,21 +49,23 @@ describe('getAllTabs', () => {
 });
 
 describe('registerBlockedTabEnforcementOnTabUpdates', () => {
-  it('closes the tab when policy blocks the updated URL', async () => {
-    readAppState.mockResolvedValue({
-      ...createDefaultPersistedAppState(),
-      blockList: [{ url: 'youtube.com', isBlocked: true }],
-      scheduler: {
-        ...createDefaultPersistedAppState().scheduler,
-        activePhase: SCHEDULER_PHASE.FOCUS_BLOCK,
-      },
-    });
+  const blockedAppState = () => ({
+    ...createDefaultPersistedAppState(),
+    blockList: [{ url: 'youtube.com', isBlocked: true }],
+    scheduler: {
+      ...createDefaultPersistedAppState().scheduler,
+      activePhase: SCHEDULER_PHASE.FOCUS_BLOCK,
+    },
+  });
+
+  it('closes the tab when changeInfo includes the navigated URL', async () => {
+    readAppState.mockResolvedValue(blockedAppState());
     tabRemove.mockResolvedValue(undefined);
 
     registerBlockedTabEnforcementOnTabUpdates();
 
     const listener = onUpdatedAddListener.mock.calls[0]?.[0];
-    await listener(7, { url: 'https://www.youtube.com/', status: 'complete' });
+    await listener(7, { url: 'https://www.youtube.com/', status: 'loading' });
 
     expect(tabRemove).toHaveBeenCalledWith(7);
   });
@@ -73,9 +75,7 @@ describe('registerBlockedTabEnforcementOnTabUpdates', () => {
 
     const listener =
       onUpdatedAddListener.mock.calls[onUpdatedAddListener.mock.calls.length - 1]?.[0];
-    listener(7, { status: 'loading' });
-
-    await Promise.resolve();
+    await listener(7, { status: 'loading' });
 
     expect(readAppState).not.toHaveBeenCalled();
   });

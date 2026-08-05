@@ -13,8 +13,13 @@
 // This file contains no business logic — it is pure plumbing between
 // the browser's messaging system and the architecture layers.
 import browser from 'webextension-polyfill';
+import { SCHEDULER_ALARM } from '../Shared/Constants/Constants';
 import { registerBlockedTabEnforcementOnTabUpdates } from './Adapters/TabAdapter';
-import { handleAppAction, handleGetAppState } from './ActionHandlers/appStateActionHandler';
+import {
+  handleAppAction,
+  handleGetAppState,
+  runScheduler,
+} from './ActionHandlers/appStateActionHandler';
 import type { BackgroundRequest } from '../Shared/Types/AppState';
 
 const isBackgroundRequest = (value: object): value is BackgroundRequest => {
@@ -38,6 +43,18 @@ const isBackgroundRequest = (value: object): value is BackgroundRequest => {
 };
 
 registerBlockedTabEnforcementOnTabUpdates();
+
+// Scheduler entry runs on every service worker start (alarm, popup message, tab event, extension load).
+// runScheduler: if phase end is due → SCHEDULER_EVALUATE; else recreate phase-end alarm if missing/wrong (e.g. reload mid-session).
+void runScheduler();
+
+// Phase-end alarm while the worker is still alive does not reload this file — only onAlarm runs.
+// Same runScheduler path as above. On a cold alarm wake, both may run; the second is usually a noop after evaluate + schedule.
+browser.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === SCHEDULER_ALARM.PHASE_END) {
+    void runScheduler();
+  }
+});
 
 browser.runtime.onMessage.addListener(async (message: unknown) => {
   if (typeof message !== 'object' || message === null || !isBackgroundRequest(message)) {

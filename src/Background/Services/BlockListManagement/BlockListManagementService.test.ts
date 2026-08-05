@@ -154,7 +154,7 @@ describe('syncBlockListEnforcementFlags', () => {
 });
 
 describe('applyBlockListEnforcement', () => {
-  it('syncs flags and closes tabs that match blocked block-list entries', async () => {
+  it('closes tabs that match blocked block-list entries', async () => {
     tabRemove.mockResolvedValue(undefined);
     tabQuery.mockResolvedValue([
       { id: 1, url: 'https://www.youtube.com/watch' },
@@ -162,7 +162,7 @@ describe('applyBlockListEnforcement', () => {
       { id: 3, url: 'https://instagram.com/' },
     ]);
 
-    const result = await applyBlockListEnforcement(
+    const state = syncBlockListEnforcementFlags(
       withBlockListContext(
         [
           { url: 'youtube.com', isBlocked: false },
@@ -173,10 +173,8 @@ describe('applyBlockListEnforcement', () => {
       )
     );
 
-    expect(result.blockList).toEqual([
-      { url: 'youtube.com', isBlocked: true },
-      { url: 'instagram.com', isBlocked: true },
-    ]);
+    await applyBlockListEnforcement(state);
+
     expect(tabRemove).toHaveBeenCalledTimes(2);
     expect(tabRemove).toHaveBeenCalledWith(1);
     expect(tabRemove).toHaveBeenCalledWith(3);
@@ -189,7 +187,7 @@ describe('applyBlockListEnforcement', () => {
       { id: 2, url: 'https://instagram.com/' },
     ]);
 
-    await applyBlockListEnforcement(
+    const state = syncBlockListEnforcementFlags(
       withBlockListContext(
         [
           { url: 'youtube.com', isBlocked: false },
@@ -200,6 +198,8 @@ describe('applyBlockListEnforcement', () => {
       )
     );
 
+    await applyBlockListEnforcement(state);
+
     expect(tabRemove).toHaveBeenCalledTimes(1);
     expect(tabRemove).toHaveBeenCalledWith(2);
   });
@@ -207,11 +207,10 @@ describe('applyBlockListEnforcement', () => {
   it('does not query or close tabs when there is no active phase', async () => {
     tabQuery.mockResolvedValue([{ id: 1, url: 'https://www.youtube.com/' }]);
 
-    const result = await applyBlockListEnforcement(
+    await applyBlockListEnforcement(
       withBlockListContext([{ url: 'youtube.com', isBlocked: true }], null, null)
     );
 
-    expect(result.blockList).toEqual([{ url: 'youtube.com', isBlocked: false }]);
     expect(tabQuery).not.toHaveBeenCalled();
     expect(tabRemove).not.toHaveBeenCalled();
   });
