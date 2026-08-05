@@ -25,10 +25,14 @@ export const SCHEDULER_PHASE = {
   RECESS: 'RECESS',
 } as const;
 
+export const SCHEDULER_ALARM = {
+  PHASE_END: 'phase-end',
+} as const;
+
 export const PHASE_DURATION: Record<SchedulerPhase, number> = {
-  FOCUS_BLOCK: 25 * 60,
-  REWARD_GAME: 60,
-  RECESS: 5 * 60,
+  FOCUS_BLOCK: 20,
+  REWARD_GAME: 20,
+  RECESS: 20,
 };
 
 export const WORK_SESSION_DURATION = 2 * 60 * 60;

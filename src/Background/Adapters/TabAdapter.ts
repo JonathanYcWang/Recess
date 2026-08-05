@@ -23,15 +23,15 @@ export const broadcastToRuntime = async (message: unknown): Promise<void> => {
 
 export const registerBlockedTabEnforcementOnTabUpdates = () => {
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-    const url = changeInfo.url;
+    if (!changeInfo.url) {
+      return;
+    }
 
-    if (url && changeInfo.status === 'complete') {
-      const state = await storageRepository.readAppState();
-      const entry = findBlockListEntry(state.blockList, url);
+    const state = await storageRepository.readAppState();
+    const entry = findBlockListEntry(state.blockList, changeInfo.url);
 
-      if (entry?.isBlocked) {
-        await removeTabById(tabId);
-      }
+    if (entry?.isBlocked) {
+      await removeTabById(tabId);
     }
   });
 };

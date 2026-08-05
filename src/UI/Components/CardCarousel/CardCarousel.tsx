@@ -46,9 +46,9 @@ const CardCarousel = ({ cards }: CardCarouselProps) => {
   return (
     <div className={styles.carousel}>
       <div className={styles.carouselContainer}>
-        {cards.map((card) => (
+        {cards.map((card, index) => (
           <Card
-            key={card.id}
+            key={`${index}-${card.id}`}
             title={card.title}
             description={card.description}
             footer={card.footer}

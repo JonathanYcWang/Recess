@@ -36,11 +36,11 @@ User interaction
 
 Components and pages do **not** write to storage or dispatch Redux actions for domain changes. They express intent by calling `sendAppAction` — usually from a hook (`useTimer`, `useRecessPicker`) or directly from a page (`QuizPage`, `OnboardingPage`).
 
-Hooks read current state from Redux selectors and send actions when the user acts or when a timer tick requires scheduler evaluation:
+Hooks read current state from Redux selectors and send actions when the user acts; phase transitions are driven by background alarms (`SCHEDULER_EVALUATE`).
 
 | Hook / page        | Example actions                                      |
 | ------------------ | ---------------------------------------------------- |
-| `useTimer`         | `START_WORK_SESSION`, `SCHEDULER_EVALUATE`, `END_WORK_SESSION_EARLY` |
+| `useTimer`         | `START_WORK_SESSION`, `END_WORK_SESSION_EARLY` |
 | `useRecessPicker`  | `RECESS_PICKER_SELECT_RECESS`, `RECESS_PICKER_REROLL` |
 | `QuizPage`         | `QUIZ_SELECT_OPTION`, `QUIZ_RESTART`                 |
 | `OnboardingPage`   | `INITIALIZE_FROM_ONBOARDING`                         |
@@ -131,7 +131,7 @@ Action type strings are defined in `APP_ACTION` (`/Shared/Constants/Constants.ts
 | `REMOVE_BLOCKED_SITE`       | `hostname`                                           |
 | `START_WORK_SESSION`        | —                                                    |
 | `END_WORK_SESSION_EARLY`    | —                                                    |
-| `SCHEDULER_EVALUATE`        | Called on timer ticks; advances scheduler phases     |
+| `SCHEDULER_EVALUATE`        | Background-only; `runScheduler` when phase end is due (including on-time alarm wake) |
 | `SET_WORK_START_REMINDER`   | `startsAt` (ISO string)                              |
 | `CLEAR_WORK_START_REMINDER` | —                                                    |
 | `SET_COIN_BALANCE`          | `balance`                                            |
