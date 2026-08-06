@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FocusPet from '@/UI/Components/FocusPet/FocusPet';
+import BlackjackGame from '@/UI/Components/BlackjackGame/BlackjackGame';
 import WorkPage from '@/UI/Components/WorkPage/WorkPage';
 // import WorkHoursSettings from '@/UI/Components/WorkHoursSettings/WorkHoursSettings';
 // import BlockedSites from '@/UI/Components/BlockedSites/BlockedSites';
@@ -192,7 +193,10 @@ const HomePage = () => {
                       },
                     ]}
                   /> */}
-                  <FocusPet petName={petName} imgSrc={petImage} />
+                  <FocusPet petName={petName} imgSrc={petImage} />  
+                </section>
+                <section className={styles.card}>
+                <BlackjackGame />
                 </section>
               </aside>
             </div>

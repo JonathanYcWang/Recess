@@ -34,14 +34,14 @@ User interaction
 
 ### UI (`/UI`)
 
-Components and pages do **not** write to storage or dispatch Redux actions for domain changes. They express intent by calling `sendAppAction` — usually from a hook (`useTimer`, `useRecessPicker`) or directly from a page (`QuizPage`, `OnboardingPage`).
+Components and pages do **not** write to storage or dispatch Redux actions for domain changes. They express intent by calling `sendAppAction` — usually from a hook (`useTimer`, `useRewards`) or directly from a page (`QuizPage`, `OnboardingPage`).
 
-Hooks read current state from Redux selectors and send actions when the user acts; phase transitions are driven by background alarms (`SCHEDULER_EVALUATE`).
+Hooks read current state from Redux selectors and send actions when the user acts or when a timer tick requires scheduler evaluation:
 
 | Hook / page        | Example actions                                      |
 | ------------------ | ---------------------------------------------------- |
-| `useTimer`         | `START_WORK_SESSION`, `END_WORK_SESSION_EARLY` |
-| `useRecessPicker`  | `RECESS_PICKER_SELECT_RECESS`, `RECESS_PICKER_REROLL` |
+| `useTimer`         | `START_WORK_SESSION`, `START_FOCUS`, `SCHEDULER_EVALUATE`, `END_WORK_SESSION_EARLY` |
+| `useRewards`       | `REWARDS_SELECT_REWARD`, `REWARDS_REROLL_REWARD`     |
 | `QuizPage`         | `QUIZ_SELECT_OPTION`, `QUIZ_RESTART`                 |
 | `OnboardingPage`   | `INITIALIZE_FROM_ONBOARDING`                         |
 
@@ -129,16 +129,16 @@ Action type strings are defined in `APP_ACTION` (`/Shared/Constants/Constants.ts
 | --------------------------- | ---------------------------------------------------- |
 | `ADD_BLOCKED_SITE`          | `hostname`                                           |
 | `REMOVE_BLOCKED_SITE`       | `hostname`                                           |
+| `START_FOCUS`               | —                                                    |
 | `START_WORK_SESSION`        | —                                                    |
 | `END_WORK_SESSION_EARLY`    | —                                                    |
-| `SCHEDULER_EVALUATE`        | Background-only; `runScheduler` when phase end is due (including on-time alarm wake) |
+| `SCHEDULER_EVALUATE`        | Called on timer ticks; advances scheduler phases     |
 | `SET_WORK_START_REMINDER`   | `startsAt` (ISO string)                              |
 | `CLEAR_WORK_START_REMINDER` | —                                                    |
 | `SET_COIN_BALANCE`          | `balance`                                            |
 | `INITIALIZE_FROM_ONBOARDING`| `energy`, `cadence`, `primaryFriction`               |
-| `RECESS_PICKER_SELECT_RECESS` | `recess` — also starts Recess via scheduler          |
-| `RECESS_PICKER_REROLL`         | `index` — replaces one recess option                 |
-| `RECESS_PICKER_SET_SHOWN_COMBINATIONS` | `combinations`                               |
+| `REWARDS_SELECT_REWARD`     | `reward` — also starts Recess via scheduler          |
+| `REWARDS_REROLL_REWARD`     | `index` — replaces one reward option                 |
 | `QUIZ_SELECT_OPTION`        | `option`                                             |
 | `QUIZ_RESTART`              | —                                                    |
 

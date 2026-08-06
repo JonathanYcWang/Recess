@@ -1,0 +1,82 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.displayState,
+.editContent,
+.inputGroup {
+  display: flex;
+  align-items: center;
+}
+
+.displayState,
+.editContent {
+  gap: 12px;
+}
+
+.displayState,
+.inputGroup {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.displayState {
+  padding: 12px 20px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-out;
+  white-space: nowrap;
+}
+
+.displayState:hover {
+  background: #e5e7eb;
+}
+
+.inputGroup {
+  padding: 16px;
+  background: #f3f4f6;
+  border-radius: 12px;
+}
+
+.input {
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  appearance: textfield;
+}
+
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.unitLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #8a8a92;
+}
+
+.confirmButton {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  background: #f2f2f5;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #000;
+  transition: background-color 0.2s;
+}
+
+.confirmButton:hover {
+  background: #e8e8ed;
+}

@@ -1,0 +1,157 @@
+.root {
+  width: 100%;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+}
+
+.inner {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 var(--spacing-3);
+  text-align: center;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-lg);
+}
+
+.balance {
+  margin-bottom: var(--spacing-4);
+  text-align: center;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.bettingPanel {
+  margin-bottom: var(--spacing-4);
+  text-align: center;
+}
+
+.bettingLabel {
+  margin-bottom: var(--spacing-2);
+}
+
+.bettingRow {
+  display: flex;
+  gap: var(--spacing-2);
+  justify-content: center;
+}
+
+.input {
+  width: 9.375rem;
+  padding: var(--spacing-2);
+  border: none;
+  border-radius: 4px;
+  font-size: var(--font-size-md);
+  font-family: inherit;
+}
+
+.button {
+  padding: var(--spacing-2) var(--spacing-4);
+  border: none;
+  border-radius: 4px;
+  background-color: var(--color-text-primary);
+  color: var(--color-background-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.buttonWide {
+  padding: var(--spacing-2) var(--spacing-5);
+}
+
+.errorMessage {
+  margin-top: var(--spacing-2);
+  color: #ef4444;
+}
+
+.sectionLarge {
+  margin-bottom: var(--spacing-5);
+}
+
+.section {
+  margin-bottom: var(--spacing-4);
+}
+
+.handLabel {
+  margin-bottom: var(--spacing-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cardRow {
+  display: flex;
+  gap: var(--spacing-1);
+  margin-bottom: var(--spacing-2);
+}
+
+.cardRowCenter {
+  justify-content: center;
+}
+
+.handMeta {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 3.75rem;
+  height: 5.625rem;
+  margin: var(--spacing-1);
+  border: 2px solid #000000;
+  border-radius: 4px;
+  background-color: #fff;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.cardRed {
+  color: #ef4444;
+}
+
+.cardBlack {
+  color: #000;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-2);
+  justify-content: center;
+  margin-bottom: var(--spacing-3);
+}
+
+.wagerInfo {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.resultPanel {
+  text-align: center;
+}
+
+.resultText {
+  margin-bottom: var(--spacing-3);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.resultWin {
+  color: var(--color-text-primary);
+}
+
+.resultLoss {
+  color: #ef4444;
+}
+
+.resultPush {
+  color: #fbbf24;
+}
