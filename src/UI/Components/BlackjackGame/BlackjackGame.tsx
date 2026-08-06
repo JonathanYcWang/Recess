@@ -48,7 +48,10 @@ const calculateHandValue = (cards: Card[]): number => {
 const canSplit = (cards: Card[]): boolean =>
   cards.length === 2 && getCardValue(cards[0]) === getCardValue(cards[1]);
 
-const drawDealerTo17 = (dealer: Card[], remainingDeck: Card[]): { dealer: Card[]; deck: Card[] } => {
+const drawDealerTo17 = (
+  dealer: Card[],
+  remainingDeck: Card[]
+): { dealer: Card[]; deck: Card[] } => {
   const dealerCards = [...dealer];
   const deckCopy = [...remainingDeck];
 
@@ -302,7 +305,11 @@ const BlackjackGame = () => {
                 placeholder="Wager amount"
                 className={styles.input}
               />
-              <button type="button" onClick={handleDeal} className={`${styles.button} ${styles.buttonWide}`}>
+              <button
+                type="button"
+                onClick={handleDeal}
+                className={`${styles.button} ${styles.buttonWide}`}
+              >
                 Deal
               </button>
             </div>
@@ -325,7 +332,11 @@ const BlackjackGame = () => {
               renderHand('Your Hand', playerHand, `Total: ${calculateHandValue(playerHand)}`)}
 
             {isSplitPhase &&
-              renderHand('Your Hand', activeHandCards, `Total: ${calculateHandValue(activeHandCards)}`)}
+              renderHand(
+                'Your Hand',
+                activeHandCards,
+                `Total: ${calculateHandValue(activeHandCards)}`
+              )}
 
             <div className={styles.actions}>
               <button type="button" onClick={hit} className={styles.button}>
@@ -354,22 +365,40 @@ const BlackjackGame = () => {
 
             {split1Hand.length > 0 ? (
               <>
-                {renderHand('Split Hand 1', split1Hand, `Total: ${calculateHandValue(split1Hand)}`, {
-                  center: true,
-                })}
-                {renderHand('Split Hand 2', split2Hand, `Total: ${calculateHandValue(split2Hand)}`, {
-                  center: true,
-                })}
+                {renderHand(
+                  'Split Hand 1',
+                  split1Hand,
+                  `Total: ${calculateHandValue(split1Hand)}`,
+                  {
+                    center: true,
+                  }
+                )}
+                {renderHand(
+                  'Split Hand 2',
+                  split2Hand,
+                  `Total: ${calculateHandValue(split2Hand)}`,
+                  {
+                    center: true,
+                  }
+                )}
               </>
             ) : (
-              renderHand('Your Hand', playerHand, `Total: ${calculateHandValue(playerHand)}`, { center: true })
+              renderHand('Your Hand', playerHand, `Total: ${calculateHandValue(playerHand)}`, {
+                center: true,
+              })
             )}
 
             {result ? (
-              <div className={`${styles.resultText} ${RESULT_CLASS[result.variant]}`}>{result.text}</div>
+              <div className={`${styles.resultText} ${RESULT_CLASS[result.variant]}`}>
+                {result.text}
+              </div>
             ) : null}
 
-            <button type="button" onClick={nextHand} className={`${styles.button} ${styles.buttonWide}`}>
+            <button
+              type="button"
+              onClick={nextHand}
+              className={`${styles.button} ${styles.buttonWide}`}
+            >
               Next Hand
             </button>
           </div>

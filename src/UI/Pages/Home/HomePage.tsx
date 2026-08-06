@@ -193,10 +193,10 @@ const HomePage = () => {
                       },
                     ]}
                   /> */}
-                  <FocusPet petName={petName} imgSrc={petImage} />  
+                  <FocusPet petName={petName} imgSrc={petImage} />
                 </section>
                 <section className={styles.card}>
-                <BlackjackGame />
+                  <BlackjackGame />
                 </section>
               </aside>
             </div>
