@@ -1,8 +1,7 @@
 #!/usr/bin/env sh
-# Pre-commit checks:
-#   1. Regenerates .codex/agents/*.toml from .github/agents/*.md
-#   2. Runs knip to catch unused exports/files
-set -e
-node scripts/sync-codex-agents.mjs
-git add .codex/agents/
-npm run knip
+set -eu
+
+npm run verify || {
+  echo >&2 "Commit aborted: npm run verify failed."
+  exit 1
+}
