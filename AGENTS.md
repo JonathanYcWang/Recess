@@ -8,14 +8,13 @@ Recess is a browser extension (Chrome + Safari, Manifest V3) that manages Work S
 
 ## 1. Architecture
 
-Full structure and principles: `docs/architecture-v2.md`
+Full structure and principles: `docs/architecture.md`
 
 ### Layers
 
 - `/Background` — services own all business logic; adapters, repositories, and utils support them. Services do not call browser APIs directly — they call adapters/repositories. Plain arrow functions only. No classes.
 - `/UI` — pages, views, components, hooks, Redux. No storage reads or Redux dispatches in components.
 - `/Shared` — ActionBroker, interfaces, types, constants. No dependencies on `/UI` or `/Background`.
-- `/Docs/ADR` — architectural decision records.
 
 ### Non-negotiable rules
 

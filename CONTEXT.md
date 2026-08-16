@@ -2,7 +2,7 @@
 
 - Canonical product language: [docs/domain/glossary.md](docs/domain/glossary.md)
 - Product rules: [docs/domain/rules.md](docs/domain/rules.md)
-- Architecture reference: [docs/architecture-v2.md](docs/architecture-v2.md) (as-built + labeled follow-ups)
+- Architecture reference: [docs/architecture.md](docs/architecture.md) (as-built + labeled follow-ups)
 - Agent workflow: [AGENTS.md](AGENTS.md)
 
 ---

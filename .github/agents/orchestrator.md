@@ -62,7 +62,7 @@ and create one GitHub issue per violation type with file paths and
 line numbers. Shall I proceed?
 ```
 
-On confirmation, delegate: "Spawn the audit subagent. Scan the entire codebase against the architecture rules in AGENTS.md and docs/architecture-v2.md. Create one GitHub issue per violation type."
+On confirmation, delegate: "Spawn the audit subagent. Scan the entire codebase against the architecture rules in AGENTS.md and docs/architecture.md. Create one GitHub issue per violation type."
 
 ## Rules
 
