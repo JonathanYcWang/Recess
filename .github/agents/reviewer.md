@@ -22,12 +22,12 @@ Check every changed file for minimalism violations. Flag anything that could be 
 
 Verify every changed file against the layer rules in `AGENTS.md`:
 
-- No service imports browser APIs directly
+- No service imports browser APIs directly (adapters/repositories only)
+- Business logic lives in services — not adapters, repositories, utils, or Redux
 - No component reads from storage or dispatches to Redux
 - No `chrome.*` — only `browser.*`
 - No `any`, `unknown`, or `as` casts
 - Arrow functions only
-- Services receive dependencies as parameters
 - `StorageRepository` is the only writer to storage
 - `ActionBroker` is the only writer to Redux
 
