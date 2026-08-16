@@ -17,6 +17,6 @@ export default defineConfig({
   },
   publicDir: 'public',
   test: {
-    exclude: ['e2e/**', 'node_modules/**', 'dist/**', 'build/**'],
+    exclude: ['node_modules/**', 'dist/**', 'build/**'],
   },
 });

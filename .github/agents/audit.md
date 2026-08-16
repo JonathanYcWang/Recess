@@ -52,16 +52,12 @@ Every file in the codebase must conform to all of the following. Check each cate
 
 The codebase must match the folder structure in `docs/architecture-v2.md` Section 3 exactly:
 
-- `/Background/Services` — SchedulerService, BlockListManagementService, BrowserEnforcementService
-- `/Background/Adapters` — TabManagementAdapter, NotificationAdapter
-- `/Background/Repositories` — StorageRepository
-- `/UI/Pages` — Popup, Home, Settings, RewardGame
-- `/UI/Views`, `/UI/Components`, `/UI/Hooks`, `/UI/Redux`
+- `/Background/Services` — nested folders per service; no fixed inventory
+- `/Background/Adapters`, `/Background/Repositories`, `/Background/ActionHandlers`, `/Background/Broadcasters`
+- `/UI/Pages`, `/UI/Views`, `/UI/Components`, `/UI/Hooks`, `/UI/Redux`
 - `/UI/Redux/Slices`, `/UI/Redux/Selectors`
-- `/Shared/Adapters` — ActionBroker
-- `/Shared/Interfaces`, `/Shared/Types`, `/Shared/Constants`
-- `/Shared/Constants/ActionTypes`, `/StorageKeys`, `/AlarmNames`, `/NotificationTypes`, `/PhaseNames`
-- `/Tests/Integration`, `/Tests/E2E`
+- `/Shared/ActionBrokers` — ActionBroker
+- `/Shared/Types`, `/Shared/Constants`, `/Shared/Schema`, `/Shared/State`
 - `/Docs/ADR`
 
 Flag every file or folder that exists outside this structure or is named incorrectly.
@@ -114,11 +110,10 @@ Run `/improve-codebase-architecture` and `/ponytail-audit` and flag:
 
 Flag:
 
-- Any service, adapter, repository, hook, or selector without a colocated test file
-- Any pure function without unit tests
-- Missing integration tests for high-risk service combinations
-- Missing E2E tests for critical user flows
+- High-risk services, adapters, repositories, hooks, or selectors without a colocated Vitest file
+- Domain logic that is only exercised manually with no unit coverage
 
+Do not flag missing Playwright, E2E, or a top-level `/Tests` tree — those are not part of the architecture.
 ## How to create issues
 
 One GitHub issue per violation type. Each issue must include:

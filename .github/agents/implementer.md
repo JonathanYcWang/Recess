@@ -33,7 +33,8 @@ Stop and flag the ambiguity. Do not interpret or assume — ask the developer to
 - No `any` or `unknown` — use type guards at all boundaries
 - No `as` casting
 - No `chrome.*` — use `browser.*` via the WebExtension polyfill
-- Services receive dependencies as function parameters — never import concrete implementations
+- Business logic lives in services; adapters/repositories/utils support services and contain no domain rules
+- Services may import and call adapters/repositories; they must not call browser APIs directly
 - Never write to storage outside `StorageRepository`
 - Never dispatch to Redux outside `ActionBroker`
 - Never import `/Background` from `/UI` or vice versa

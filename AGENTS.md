@@ -12,10 +12,9 @@ Full structure and principles: `docs/architecture-v2.md`
 
 ### Layers
 
-- `/Background` — services, adapters, repositories. No browser APIs in services. Plain arrow functions only. No classes.
+- `/Background` — services own all business logic; adapters, repositories, and utils support them. Services do not call browser APIs directly — they call adapters/repositories. Plain arrow functions only. No classes.
 - `/UI` — pages, views, components, hooks, Redux. No storage reads or Redux dispatches in components.
 - `/Shared` — ActionBroker, interfaces, types, constants. No dependencies on `/UI` or `/Background`.
-- `/Tests` — integration and E2E only. Unit tests colocated with source files.
 - `/Docs/ADR` — architectural decision records.
 
 ### Non-negotiable rules
@@ -24,13 +23,13 @@ Full structure and principles: `docs/architecture-v2.md`
 - `ActionBroker` is the only writer to the Redux store
 - `ActionBroker` is the only caller of browser messaging APIs
 - State flows one direction only: background worker → ActionBroker → Redux → components
-- No business logic in adapters, repositories, or the Redux layer
-- No browser API outside `/Background/Adapters`, `/Background/Repositories`, or `/Shared/Adapters`
+- Business logic lives in services — not in adapters, repositories, ActionHandlers wiring, utils, or the Redux layer
+- Handlers, ActionBroker, and UI call services; services call adapters, repositories, and utils
+- Services may perform side effects by calling adapters/repositories — purity is preferred for isolated calculations, not required for every service function
+- No browser API outside `/Background/Adapters`, `/Background/Repositories`, or `/Shared/ActionBrokers`
 - All browser APIs use `browser.*` via the WebExtension polyfill — never `chrome.*`
-- Services receive all dependencies as function parameters — never import concrete implementations
 - No `any`, `unknown`, or `as` casts — use type guards at all boundaries
 - No `I` prefix on interface names
-- Dependency interfaces are colocated with the function that uses them — never exported
 
 ### Planner and reviewer personality
 

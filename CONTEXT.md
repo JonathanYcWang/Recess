@@ -2,8 +2,8 @@
 
 - Canonical product language: [docs/domain/glossary.md](docs/domain/glossary.md)
 - Product rules: [docs/domain/rules.md](docs/domain/rules.md)
-- Architecture reference: [docs/architecture-v2.md](docs/architecture-v2.md)
-- Legacy blueprint (remove after initial audit is complete): [docs/domain/architecture-cleanup-blueprint.md](docs/domain/architecture-cleanup-blueprint.md)
+- Architecture reference: [docs/architecture-v2.md](docs/architecture-v2.md) (as-built + labeled follow-ups)
+- Agent workflow: [AGENTS.md](AGENTS.md)
 
 ---
 

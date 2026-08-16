@@ -8,7 +8,9 @@ import {
 } from '../../Shared/Constants/Constants';
 import type { SchedulerPhase, SchedulerState } from '../../Shared/Types/AppState';
 import type { RootState } from '../Redux/store';
+// TODO(arch): UI must not import /Background — move computeFocusBlockDuration to /Shared (or expose via selectors only).
 import { computeFocusBlockDuration } from '../../Background/Services/Scheduler/SchedulerService';
+// TODO(arch): UI must not import /Background — route notifications through ActionBroker / background instead of NotificationAdapter.
 import {
   notifyFocusEnding,
   notifyFocusComplete,
