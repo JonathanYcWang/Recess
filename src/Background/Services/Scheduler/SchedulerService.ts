@@ -136,7 +136,7 @@ export const evaluateScheduler = (state: SchedulerState, now: Date): SchedulerSt
   const nextRemaining =
     state.activePhase === SCHEDULER_PHASE.REWARD_GAME
       ? state.workSessionRemaining
-      : state.workSessionRemaining - elapsed;
+      : Math.max(0, state.workSessionRemaining - elapsed);
 
   const decrementedState: SchedulerState = { ...state, workSessionRemaining: nextRemaining };
 
