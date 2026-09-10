@@ -98,11 +98,18 @@ describe('syncBlockListEnforcementFlags', () => {
     ]);
   });
 
-  it('blocks every entry during Focus Block and Reward Game', () => {
+  it('blocks every entry during Focus Block, Pause, and Reward Game', () => {
     expect(
       syncBlockListEnforcementFlags(
         withBlockListContext(entries, SCHEDULER_PHASE.FOCUS_BLOCK, null)
       ).blockList
+    ).toEqual([
+      { url: 'youtube.com', isBlocked: true },
+      { url: 'instagram.com', isBlocked: true },
+    ]);
+    expect(
+      syncBlockListEnforcementFlags(withBlockListContext(entries, SCHEDULER_PHASE.PAUSE, null))
+        .blockList
     ).toEqual([
       { url: 'youtube.com', isBlocked: true },
       { url: 'instagram.com', isBlocked: true },
@@ -265,5 +272,6 @@ describe('isBlocked', () => {
     const selectedRecess = { id: '1', name: 'youtube.com', duration: 10 };
     expect(isBlocked('youtube.com', SCHEDULER_PHASE.RECESS, selectedRecess)).toBe(false);
     expect(isBlocked('instagram.com', SCHEDULER_PHASE.RECESS, selectedRecess)).toBe(true);
+    expect(isBlocked('youtube.com', SCHEDULER_PHASE.PAUSE, null)).toBe(true);
   });
 });

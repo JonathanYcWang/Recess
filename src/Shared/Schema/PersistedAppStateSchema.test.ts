@@ -42,6 +42,7 @@ describe('parsePersistedAppState', () => {
         activePhase: SCHEDULER_PHASE.FOCUS_BLOCK,
         phaseStart: '2026-01-01T12:00:00.000Z',
         phaseTarget: 1500,
+        phaseRemaining: 1500,
         workSessionTarget: WORK_SESSION_DURATION,
         workSessionRemaining: WORK_SESSION_DURATION,
       },

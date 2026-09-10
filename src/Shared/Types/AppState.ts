@@ -19,6 +19,7 @@ export interface SchedulerState {
   activePhase: SchedulerPhase | null;
   phaseStart: string | null;
   phaseTarget: number;
+  phaseRemaining: number;
   workSessionTarget: number;
   workSessionRemaining: number;
   // timeline: SchedulerPhaseTimelineEntry[];
@@ -70,6 +71,8 @@ export type AppAction =
   | { type: typeof APP_ACTION.REMOVE_BLOCKED_SITE; hostname: string }
   | { type: typeof APP_ACTION.START_WORK_SESSION }
   | { type: typeof APP_ACTION.END_WORK_SESSION_EARLY }
+  | { type: typeof APP_ACTION.PAUSE }
+  | { type: typeof APP_ACTION.RESUME }
   | { type: typeof APP_ACTION.SCHEDULER_EVALUATE }
   | { type: typeof APP_ACTION.SET_WORK_START_REMINDER; startsAt: string }
   | { type: typeof APP_ACTION.CLEAR_WORK_START_REMINDER }

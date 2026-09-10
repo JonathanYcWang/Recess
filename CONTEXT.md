@@ -9,7 +9,7 @@
 
 ## What Recess is
 
-Recess is a browser extension (Chrome + Safari, Manifest V3) that helps users do focused work through structured Work Sessions. It enforces a Block List during Focus Blocks, runs a chance-based Reward Game to select a Block List entry and Recess duration before each earned Recess, and adapts Focus Block and Recess durations dynamically through a Scheduler based on the user's Energy, Momentum, and Work Session progress.
+Recess is a browser extension (Chrome + Safari, Manifest V3) that helps users do focused work through structured Work Sessions. It enforces a Block List during Focus Blocks, runs a chance-based Reward Game to select a Block List entry and Recess duration before each earned Recess, and adapts Focus Block and Recess durations dynamically through a Scheduler based on the user's Energy and Work Session progress.
 
 ---
 

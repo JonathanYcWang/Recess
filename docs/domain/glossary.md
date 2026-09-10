@@ -8,7 +8,7 @@ The root `CONTEXT.md` is the compact source of canonical terms. This document ex
 
 ### Work Session
 
-A user-declared, continuous period of work. Its clock runs during Focus Blocks, Reward Games, Recesses, and Back to Work Countdowns, and pauses only during a Time Out.
+A user-declared, continuous period of work. Its clock runs during Focus Blocks, Reward Games, Recesses, and Back to Work Countdowns, and pauses only during a Pause.
 
 Goals accept fifteen minutes through eight hours in fifteen-minute steps and default to three hours. Completing the originally declared duration marks the Work Session complete. A later Work Session Extension retains its history without replacing that completion.
 
@@ -26,17 +26,17 @@ An earned recovery interval after a completed non-final Focus Block. The Schedul
 
 A Recess may end early but cannot be extended. If the user completes the final Focus Block and ends the Work Session, no final Recess occurs.
 
-### Time Out
+### Pause
 
 A user-initiated suspension for a necessary interruption during a Focus Block, including a Focus Block Extension. It pauses both the Focus Block and Work Session clocks and ends only when the user manually resumes.
 
-A Time Out is not a Recess: Block List enforcement continues, no Recess Pass is awarded, and access requires a Hall Pass. After ten elapsed minutes, Momentum lowers one qualitative state exactly once.
+A Pause is not a Recess: Block List enforcement continues, and no Recess Pass is awarded.
 
 ### Focus Block Extension
 
 The continuation of a completed Focus Block after the user declines its Recess prompt. The earned Recess remains singular and deferred while the Scheduler reruns with current Profile, progress, Task, remaining-time, and game-budget inputs.
 
-Extension time earns one Coin per two completed minutes, rounded down independently. Momentum and Focus Block Streak advance only at the first prompt, not at later extension prompts.
+Extension time earns one Coin per two completed minutes, rounded down independently. Focus Block Streak advances only at the first prompt, not at later extension prompts.
 
 ### Work Session Extension
 
@@ -76,12 +76,6 @@ Each game provides three free rerolls. Further rerolls cost five Coins when the 
 
 Earned temporary access to exactly one Block List entry for the duration of a Recess. It expires when the Back to Work Countdown begins.
 
-### Hall Pass
-
-Coin-funded access to exactly one Block List entry during a Time Out. Only one Hall Pass may be active, and approving a different destination replaces it.
-
-The universal recurring rate is one Coin per completed active minute while the destination is foregrounded in the browser’s focused window. Access ends immediately when the user can no longer pay the next charge.
-
 ## Tasks and planning
 
 ### Task
@@ -106,7 +100,7 @@ The user’s original estimate of the focused-work duration needed to complete a
 
 ### Focused Time
 
-The time accumulated while a Task is Active during Focus Blocks and Focus Block Extensions. Time Out, Reward Game, Recess, countdown, and inactive periods do not count. Estimated remaining work is derived from the original Time Estimate and Focused Time rather than by mutating the estimate.
+The time accumulated while a Task is Active during Focus Blocks and Focus Block Extensions. Pause, Reward Game, Recess, countdown, and inactive periods do not count. Estimated remaining work is derived from the original Time Estimate and Focused Time rather than by mutating the estimate.
 
 ### Task Planner
 
@@ -118,7 +112,7 @@ The service that walks incomplete Tasks in manual priority order and proposes en
 
 Recess’s spendable currency. Standard Focus time earns one Coin per completed minute. Focus Block Extension time earns one Coin per two completed minutes, with each phase rounded down independently.
 
-Every qualifying Work Session Streak advancement and every Focus Block Streak milestone at multiples of three awards ten Coins. Coins fund Hall Passes, paid Reward Game rerolls, Pet mood boosts, and cosmetics.
+Every qualifying Work Session Streak advancement and every Focus Block Streak milestone at multiples of three awards ten Coins. Coins fund paid Reward Game rerolls, Pet mood boosts, and cosmetics.
 
 ### Pet
 
@@ -140,7 +134,7 @@ The run of enabled Work Start Reminders followed by a Work Session start within 
 
 The evolving model of a user’s work preferences, friction patterns, and observed behavior. It begins from quiz answers and changes through behavior and feedback rather than assigning a permanent personality type.
 
-It owns preferred cadence; Energy Low, Steady, or High; Momentum Low, Steady, Building, or Flowing; and six friction dimensions: Emotional Load, Motivation, Organization, Distraction, Starting, and Fatigue.
+It owns preferred cadence; Energy Low, Steady, or High; and six friction dimensions: Emotional Load, Motivation, Organization, Distraction, Starting, and Fatigue.
 
 ### Workstyle Signal
 
@@ -149,10 +143,6 @@ An adaptive dimension within the Workstyle Profile. Recess uses product-specific
 ### Energy
 
 A Workstyle Signal representing current capacity for sustained focus and need for recovery. Users see qualitative states rather than an exact score.
-
-### Momentum
-
-A Workstyle Signal representing recent continuity and follow-through during work. Users see qualitative states rather than an exact score.
 
 ### Onboarding Quiz
 
@@ -170,7 +160,7 @@ An optional feeling and energy response near the end of a Recess. Its answer ref
 
 ### Work History
 
-The factual record of Work Sessions, Focus Blocks, Recesses, Time Outs, Tasks, and their outcomes. Facts are immutable and append-only.
+The factual record of Work Sessions, Focus Blocks, Recesses, Pauses, Tasks, and their outcomes. Facts are immutable and append-only.
 
 ### Insights
 
@@ -182,9 +172,9 @@ Session and task families select the latest five or latest thirty resolved Work 
 
 ### Scheduler
 
-The pure decision service that turns preferred cadence, Energy, Momentum, Work Session progress, selected Task remaining work, exact remaining time, and Reward Game budget into deterministic Focus and Recess durations plus named reason codes.
+The pure decision service that turns preferred cadence, Energy, Work Session progress, selected Task remaining work, exact remaining time, and Reward Game budget into deterministic Focus and Recess durations plus named reason codes.
 
-It begins from preferred cadence with 25/5 as the default and applies the approved Energy, Momentum, and two-thirds-progress modifiers in order. Ordinary Focus clamps to fifteen through sixty minutes and Recess to five through twenty minutes. An eligible selected-Task total caps proposed Focus.
+It begins from preferred cadence with 25/5 as the default and applies the approved Energy and two-thirds-progress modifiers in order. Ordinary Focus clamps to fifteen through sixty minutes and Recess to five through twenty minutes. An eligible selected-Task total caps proposed Focus.
 
 If remaining time cannot contain the chosen game decision window, maximum animation, and five-minute Recess, the current Focus is final. A final Focus consumes exact remaining Work Session time; post-game Recess uses actual remaining time.
 
