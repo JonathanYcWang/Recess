@@ -17,6 +17,7 @@ const createDefaultSchedulerState = (): SchedulerState => ({
   activePhase: null,
   phaseStart: null,
   phaseTarget: 0,
+  phaseRemaining: 0,
   workSessionTarget: WORK_SESSION_DURATION,
   workSessionRemaining: WORK_SESSION_DURATION,
 });

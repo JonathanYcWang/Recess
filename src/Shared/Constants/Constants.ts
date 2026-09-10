@@ -1,5 +1,3 @@
-import type { SchedulerPhase } from '@/Shared/Types/AppState';
-
 export const NOTIFY_TIME_LEFT_SECONDS = 5 * 60; // Notify when 5 minutes are left in a session
 
 export const APP_ACTION = {
@@ -7,6 +5,8 @@ export const APP_ACTION = {
   REMOVE_BLOCKED_SITE: 'REMOVE_BLOCKED_SITE',
   START_WORK_SESSION: 'START_WORK_SESSION',
   END_WORK_SESSION_EARLY: 'END_WORK_SESSION_EARLY',
+  PAUSE: 'PAUSE',
+  RESUME: 'RESUME',
   SCHEDULER_EVALUATE: 'SCHEDULER_EVALUATE',
   SET_WORK_START_REMINDER: 'SET_WORK_START_REMINDER',
   CLEAR_WORK_START_REMINDER: 'CLEAR_WORK_START_REMINDER',
@@ -23,13 +23,19 @@ export const SCHEDULER_PHASE = {
   FOCUS_BLOCK: 'FOCUS_BLOCK',
   REWARD_GAME: 'REWARD_GAME',
   RECESS: 'RECESS',
+  PAUSE: 'PAUSE',
 } as const;
+
+export type TimedSchedulerPhase =
+  | typeof SCHEDULER_PHASE.FOCUS_BLOCK
+  | typeof SCHEDULER_PHASE.REWARD_GAME
+  | typeof SCHEDULER_PHASE.RECESS;
 
 export const SCHEDULER_ALARM = {
   PHASE_END: 'phase-end',
 } as const;
 
-export const PHASE_DURATION: Record<SchedulerPhase, number> = {
+export const PHASE_DURATION: Record<TimedSchedulerPhase, number> = {
   FOCUS_BLOCK: 25 * 60,
   REWARD_GAME: 60,
   RECESS: 5 * 60,

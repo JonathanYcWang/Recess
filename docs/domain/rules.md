@@ -6,7 +6,7 @@
 
 - The Work Session clock runs during Focus Blocks, Reward Games, Recesses, and Back to Work Countdowns. It pauses only during a Pause.
 - Work Session goals accept fifteen minutes through eight hours in fifteen-minute steps and default to three hours.
-- Starting a Work Session requires Energy Low, Steady, or High and initializes Momentum to Steady for that session.
+- Starting a Work Session requires Energy Low, Steady, or High.
 - The Scheduler sizes the final Focus Block to consume all remaining Work Session time, even when that requires a shorter-than-normal block.
 - Completing the final Focus Block completes the Work Session without a final Recess or Recess Pass.
 - Completing the originally declared duration permanently marks the Work Session complete.
@@ -19,7 +19,7 @@
 
 - A user cannot directly end a Focus Block. They may start a Pause or end the entire Work Session.
 - Ordinary Focus durations clamp to fifteen through sixty minutes. Recess durations clamp to five through twenty minutes.
-- The Scheduler begins from preferred cadence with 25/5 as the default and applies Energy, Momentum, and two-thirds-progress modifiers in order.
+- The Scheduler begins from preferred cadence with 25/5 as the default and applies Energy and two-thirds-progress modifiers in order.
 - An eligible selected-Task total caps proposed Focus duration.
 - If remaining time cannot contain the chosen game decision window, maximum animation, and five-minute Recess, the current Focus is final.
 - A Focus Block completes at its first Recess prompt.
@@ -51,24 +51,20 @@
 - Every Block List entry is eligible for selection by the Reward Game.
 - Entries are canonical hostnames: lowercase, without protocol, path, port, query, fragment, case difference, or trailing dot.
 - Matching is exact hostname or subdomain; lookalikes such as `notexample.com` never match `example.com`.
-- Block List enforcement remains active during Focus Blocks, Reward Games, Back to Work Countdowns, and Pauses without a Hall Pass.
+- Block List enforcement remains active during Focus Blocks, Reward Games, Back to Work Countdowns, and Pauses.
 - During enforcement, matching normal tabs are closed. Recess remembers each closed URL occurrence and its multiplicity.
 - When policy permits, remembered destinations reopen as inactive tabs. Window, group, active state, navigation stack, form state, scroll state, and private or incognito contexts are not recorded or restored.
-- Granting a Recess Pass or Hall Pass restores only remembered occurrences for that destination. Removing an entry or ending the Work Session restores every remembered occurrence that is now allowed.
+- Granting a Recess Pass restores only remembered occurrences for that destination. Removing an entry or ending the Work Session restores every remembered occurrence that is now allowed.
 - Pass expiry, Back to Work Countdown, and Pause resume re-close matching open tabs when policy again blocks them.
 - Private or incognito contexts and unsupported destination kinds return explicit excluded or capability outcomes.
 
-## Pause and Hall Pass
+## Pause
 
 - A Pause may begin only during a Focus Block, including a Focus Block Extension.
 - It suspends the active Focus Block and Work Session clocks and ends only when the user manually resumes.
-- Every five minutes, the system reports elapsed Pause duration and may show contextual return incentives.
-- At ten elapsed minutes, Momentum lowers one qualitative state exactly once.
-- Attempting to use a Block List entry presents the one-Coin-per-completed-active-minute rate and asks for confirmation before issuing a Hall Pass.
-- Confirmation requires at least one Coin but creates no upfront debit.
-- Only one Hall Pass may be active. Confirming another destination replaces the current pass.
-- Charges accrue only while the Hall Pass destination is actively foregrounded in the browser’s focused window.
-- If the user cannot pay the next recurring charge, access is revoked immediately while the Pause remains active.
+- Resume continues from the leftover Focus Block and Work Session remaining time.
+- End Work Session Early remains available during Pause and ends the Work Session immediately.
+- Block List enforcement stays active during Pause.
 
 ## Tasks
 
@@ -102,7 +98,6 @@
 - The Personalization Quiz is deeper and optional. It enriches the same profile and assigns the Pet once.
 - Later profile changes never replace the assigned Pet.
 - Eight canonical moods exist: Calm, Focused, Curious, Happy, Restless, Hungry, Sleepy, and Sad.
-- Restless triggers at ten minutes in Pause and recovers to Happy on resume or Focus start.
 - Hungry triggers every third completed Focus Block and recovers to Happy on a later completed Focus Block.
 - Sleepy triggers from a Low-Energy Recess Check-In and recovers to Happy on a later completed Recess.
 - Sad triggers from an incomplete Work Session or missed Reminder and recovers to Happy on a later completed Work Session.
@@ -110,7 +105,7 @@
 - Pet mood changes never alter Coins, rewards, Scheduler decisions, Block List access, Task behavior, Pet identity, or permanent progress.
 - Coins may buy Pet mood boosts and cosmetics; basic wellbeing is not contingent on spending.
 - The Workstyle Profile evolves from Recess-specific Workstyle Signals rather than MBTI.
-- Energy and Momentum are shown to users as qualitative states.
+- Energy is shown to users as a qualitative state.
 - A Recess Check-In is optional. Answering it updates the Workstyle Profile; dismissing it is neutral.
 
 ## Work Start Reminder and Work Session Streak

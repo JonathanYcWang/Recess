@@ -165,7 +165,6 @@ const HomePage = () => {
                     items={[
                       { name: 'Freshness Score', value: 100 },
                       { name: 'Readiness Score', value: 100 },
-                      { name: 'Momentum Multiplier', value: 1.5 },
                       { name: 'Last Session Difficulty', value: 80 },
                     ]}
                   />

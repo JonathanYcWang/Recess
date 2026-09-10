@@ -41,6 +41,7 @@ const persistedAppStateSchema = z.object({
     activePhase: z.enum(SCHEDULER_PHASE).nullable(),
     phaseStart: z.string().nullable(),
     phaseTarget: z.number().nonnegative(),
+    phaseRemaining: z.number().nonnegative(),
     workSessionTarget: z.number().nonnegative(),
     workSessionRemaining: z.number().nonnegative(),
   }),

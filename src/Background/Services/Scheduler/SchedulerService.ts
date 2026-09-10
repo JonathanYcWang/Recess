@@ -2,8 +2,9 @@ import {
   PHASE_DURATION,
   SCHEDULER_PHASE,
   WORK_SESSION_DURATION,
+  type TimedSchedulerPhase,
 } from '@/Shared/Constants/Constants';
-import type { SchedulerPhase, SchedulerState } from '@/Shared/Types/AppState';
+import type { SchedulerState } from '@/Shared/Types/AppState';
 
 const iso = (date: Date): string => date.toISOString();
 
@@ -11,12 +12,12 @@ const elapsedSince = (startTime: string, now: Date): number =>
   Math.max(0, Math.floor((now.getTime() - new Date(startTime).getTime()) / 1000));
 
 export const computePhaseEndTime = (scheduler: SchedulerState): Date | null => {
-  if (scheduler.phaseStart === null) {
+  if (scheduler.activePhase === SCHEDULER_PHASE.PAUSE || scheduler.phaseStart === null) {
     return null;
   }
 
   const phaseStartMs = new Date(scheduler.phaseStart).getTime();
-  return new Date(phaseStartMs + scheduler.phaseTarget * 1000);
+  return new Date(phaseStartMs + scheduler.phaseRemaining * 1000);
 };
 
 export const computeFocusBlockDuration = (state: SchedulerState): number => {
@@ -28,21 +29,30 @@ export const createDefaultSchedulerState = (): SchedulerState => ({
   activePhase: null,
   phaseStart: null,
   phaseTarget: 0,
+  phaseRemaining: 0,
   workSessionTarget: WORK_SESSION_DURATION,
   workSessionRemaining: WORK_SESSION_DURATION,
   // timeline: [],
 });
 
-// Transitions into a new phase: stamps the start time, sets its duration, and appends an open entry to the timeline.
-const startPhase = (state: SchedulerState, phase: SchedulerPhase, now: Date): SchedulerState => ({
-  ...state,
-  activePhase: phase,
-  phaseStart: iso(now),
-  phaseTarget:
+const startPhase = (
+  state: SchedulerState,
+  phase: TimedSchedulerPhase,
+  now: Date
+): SchedulerState => {
+  const duration =
     phase === SCHEDULER_PHASE.FOCUS_BLOCK
       ? computeFocusBlockDuration(state)
-      : PHASE_DURATION[phase],
-});
+      : PHASE_DURATION[phase];
+
+  return {
+    ...state,
+    activePhase: phase,
+    phaseStart: iso(now),
+    phaseTarget: duration,
+    phaseRemaining: duration,
+  };
+};
 
 export const startWorkSession = (now: Date): SchedulerState => {
   const startedWorkSession = createDefaultSchedulerState();
@@ -77,35 +87,52 @@ export const endWorkSession = (state: SchedulerState): SchedulerState => ({
   activePhase: null,
   phaseStart: null,
   phaseTarget: 0,
+  phaseRemaining: 0,
 });
 
-// Closes the most recent timeline entry by recording its end time (no-op if already closed).
-// const endOpenTimelineEntry = (state: SchedulerState, now: Date): SchedulerState => ({
-//   ...state,
-//   timeline: state.timeline.map((entry, index) =>
-//     index === state.timeline.length - 1 && entry.endedAt === null
-//       ? { ...entry, endedAt: iso(now) }
-//       : entry
-//   ),
-// });
-
-// The core tick: if the current phase's duration has elapsed, advance to the next
-export const evaluateScheduler = (state: SchedulerState, now: Date): SchedulerState => {
-  if (state.activePhase === null || state.phaseStart === null) {
+export const pauseScheduler = (state: SchedulerState, now: Date): SchedulerState => {
+  if (state.activePhase !== SCHEDULER_PHASE.FOCUS_BLOCK || state.phaseStart === null) {
     return state;
   }
 
   const elapsed = elapsedSince(state.phaseStart, now);
 
-  // Phase still in progress: keep the current phase and wait for the next tick.
-  if (elapsed < state.phaseTarget) {
+  return {
+    ...state,
+    activePhase: SCHEDULER_PHASE.PAUSE,
+    phaseStart: iso(now),
+    phaseRemaining: Math.max(0, state.phaseRemaining - elapsed),
+    workSessionRemaining: Math.max(0, state.workSessionRemaining - elapsed),
+  };
+};
+
+export const resumeScheduler = (state: SchedulerState, now: Date): SchedulerState => {
+  if (state.activePhase !== SCHEDULER_PHASE.PAUSE) {
     return state;
   }
 
-  // Phase finished: close its timeline entry before transitioning.
-  // const closedState = endOpenTimelineEntry(state, now);
+  return {
+    ...state,
+    activePhase: SCHEDULER_PHASE.FOCUS_BLOCK,
+    phaseStart: iso(now),
+  };
+};
 
-  // Decrement the session budget by the real time this phase consumed; REWARD_GAME is free.
+export const evaluateScheduler = (state: SchedulerState, now: Date): SchedulerState => {
+  if (
+    state.activePhase === null ||
+    state.activePhase === SCHEDULER_PHASE.PAUSE ||
+    state.phaseStart === null
+  ) {
+    return state;
+  }
+
+  const elapsed = elapsedSince(state.phaseStart, now);
+
+  if (elapsed < state.phaseRemaining) {
+    return state;
+  }
+
   const nextRemaining =
     state.activePhase === SCHEDULER_PHASE.REWARD_GAME
       ? state.workSessionRemaining
@@ -113,29 +140,21 @@ export const evaluateScheduler = (state: SchedulerState, now: Date): SchedulerSt
 
   const decrementedState: SchedulerState = { ...state, workSessionRemaining: nextRemaining };
 
-  // If the work session is exhausted, your done go back to the before work session starts state
   if (nextRemaining <= 0) {
     return endWorkSession(decrementedState);
   }
 
-  // FOCUS_BLOCK → REWARD_GAME.
   if (state.activePhase === SCHEDULER_PHASE.FOCUS_BLOCK) {
     return startRewardGame(decrementedState, now);
   }
 
-  // REWARD_GAME → RECESS.
   if (state.activePhase === SCHEDULER_PHASE.REWARD_GAME) {
     return startRecess(decrementedState, now);
   }
 
-  // RECESS → next FOCUS_BLOCK
   if (state.activePhase === SCHEDULER_PHASE.RECESS) {
     return startFocusBlock(decrementedState, now);
   }
 
   return state;
 };
-
-// Pause/resume are intentionally no-ops: focus sessions are currently unpausable by design.
-export const pauseScheduler = (state: SchedulerState): SchedulerState => state;
-export const resumeScheduler = (state: SchedulerState): SchedulerState => state;

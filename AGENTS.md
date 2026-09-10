@@ -2,7 +2,7 @@
 
 > Always-on context for every agent session. Read `CONTEXT.md` before touching any file — it points to the canonical glossary, product rules, and architecture reference.
 
-Recess is a browser extension (Chrome + Safari, Manifest V3) that manages Work Sessions, Focus Blocks, Recesses, and Time Outs through a dynamic Scheduler.
+Recess is a browser extension (Chrome + Safari, Manifest V3) that manages Work Sessions, Focus Blocks, Recesses, and Pauses through a dynamic Scheduler.
 
 ---
 

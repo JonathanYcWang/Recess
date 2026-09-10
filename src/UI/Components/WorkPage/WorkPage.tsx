@@ -19,6 +19,7 @@ const WorkPage = () => {
         return <BeforeWorkSessionView />;
 
       case SCHEDULER_PHASE.FOCUS_BLOCK:
+      case SCHEDULER_PHASE.PAUSE:
         return <OngoingFocusSessionView />;
 
       case SCHEDULER_PHASE.REWARD_GAME:

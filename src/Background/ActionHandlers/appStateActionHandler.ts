@@ -6,6 +6,8 @@ import { generateReward } from '@/Background/Services/Reward/RewardService';
 import { computePhaseEndTime } from '@/Background/Services/Scheduler/SchedulerService';
 import {
   evaluateScheduler,
+  pauseScheduler,
+  resumeScheduler,
   startRecess,
   startWorkSession,
 } from '@/Background/Services/Scheduler/SchedulerService';
@@ -98,6 +100,14 @@ const applyAppAction = (
       blockList: state.blockList,
       scheduler: startWorkSession(now),
     };
+  }
+
+  if (action.type === APP_ACTION.PAUSE) {
+    return { ...state, scheduler: pauseScheduler(state.scheduler, now) };
+  }
+
+  if (action.type === APP_ACTION.RESUME) {
+    return { ...state, scheduler: resumeScheduler(state.scheduler, now) };
   }
 
   if (action.type === APP_ACTION.RECESS_PICKER_SELECT_RECESS) {

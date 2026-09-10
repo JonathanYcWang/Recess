@@ -63,7 +63,11 @@ export const isBlocked = (
     return false;
   }
 
-  if (activePhase === SCHEDULER_PHASE.FOCUS_BLOCK || activePhase === SCHEDULER_PHASE.REWARD_GAME) {
+  if (
+    activePhase === SCHEDULER_PHASE.FOCUS_BLOCK ||
+    activePhase === SCHEDULER_PHASE.PAUSE ||
+    activePhase === SCHEDULER_PHASE.REWARD_GAME
+  ) {
     return true;
   }
 

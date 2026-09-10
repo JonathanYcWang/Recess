@@ -1,6 +1,7 @@
 import Button from '@/UI/Components/Button/Button';
 import FocusTimer from '@/UI/Components/FocusTimer/FocusTimer';
 import { useTimer } from '@/UI/Hooks/useTimer';
+import { SCHEDULER_PHASE } from '@/Shared/Constants/Constants';
 import styles from './OngoingFocusSessionView.module.css';
 
 const ClockIcon = () => (
@@ -20,15 +21,15 @@ const GiftIcon = () => (
   </svg>
 );
 
-const CoffeeIcon = () => (
-  <svg className={styles.statusIcon} viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 8h12v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z" />
-    <path d="M16 10h1a3 3 0 0 1 0 6h-1" />
-    <path d="M6 2v3" />
-    <path d="M10 2v3" />
-    <path d="M14 2v3" />
-  </svg>
-);
+// const CoffeeIcon = () => (
+//   <svg className={styles.statusIcon} viewBox="0 0 24 24" aria-hidden="true">
+//     <path d="M4 8h12v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z" />
+//     <path d="M16 10h1a3 3 0 0 1 0 6h-1" />
+//     <path d="M6 2v3" />
+//     <path d="M10 2v3" />
+//     <path d="M14 2v3" />
+//   </svg>
+// );
 
 const formatDurationShort = (totalSeconds: number) => {
   const safeSeconds = Math.max(0, totalSeconds);
@@ -39,48 +40,51 @@ const formatDurationShort = (totalSeconds: number) => {
 };
 
 const OngoingFocusSessionView = () => {
-  const { endSessionEarly, phaseDuration, phaseRemaining, sessionRemaining } = useTimer();
+  const {
+    activePhase,
+    endSessionEarly,
+    pause,
+    resume,
+    pauseElapsed,
+    phaseDuration,
+    phaseRemaining,
+    sessionRemaining,
+  } = useTimer();
 
-  const nextRecessMinutes = Math.max(0, Math.ceil(phaseRemaining / 60));
+  const isPaused = activePhase === SCHEDULER_PHASE.PAUSE;
 
   return (
     <>
       <div className={styles.timerHeader}>
         <div className={styles.statusPill}>
-          <CoffeeIcon />
-          Work Session Left:{formatDurationShort(sessionRemaining)}
+          <ClockIcon />
         </div>
       </div>
 
       <FocusTimer
-        timer={phaseDuration}
-        remainingTimer={phaseRemaining}
-        label="Remaining"
-        description="Active Focus Session"
+        timer={isPaused ? pauseElapsed : phaseDuration}
+        remainingTimer={isPaused ? pauseElapsed : phaseRemaining}
+        label={isPaused ? 'Elapsed' : 'Remaining'}
+        description={isPaused ? 'Paused' : 'Active Focus Session'}
       />
 
       <div className={styles.summaryGrid}>
         <div className={styles.summaryCard}>
-          <div className={styles.iconBox}>
-            <ClockIcon />
+          <div className={styles.giftIconBox}>
+            <GiftIcon />
           </div>
           <div className={styles.summaryCopy}>
             <p className={styles.summaryLabel}>Total left today</p>
             <p className={styles.summaryValue}>{formatDurationShort(sessionRemaining)}</p>
           </div>
         </div>
-
-        <div className={`${styles.summaryCard} ${styles.rewardCard}`}>
-          <div className={`${styles.iconBox} ${styles.giftIconBox}`}>
-            <GiftIcon />
-          </div>
-          <div className={styles.summaryCopy}>
-            <p className={styles.summaryLabel}>Next Recess in {nextRecessMinutes}m</p>
-            <p className={styles.summaryValue}>5-min coffee break</p>
-          </div>
-        </div>
       </div>
 
+      {isPaused ? (
+        <Button text="Resume Focus" onClick={resume} variant="primary" />
+      ) : (
+        <Button text="Pause" onClick={pause} variant="secondary" />
+      )}
       <Button text="End Work Session Early" onClick={endSessionEarly} variant="tertiary" />
     </>
   );
