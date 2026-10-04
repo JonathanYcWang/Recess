@@ -90,13 +90,39 @@ counterparts (no `chrome.*`, single-writer rules, no `any`) are in
 
 ## 2. Layers and folder structure
 
+```
+src/
+├── Assets/            Animals/, Icons/
+├── Background/
+│   ├── ActionHandlers/     wire actions → services / storage / broadcast
+│   ├── Adapters/           TabAdapter, AlarmAdapter, ActionAdapter, Notification/
+│   ├── Broadcasters/       push APP_STATE_CHANGED
+│   ├── Repositories/       StorageRepository → browser.storage
+│   └── Services/           domain logic, one folder per domain
+│       ├── BlockListManagement/  Coin/  Reward/
+│       ├── Scheduler/            WorkStartReminder/
+├── Shared/
+│   ├── ActionBrokers/  ActionBroker → background (browser.runtime)
+│   ├── Constants/  Data/  Schema/  State/
+│   └── Types/  Utils/            (no deps on /UI or /Background)
+└── UI/
+    ├── Components/           24 components
+    ├── Hooks/
+    ├── Pages/                Home, Onboarding, PersonalizationQuiz, Quiz
+    ├── Redux/
+    │   ├── Selectors/        Quiz, RecessPicker, Scheduler
+    │   └── Slices/AppState/
+    ├── Styles/
+    └── Views/                6 views
+```
 
+81 TypeScript/TSX source files, excluding tests.
 
 ### Dependency chain
 
 ```
 /UI
-  Pages → Views → Components → Hooks
+  Pages → Components → Views → Hooks
     → Redux (read via selectors)
     → ActionBroker (sendAppAction / getAppState / subscribe)
 
@@ -106,12 +132,16 @@ counterparts (no `chrome.*`, single-writer rules, no `any`) are in
 
 /Background
   background.ts (message router)
+  content.ts (content script entrypoint; injected into every page)
   ActionHandlers (wire requests → services / storage / broadcast)
   Broadcasters (push APP_STATE_CHANGED)
   Services (domain logic; nested folders; no fixed inventory)
   Adapters (TabAdapter, AlarmAdapter, ActionAdapter, Notification/…)
   Repositories (StorageRepository → browser.storage)
 ```
+
+Note the UI order: `Components` import `Views`, not the reverse. `WorkPage`
+(a component) composes the views it needs.
 
 
 
@@ -261,12 +291,12 @@ Actions: `APP_ACTION` in `/Shared/Constants/Constants.ts`; `AppAction` union in 
 
 Tracked separately from this as-built rewrite. Do not treat these as already implemented.
 
-1. **ActionBroker owns Redux** — move hydrate/subscribe `setAppState` out of `main.tsx`; validate messages in ActionBroker; thin `background.ts`
-2. `browser.*` **everywhere** — migrate remaining `chrome.`* call sites
+1. **ActionBroker owns Redux** — move hydrate/subscribe `setAppState` out of `main.tsx`; validate messages in ActionBroker; thin `background.ts`. Still open as of 2026-10-04: `main.tsx:15` and `:19` both call `store.dispatch(setAppState(...))` directly.
+2. `browser.*` **everywhere** — migrate remaining `chrome.*` call sites. 12 remain across 4 files: `ActionBroker.ts` (4), `NotificationAdapter.ts` (5), `StorageRepository.ts` (2), `content.ts` (1). All are in directories where the rule permits them, so this is a polyfill migration, not a layering violation. `npm run verify` does not catch it; `sh scripts/hooks/check-architecture.sh --all` reports the `content.ts` site.
 3. **Storage fail-hard** — Zod throws on invalid persisted state; `browser.storage` only
 4. **ESLint** — enforce `consistent-type-assertions`
 5. **Thin TabAdapter** — enforcement *decisions* only in services
-6. **UI ↛ Background** — resolve TODOs in `useTimer.ts` and `schedulerSelectors.ts` (move helpers to `/Shared` or background-only paths)
+6. **UI ↛ Background** — resolve TODOs in `useTimer.ts` and `schedulerSelectors.ts` (move helpers to `/Shared` or background-only paths). Still open as of 2026-10-04: `useTimer.ts:12`, `useTimer.ts:19`, `schedulerSelectors.ts:2`. Reported by `sh scripts/hooks/check-architecture.sh`.
 7. **Domain Redux slices** — replace single `appState` slice; one selector module per slice
 8. **Constants folders** — split `Constants.ts` by domain under `/Shared/Constants/`
 9. **Quiz / Coin / WorkStartReminder** — actions and persistence still incomplete; leave until dedicated issues
