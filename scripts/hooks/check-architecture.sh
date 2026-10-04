@@ -43,30 +43,72 @@ report() {
   printf '      violates: %s\n' "$2"
 }
 
+# grep over the file list with -H so every hit is prefixed path:line even
+# when only one file matches. `$FILES` is whitespace-separated paths.
+g() {
+  # $1 = extended-regex flag (optional), $2 = pattern
+  if [ "${1:-}" = "-E" ]; then
+    shift
+    # shellcheck disable=SC2086
+    grep -HnE "$@" $FILES 2>/dev/null
+  else
+    # shellcheck disable=SC2086
+    grep -Hn "$@" $FILES 2>/dev/null
+  fi
+}
+
+# Same, but only over files whose path does NOT match the filter regex.
+# Filtering is done in the shell, not with `grep -v`: some grep
+# implementations (ugrep) apply -v to file contents rather than to the
+# argument list, which silently corrupts the file list.
+gf() {
+  _gf_list=""
+  for _f in $FILES; do
+    echo "$_f" | grep -qE "$1" || _gf_list="$_gf_list $_f"
+  done
+  [ -z "$_gf_list" ] && return
+  # shellcheck disable=SC2086
+  grep -Hn "$2" $_gf_list 2>/dev/null
+}
+
+# Inverse of gf: only over files whose path DOES match the filter regex.
+gi() {
+  _gi_list=""
+  for _f in $FILES; do
+    echo "$_f" | grep -qE "$1" && _gi_list="$_gi_list $_f"
+  done
+  [ -z "$_gi_list" ] && return
+  # shellcheck disable=SC2086
+  grep -Hn "$2" $_gi_list 2>/dev/null
+}
+
 echo ""
 echo "Architecture check (advisory - does not block commit)"
 echo "Scanning $(echo "$FILES" | wc -l | tr -d ' ') file(s)"
 echo ""
 
 # 1. chrome.* outside the permitted directories
-out=$(echo "$FILES" | grep -vE "$BROWSER_OK" | xargs grep -n '\bchrome\.' 2>/dev/null)
+out=$(gf "$BROWSER_OK" '\bchrome\.')
 report "$out" "all browser APIs use browser.*, never chrome.* (rule: rules/code-style.md)"
 
 # 2. storage writes outside /Background/Repositories
-out=$(echo "$FILES" | grep -v '^src/Background/Repositories/' | xargs grep -n 'storage\.\(local\|sync\|session\)\.\(set\|remove\|clear\)' 2>/dev/null)
+out=$(gf '^src/Background/Repositories/' 'storage\.\(local\|sync\|session\)\.\(set\|remove\|clear\)')
 report "$out" "StorageRepository is the only writer to browser storage"
 
 # 3. UI importing from Background
-out=$(echo "$FILES" | grep '^src/UI/' | xargs grep -n "from ['\"].*\.\./Background/\|from ['\"].*Background/" 2>/dev/null)
+#    Match only cross-layer paths: relative '../Background/' or the '@/Background/'
+#    alias. A bare '.*Background/' also matches Background's own internal
+#    imports, which are legal.
+out=$(gi '^src/UI/' "from ['\"].*\.\./Background/\|from ['\"]@/Background/")
 report "$out" "state flows one direction only; UI must not import Background"
 
 # 4. Shared importing from UI or Background
-out=$(echo "$FILES" | grep '^src/Shared/' | xargs grep -n "from ['\"].*\.\./\(UI\|Background\)/\|from ['\"].*/\(UI\|Background\)/" 2>/dev/null)
+out=$(gi '^src/Shared/' "from ['\"].*\.\./\(UI\|Background\)/\|from ['\"]@/\(UI\|Background\)/")
 report "$out" "/Shared must not depend on /UI or /Background"
 
 # 5. any / unknown / as casts
 #    `as` in an import/export alias is a rename, not a cast - exclude those.
-out=$(echo "$FILES" | xargs grep -nE ':\s*any\b|<any>|as unknown\b|\bas [A-Z][A-Za-z]*\b' 2>/dev/null \
+out=$(g -E ':\s*any\b|<any>|as unknown\b|\bas [A-Z][A-Za-z]*\b' \
   | grep -v '\.d\.ts:' \
   | grep -vE ':[0-9]+:import ' \
   | grep -vE ':[0-9]+:export \{' \
@@ -74,7 +116,7 @@ out=$(echo "$FILES" | xargs grep -nE ':\s*any\b|<any>|as unknown\b|\bas [A-Z][A-
 report "$out" "no any, unknown, or as casts - use type guards at boundaries"
 
 # 6. classes and function declarations
-out=$(echo "$FILES" | xargs grep -nE '^\s*(export\s+)?(abstract\s+)?class\s+|^\s*(export\s+)?(async\s+)?function\s+' 2>/dev/null)
+out=$(g -E '^\s*(export\s+)?(abstract\s+)?class\s+|^\s*(export\s+)?(async\s+)?function\s+')
 report "$out" "plain arrow functions only - no classes, no function declarations"
 
 if [ "$FOUND" = "1" ]; then

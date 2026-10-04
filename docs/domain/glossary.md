@@ -2,7 +2,7 @@
 
 > This glossary defines the intended product model. It does not indicate which behavior is currently implemented; inspect the code and tests to determine current behavior.
 
-The root `CONTEXT.md` is the compact source of canonical terms. This document expands those definitions with relationships and scenarios.
+This document is the canonical source of product terms. `CLAUDE.md` at the repo root is the compact index; this glossary expands the definitions with relationships and scenarios.
 
 ## Work rhythm
 
