@@ -46,6 +46,18 @@ Recess is a browser extension that manages Work Sessions, Focus Blocks, Recesses
 **Fail fast** — validate at storage and messaging boundaries; invalid storage shapes throw  
 **DRY** — one representation per piece of knowledge
 
+### Layer contracts
+
+These four are architectural, not stylistic. They carry rationale, so they
+live here rather than in `.claude/rules/code-style.md`. The mechanical
+counterparts (no `chrome.*`, single-writer rules, no `any`) are in
+`.claude/rules/code-style.md`.
+
+- **State flows one direction only** — background worker → ActionBroker → Redux → components. Each arrow is a single-writer boundary enforced by the rules above. A reverse hop reintroduces a second source of truth for the same state, which is the failure this whole layering exists to prevent.
+- **Business logic lives in services** — not in adapters, repositories, ActionHandlers wiring, utils, or the Redux layer. Adapters and repositories are I/O details; putting a domain rule in one makes it untestable without a browser.
+- **Call direction** — handlers, ActionBroker, and UI call services; services call adapters, repositories, and utils. Services may perform side effects by calling adapters or repositories; purity is preferred for isolated calculations, not required for every service function.
+- **`/Shared` depends on nothing** — no imports from `/UI` or `/Background`. `/Shared` is what both sides agree on, so a dependency there would make every layer circular.
+
 ### Success criteria
 
 **Testing**

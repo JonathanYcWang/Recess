@@ -5,3 +5,8 @@ npm run verify || {
   echo >&2 "Commit aborted: npm run verify failed."
   exit 1
 }
+
+# Architecture drift check. WARN ONLY - never blocks the commit.
+# Rationale: the codebase has a live backlog of violations. Blocking now would
+# strand work mid-refactor. Promote these to exit 1 once the backlog is clear.
+sh "$(dirname "$0")/check-architecture.sh" || true
