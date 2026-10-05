@@ -1,10 +1,12 @@
 # Recess Architecture Blueprint
 
 - **Status:** As-built with labeled follow-ups
-- **Updated:** 2026-08-16
+- **Updated:** 2026-10-04
 - **Scope:** Architecture, engineering standards, type safety, cross-browser packaging
 
 This document is the authoritative architecture reference for Recess. Structure, messaging, and layer rules describe the **current codebase** unless marked **Follow-up**.
+
+`docs/glossary.md` is the source of truth for product intent. Where this document and the glossary describe the same behaviour differently, the glossary wins and the difference is recorded in `docs/rename-plan.md`.
 
 Every implementation change still requires an approved issue, current code exploration, a decision-complete plan, tests, independent review, and human merge approval.
 
@@ -12,12 +14,11 @@ Every implementation change still requires an approved issue, current code explo
 
 ## 1. Mission & principles
 
-Recess is a browser extension that manages Work Sessions, Focus Blocks, Recesses, and Pauses through a dynamic Scheduler.
+Recess is a browser extension that manages Sessions, Focuses, Recesses, and Pauses through a dynamic Scheduler. A Session is composed of Phases; the four Phase types are Focus, Recess, Pause, and Reward Selection Phase.
 
 ### Vocabulary
 
-- **Domain terms** — `docs/domain/glossary.md`
-- **Product rules** — `docs/domain/rules.md`
+- **Domain terms** — `docs/glossary.md`
 
 **Browser / communication terms used in this doc:**
 
@@ -25,25 +26,40 @@ Recess is a browser extension that manages Work Sessions, Focus Blocks, Recesses
 - **Extension page** — full tab owned by the extension
 - **Background worker** — Manifest V3 service worker; owns application state; only writer to storage
 - **App action** — command from UI to background (`AppAction`)
-- **ActionBroker** — Shared messaging adapter (`/Shared/ActionBrokers`); sole caller of browser messaging APIs; sole writer to Redux (**Follow-up:** hydrate/subscribe still dispatch from `main.tsx` today)
+- **ActionBroker** — Shared messaging adapter (`/Shared/ActionBrokers`); sole caller of browser messaging APIs; sole writer to Redux (**Follow-up:** hydrate/subscribe still dispatch from `src/UI/main.tsx` today)
 - **Redux store** — read-only mirror of background state for the UI
 
+### Domain terms and code identifiers
 
+Code still carries the pre-rename vocabulary. Read this table instead of assuming the two match.
+
+| Domain term            | Code identifier                                                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Session                | `workSession*`, `WORK_SESSION_DURATION`, `startWorkSession`, `endWorkSession`                                                             |
+| Focus                  | `SCHEDULER_PHASE.FOCUS_BLOCK`, `computeFocusBlockDuration`                                                                                |
+| Reward Selection Phase | `SCHEDULER_PHASE.REWARD_GAME`; also the `Reward` interface, which means a Blocked List entry plus its unlock duration — **not** the Phase |
+| Recess                 | `SCHEDULER_PHASE.RECESS`, `recessPicker`                                                                                                  |
+| Pause                  | `SCHEDULER_PHASE.PAUSE`                                                                                                                   |
+| Blocked List           | `blockList`, `BlockListEntry`, `Services/BlockListManagement/`                                                                            |
+| Start Reminder         | `WorkStartReminder*`, `Services/WorkStartReminder/`                                                                                       |
+| Upcoming Notice        | `NOTIFY_TIME_LEFT_SECONDS`                                                                                                                |
+
+Ordered rename list and behavioural gaps: `docs/rename-plan.md`.
 
 ### Principles
 
-**SOLID** 
+**SOLID**
 
 - **Single Responsibility** — business logic, browser I/O, and UI rendering stay in separate layers
 - **Open/Closed** — extend by adding pieces; prefer composition over inheritance
 - **Liskov Substitution** — adapters for Chrome/Safari present the same surface to services
 - **Interface Segregation** — prefer narrow adapter/repository APIs
-- **Dependency Inversion** — domain rules live in services; adapters/repositories are details services call. Services must not call `browser.`*  directly. Injecting deps as function parameters is optional (use when it helps tests)
+- **Dependency Inversion** — domain rules live in services; adapters/repositories are details services call. Services must not call `browser.`\* directly. Injecting deps as function parameters is optional (use when it helps tests)
 
-**Single source of truth** — background owns state; storage owns persistence  
-**Immutability** — updates produce new state objects  
-**Idempotency** — repeated ops (e.g. close same tab) must be safe  
-**Fail fast** — validate at storage and messaging boundaries; invalid storage shapes throw  
+**Single source of truth** — background owns state; storage owns persistence
+**Immutability** — updates produce new state objects
+**Idempotency** — repeated ops (e.g. close same tab) must be safe
+**Fail fast** — validate at storage and messaging boundaries; invalid storage shapes throw
 **DRY** — one representation per piece of knowledge
 
 ### Layer contracts
@@ -86,8 +102,6 @@ counterparts (no `chrome.*`, single-writer rules, no `any`) are in
 
 ---
 
-
-
 ## 2. Layers and folder structure
 
 ```
@@ -106,7 +120,7 @@ src/
 │   ├── Constants/  Data/  Schema/  State/
 │   └── Types/  Utils/            (no deps on /UI or /Background)
 └── UI/
-    ├── Components/           24 components
+    ├── Components/           25 components
     ├── Hooks/
     ├── Pages/                Home, Onboarding, PersonalizationQuiz, Quiz
     ├── Redux/
@@ -117,6 +131,8 @@ src/
 ```
 
 81 TypeScript/TSX source files, excluding tests.
+
+Service and folder names carry pre-rename domain terms — see the mapping in Section 1.
 
 ### Dependency chain
 
@@ -142,8 +158,6 @@ src/
 
 Note the UI order: `Components` import `Views`, not the reverse. `WorkPage`
 (a component) composes the views it needs.
-
-
 
 ### Data flow
 
@@ -180,13 +194,9 @@ sequenceDiagram
     Hook->>Comp: re-render
 ```
 
-
-
-
+---
 
 ## 3. Type safety
-
-
 
 ### TypeScript
 
@@ -196,11 +206,11 @@ sequenceDiagram
 
 Do not use `any` or `unknown` in public interfaces/types. Untyped browser data must pass Zod or a type guard before use.
 
-ESLint: `@typescript-eslint/consistent-type-assertions` — unsafe `as` casts are errors (**Follow-up:** enforce in `eslint.config.js` if not already).
+ESLint: `@typescript-eslint/consistent-type-assertions` — unsafe `as` casts are errors. (**Follow-up:** the rule is not currently enabled in `eslint.config.js`.)
 
 ### Boundaries
 
-**Storage** — `StorageRepository` is the only reader/writer of `browser.storage.local` (`appState` key). Values pass Zod (`parsePersistedAppState`). As-built: invalid/missing → defaults. **Follow-up:** throw (fail fast). Never `chrome.storage` in new code — use `browser.storage` via the polyfill.
+**Storage** — `StorageRepository` is the only reader/writer of `browser.storage.local` (`appState` key). Values pass Zod (`parsePersistedAppState`). As-built: `safeParse` failure returns `createDefaultPersistedAppState()`. **Follow-up:** throw (fail fast). Never `chrome.storage` in new code — use `browser.storage` via the polyfill.
 
 **Messaging** — ActionBroker validates incoming runtime messages (e.g. `APP_STATE_CHANGED`) before updating Redux. Background request routing stays thin.
 
@@ -213,8 +223,6 @@ No `I` prefix. Names describe what they represent. Component prop types stay col
 
 ---
 
-
-
 ## 4. Cross-browser strategy
 
 Chrome and Safari from day one. Browser APIs behind adapters so services stay browser-agnostic.
@@ -225,17 +233,13 @@ Use `webextension-polyfill`. All adapters and ActionBroker use `browser.*` **onl
 
 ### API compatibility
 
-
 | API                     | Chrome | Safari | Notes                          |
 | ----------------------- | ------ | ------ | ------------------------------ |
-| `browser.tabs`          | ✅      | ✅      | `tabs` permission              |
-| `browser.storage.local` | ✅      | ✅      | No session storage             |
-| `browser.runtime`       | ✅      | ✅      | ActionBroker messaging         |
-| `browser.alarms`        | ✅      | ✅      | `AlarmAdapter`                 |
-| `browser.notifications` | ✅      | ✅      | When used for OS notifications |
-
-
-
+| `browser.tabs`          | ✅     | ✅     | `tabs` permission              |
+| `browser.storage.local` | ✅     | ✅     | No session storage             |
+| `browser.runtime`       | ✅     | ✅     | ActionBroker messaging         |
+| `browser.alarms`        | ✅     | ✅     | `AlarmAdapter`                 |
+| `browser.notifications` | ✅     | ✅     | When used for OS notifications |
 
 ### Manifest and packaging
 
@@ -254,13 +258,13 @@ UI sends typed commands; background is the only storage writer; UI refreshes fro
 
 ### ActionBroker
 
-| Function | Message | Purpose |
-| --- | --- | --- |
-| `sendAppAction(action)` | `APP_ACTION` | Request a state change |
-| `getAppState()` | `GET_APP_STATE` | Initial hydrate |
-| `subscribeToAppState(fn)` | `APP_STATE_CHANGED` | Keep Redux in sync |
+| Function                  | Message             | Purpose                |
+| ------------------------- | ------------------- | ---------------------- |
+| `sendAppAction(action)`   | `APP_ACTION`        | Request a state change |
+| `getAppState()`           | `GET_APP_STATE`     | Initial hydrate        |
+| `subscribeToAppState(fn)` | `APP_STATE_CHANGED` | Keep Redux in sync     |
 
-Today `main.tsx` dispatches `setAppState` on hydrate/subscribe (**Follow-up:** ActionBroker owns Redux writes).
+Today `src/UI/main.tsx` dispatches `setAppState` on hydrate/subscribe (**Follow-up:** ActionBroker owns Redux writes).
 
 ### Read path
 
@@ -268,7 +272,7 @@ UI never calls `browser.storage`. Only `StorageRepository.readAppState` reads th
 
 **UI hydrate (one-shot)**
 
-1. `main.tsx` → `getAppState()` → `{ type: 'GET_APP_STATE' }`
+1. `src/UI/main.tsx` → `getAppState()` → `{ type: 'GET_APP_STATE' }`
 2. `background.ts` → `handleGetAppState`
 3. `storageRepository.readAppState()` → optional `syncBlockListEnforcementFlags` (may write back) → return `PersistedAppState`
 4. `main.tsx` dispatches `setAppState`
@@ -287,18 +291,20 @@ Actions: `APP_ACTION` in `/Shared/Constants/Constants.ts`; `AppAction` union in 
 
 ---
 
-## 6. Follow-up (agreed alignment work)
+## 6. Scheduler behaviour as-built
 
-Tracked separately from this as-built rewrite. Do not treat these as already implemented.
+The glossary defines what the Scheduler must do. This section records what it does today. Gaps are listed in `docs/rename-plan.md`.
 
-1. **ActionBroker owns Redux** — move hydrate/subscribe `setAppState` out of `main.tsx`; validate messages in ActionBroker; thin `background.ts`. Still open as of 2026-10-04: `main.tsx:15` and `:19` both call `store.dispatch(setAppState(...))` directly.
-2. `browser.*` **everywhere** — migrate remaining `chrome.*` call sites. 12 remain across 4 files: `ActionBroker.ts` (4), `NotificationAdapter.ts` (5), `StorageRepository.ts` (2), `content.ts` (1). All are in directories where the rule permits them, so this is a polyfill migration, not a layering violation. `npm run verify` does not catch it; `sh scripts/hooks/check-architecture.sh --all` reports the `content.ts` site.
-3. **Storage fail-hard** — Zod throws on invalid persisted state; `browser.storage` only
-4. **ESLint** — enforce `consistent-type-assertions`
-5. **Thin TabAdapter** — enforcement *decisions* only in services
-6. **UI ↛ Background** — resolve TODOs in `useTimer.ts` and `schedulerSelectors.ts` (move helpers to `/Shared` or background-only paths). Still open as of 2026-10-04: `useTimer.ts:12`, `useTimer.ts:19`, `schedulerSelectors.ts:2`. Reported by `sh scripts/hooks/check-architecture.sh`.
-7. **Domain Redux slices** — replace single `appState` slice; one selector module per slice
-8. **Constants folders** — split `Constants.ts` by domain under `/Shared/Constants/`
-9. **Quiz / Coin / WorkStartReminder** — actions and persistence still incomplete; leave until dedicated issues
+**Phase durations** — fixed in `PHASE_DURATION`: Focus 25 minutes, Reward Selection Phase 60 seconds, Recess 5 minutes. The glossary makes only Recess Scheduler-determined (clamped 5–20 minutes).
 
-Phases 1–3 of the architecture cleanup map to items 1–8 above.
+**Session duration** — fixed at `WORK_SESSION_DURATION` (2 hours). The glossary specifies a user-declared duration as a multiple of Window.
+
+**Session clock** — `evaluateScheduler` decrements `workSessionRemaining` during Focus, Reward Selection Phase, and Recess. The glossary specifies the clock runs during Focus and Recess and **stops** during Reward Selection Phase.
+
+**Transitions** — Focus → Reward Selection Phase → Recess → Focus. A Recess is skipped when `workSessionRemaining` does not exceed the Recess duration, and the Session ends instead — matching the glossary's Finished Page rule.
+
+**Pause** — stops both clocks, preserves elapsed-time arithmetic, resumes into Focus. Matches the glossary.
+
+**Block enforcement** — `BlockListManagementService` and `TabAdapter`; enforcement flags are synced on state read.
+
+**Upcoming Notice** — fires once per Phase via `NOTIFY_TIME_LEFT_SECONDS` (300 seconds), gated on `phaseRemaining` in `useTimer.ts`. The glossary specifies a cue near the end of a Focus or Recess without a fixed duration.

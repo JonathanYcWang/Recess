@@ -1,6 +1,6 @@
 # Recess
 
-A focus and break manager that blocks distracting sites during declared work sessions and offers chance-based recovery between them.
+A focus and break manager that blocks distracting sites during declared Sessions and offers chance-based recovery between them.
 
 ## Documentation
 
@@ -10,13 +10,7 @@ A focus and break manager that blocks distracting sites during declared work ses
 
 ### Domain
 
-- [Glossary](docs/domain/glossary.md) — ubiquitous language for Work Sessions, Focus Blocks, Recesses, and related terms
-- [Domain rules](docs/domain/rules.md) — intended product rules and lifecycle constraints
-
-### Release and agents
-
-- [Branch protection](docs/release/branch-protection.md) — required GitHub settings and PR policy for `main`
-- [Issue tracker](docs/agents/issue-tracker.md) — how agents and humans work issues and PRs via `gh`
+- [Glossary](docs/glossary.md) — ubiquitous language for Sessions, Focuses, Recesses, and related terms
 
 ## Quick start
 

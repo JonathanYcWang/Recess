@@ -1,63 +1,59 @@
 # Recess
 
-## Overview
+Browser extension (Chrome + Safari, MV3) for focus through structured
+Sessions. Domain vocabulary is deliberately unusual — "Recess" means a break
+period, "Focus" a work interval, and both are in
+`docs/glossary.md`. Read it before touching domain logic.
 
-Browser extension (Chrome + Safari, Manifest V3) for focused work through
-structured Work Sessions. Enforces a Block List during Focus Blocks, runs a
-chance-based Reward Game to pick a Block List entry and Recess duration before
-each earned Recess, and adapts Focus Block and Recess durations dynamically
-through a Scheduler driven by the user's Energy and Work Session progress.
+## Architecture
 
-## Stack
+`docs/architecture.md` is authoritative for layer contracts, data flow, and
+rationale. Read it before any change that crosses a layer boundary.
 
-- Language: TypeScript 5.x
-- Framework: React 19 + Vite
-- Extension: Manifest V3, WebExtension polyfill (`browser.*`, never `chrome.*`)
-- Targets: Chromium and Safari (separate packaging paths)
-- Test runner: Vitest
-- Package manager: npm
+State flows one direction: background → ActionBroker → Redux → components.
+Three single-writer rules make that work (`StorageRepository` owns storage,
+`ActionBroker` owns Redux and messaging). They are load-bearing — a second
+writer to any of them breaks the flow permanently, so read
+`docs/architecture.md` §1 before touching them.
 
-## Commands
-
-- Install: `npm install`
-- Dev: `npm run dev`
-- Test: `npm test`
-- Lint: `npm run lint`
-- Format check: `npm run format:check`
-- Dead code: `npm run knip`
-- Build: `npm run build`
-- **Full gate: `npm run verify`** — format, lint, test, knip, build, and both
-  package targets. This runs in the pre-commit hook; it must pass before commit.
-
-## Layers
-
-```
-src/
-├── Background/    ActionHandlers, Adapters, Broadcasters, Repositories, Services
-├── Shared/        ActionBrokers, Constants, Data, Schema, State, Types, Utils
-├── UI/            Components, Hooks, Pages, Redux, Styles, Views
-└── Assets/
-```
-
-The background worker is the single source of truth and the only writer to
-storage. State flows one direction: background → ActionBroker → Redux →
-components.
+Code identifiers still carry pre-rename terms (`workSession*`,
+`FOCUS_BLOCK`, `REWARD_GAME`, `BlockList*`). `docs/architecture.md` §1 has the
+mapping, and `docs/rename-plan.md` has the ordered list to close the gap.
 
 ## Conventions
 
-Rules are not duplicated here. They load on demand:
+`.claude/rules/code-style.md` loads automatically for `src/**` and covers type
+safety, function shape, browser-API scoping, single-writer rules, layer
+contracts, and security boundaries. Do not restate it here.
 
-- **`.claude/rules/code-style.md`** — type safety, function shape, browser API
-  scoping, single-writer rules. Applies to `src/**`.
-- **`.claude/rules/testing.md`** — Vitest conventions. Applies to test files.
+Test conventions live in the `agent-skills:test-driven-development` skill.
+
+## What enforces what
+
+`npm run verify` is the quality gate and runs on commit — a failing step
+aborts the commit. It runs, in order: `format:check`, `lint`, `test`, `knip`,
+`build`, `package:chromium`, `package:safari`.
+
+The architecture check (`scripts/hooks/check-architecture.sh`) runs after it
+on commit and is **warn-only** — it reports and never blocks. Run it yourself
+with `sh scripts/hooks/check-architecture.sh --all`.
+
+The `Protect main` ruleset requires a PR and all three CI checks: `verify`,
+`package-chromium`, `package-safari`.
+
+## Skills
+
+Use these rather than writing new project commands:
+
+- `/review` — the pending diff: minimality → code review → layer drift → doc drift
+- `ponytail:ponytail` — minimality, already on for any code change
+- `agent-skills:plan` — planning features and refactors
+- `/security-review` — anything touching messaging, storage, or UI rendering
+- `agent-skills:test-driven-development` — test strategy
 
 ## Reference
 
-- `docs/architecture.md` — as-built architecture, layer contracts, data flow
-- `docs/domain/glossary.md` — canonical product terms
-- `docs/domain/rules.md` — product rules
-- `docs/release/branch-protection.md` — release process
-
-Read `docs/architecture.md` before changing anything that crosses a layer
-boundary. The layer contracts in its Principles section carry rationale that
-the mechanical rules depend on.
+- `docs/glossary.md` — canonical domain terms, source of truth for intent
+- `docs/architecture.md` — layer contracts, data flow
+- `docs/rename-plan.md` — terminology and behaviour gaps between the two
+- `README.md` — local run steps, packaging, CI gate details
