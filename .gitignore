@@ -24,3 +24,7 @@ build
 *.sln
 *.sw?
 
+# Claude Code personal config
+CLAUDE.local.md
+.claude/settings.local.json
+
